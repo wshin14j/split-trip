@@ -1915,11 +1915,13 @@ const App = {
     });
     // 公款帳餘額
     let fundRemain=0;
+    let hasFundActivity=false;
     if(fundMember){
       const totalIn=(t.fundDeposits||[]).reduce((s,d)=>s+toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
       const totalOut=Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'&&e.paidBy===fundMember.id)
         .reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,t.baseCurrency),0);
       fundRemain=totalIn-totalOut;
+      hasFundActivity=(t.fundDeposits||[]).length>0||totalOut>0;
     }
     const eid=this._editingMember;
     const sorted=[...t.members].sort((a,b)=>(b.isGroupFund?1:0)-(a.isGroupFund?1:0));
@@ -1929,7 +1931,8 @@ const App = {
         v=fundRemain;
         if(v>0.5){cls='receive';lbl=`餘額 ${fmt(v,t.baseCurrency)}`;}
         else if(v<-0.5){cls='owe';lbl=`缺口 ${fmt(-v,t.baseCurrency)}`;}
-        else{cls='ok';lbl='收支平衡 ✓';}
+        else{cls='ok';lbl=hasFundActivity?'收支平衡 ✓':'';}
+
       } else {
         v=peerBal[m.id]||0;
         if(v>0.5){cls='receive';lbl=`應收 ${fmt(v,t.baseCurrency)}`;}
