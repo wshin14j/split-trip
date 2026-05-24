@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html><body style="margin:0;background:#f5f6ff;">
+<div style="width:390px;height:320px;">
+<svg viewBox="0 0 390 320" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Sky: deep indigo night → violet → rose → golden sunset -->
+          <linearGradient id="g-sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1c0e42"/>
+            <stop offset="26%" stop-color="#5a1c78"/>
+            <stop offset="56%" stop-color="#c03868"/>
+            <stop offset="80%" stop-color="#e86028"/>
+            <stop offset="100%" stop-color="#f0a020"/>
+          </linearGradient>
+          <!-- Sun glow -->
+          <radialGradient id="g-sun" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#fff6a0"/>
+            <stop offset="35%" stop-color="#ffb040" stop-opacity="0.7"/>
+            <stop offset="70%" stop-color="#ff6010" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#ff3000" stop-opacity="0"/>
+          </radialGradient>
+          <!-- Mountain layers -->
+          <linearGradient id="g-mfar" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#d0a8c8" stop-opacity="0.45"/>
+            <stop offset="100%" stop-color="#9870b8" stop-opacity="0.6"/>
+          </linearGradient>
+          <linearGradient id="g-mmid" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#7050a8"/>
+            <stop offset="100%" stop-color="#4a3080"/>
+          </linearGradient>
+          <linearGradient id="g-mnear" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#382470"/>
+            <stop offset="100%" stop-color="#201440"/>
+          </linearGradient>
+          <!-- Ground/road -->
+          <linearGradient id="g-gnd" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#201440"/>
+            <stop offset="100%" stop-color="#120a28"/>
+          </linearGradient>
+          <linearGradient id="g-road" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3a2a60"/>
+            <stop offset="100%" stop-color="#201840"/>
+          </linearGradient>
+          <!-- Lake -->
+          <linearGradient id="g-lake" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e09090" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#8060b0" stop-opacity="0.35"/>
+          </linearGradient>
+          <!-- Van -->
+          <linearGradient id="g-vcream" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f5f2e2"/>
+            <stop offset="100%" stop-color="#dedad0"/>
+          </linearGradient>
+          <linearGradient id="g-vstipe" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#e85e28"/>
+            <stop offset="100%" stop-color="#c03810"/>
+          </linearGradient>
+        </defs>
+
+        <!-- ── SKY ── -->
+        <rect width="390" height="320" fill="url(#g-sky)"/>
+
+        <!-- Sun outer glow -->
+        <circle cx="195" cy="168" r="78" fill="url(#g-sun)"/>
+        <!-- Sun disc -->
+        <circle cx="195" cy="168" r="19" fill="#ffe060"/>
+        <circle cx="195" cy="168" r="13" fill="#fff6b0"/>
+
+        <!-- Stars -->
+        <circle cx="26" cy="13" r="1.5" fill="#fff" opacity="0.85"/>
+        <circle cx="56" cy="5"  r="1"   fill="#fff" opacity="0.7"/>
+        <circle cx="90" cy="20" r="1.2" fill="#fff" opacity="0.6"/>
+        <circle cx="136" cy="9" r="0.9" fill="#fff" opacity="0.5"/>
+        <circle cx="246" cy="12" r="1.4" fill="#fff" opacity="0.75"/>
+        <circle cx="286" cy="4"  r="1"   fill="#fff" opacity="0.65"/>
+        <circle cx="322" cy="18" r="1.2" fill="#fff" opacity="0.6"/>
+        <circle cx="360" cy="7"  r="0.9" fill="#fff" opacity="0.5"/>
+        <circle cx="42"  cy="40" r="1"   fill="#fff" opacity="0.4"/>
+        <circle cx="346" cy="42" r="1"   fill="#fff" opacity="0.4"/>
+
+        <!-- Crescent moon (upper-left) -->
+        <circle cx="54" cy="28" r="10" fill="#fff6cc" opacity="0.88"/>
+        <circle cx="59" cy="24" r="8.5" fill="#2c1268" opacity="0.92"/>
+
+        <!-- ── MOUNTAINS ── -->
+        <!-- Far (misty) -->
+        <path d="M-10 198 C14 160 46 174 78 148 C110 122 133 138 166 118
+                 C199 98 220 114 252 102 C284 90 308 106 340 96
+                 C362 89 380 102 410 94 L410 244 L-10 244Z"
+              fill="url(#g-mfar)"/>
+
+        <!-- Mid (snow caps) -->
+        <path d="M-10 223 C11 188 40 202 68 176 C96 150 118 165 148 146
+                 C178 127 200 141 231 126 C262 111 288 128 318 116
+                 C341 107 366 121 410 112 L410 266 L-10 266Z"
+              fill="url(#g-mmid)"/>
+        <!-- Snow caps -->
+        <path d="M68 176 L75 160 L82 176Z"   fill="#fff" opacity="0.55"/>
+        <path d="M148 146 L156 131 L164 146Z" fill="#fff" opacity="0.5"/>
+        <path d="M231 126 L239 111 L247 126Z" fill="#fff" opacity="0.45"/>
+        <path d="M318 116 L326 102 L334 116Z" fill="#fff" opacity="0.4"/>
+
+        <!-- Near (dark silhouette) -->
+        <path d="M-10 250 C13 218 37 232 61 210 C85 188 104 202 131 188
+                 C158 174 176 186 203 172 C230 158 250 172 276 160
+                 C302 148 324 162 350 151 C368 143 388 154 410 146
+                 L410 294 L-10 294Z"
+              fill="url(#g-mnear)"/>
+
+        <!-- ── LAKE ── -->
+        <ellipse cx="195" cy="270" rx="160" ry="20" fill="url(#g-lake)"/>
+        <ellipse cx="195" cy="266" rx="145" ry="11" fill="#f0b0be" opacity="0.17"/>
+        <!-- Sun streak reflection -->
+        <ellipse cx="195" cy="272" rx="14" ry="4" fill="#ffe060" opacity="0.46"/>
+        <rect x="193" y="264" width="5" height="13" rx="2.5" fill="#ffd040" opacity="0.2"/>
+
+        <!-- ── GROUND ── -->
+        <path d="M-10 256 Q64 250 130 253 Q195 257 260 250 Q328 244 410 250
+                 L410 320 L-10 320Z" fill="url(#g-gnd)"/>
+
+        <!-- ── ROAD (perspective) ── -->
+        <path d="M148 320 L172 256 L218 256 L242 320Z" fill="url(#g-road)" opacity="0.82"/>
+        <!-- Road centre dashes -->
+        <rect x="191" y="306" width="4" height="8" rx="2" fill="#5838a0" opacity="0.42"/>
+        <rect x="191" y="292" width="4" height="7" rx="2" fill="#5838a0" opacity="0.35"/>
+        <rect x="192" y="280" width="3" height="5" rx="1.5" fill="#5838a0" opacity="0.28"/>
+
+        <!-- ── FOREGROUND STRIP ── -->
+        <path d="M-10 283 Q84 277 195 280 Q306 277 410 283 L410 320 L-10 320Z"
+              fill="#110920"/>
+
+        <!-- ── LEFT PINE TREES ── -->
+        <rect x="14" y="222" width="7" height="68" rx="2.5" fill="#0c0718"/>
+        <path d="M17.5 222 L1 254 L34 254Z"  fill="#180e2c"/>
+        <path d="M17.5 209 L0 243 L35 243Z"  fill="#1e1238"/>
+        <path d="M17.5 196 L1 230 L34 230Z"  fill="#241644"/>
+        <path d="M17.5 184 L3 216 L32 216Z"  fill="#2a1a4e"/>
+
+        <rect x="40" y="230" width="6" height="60" rx="2" fill="#0c0718"/>
+        <path d="M43 230 L29 257 L57 257Z"   fill="#180e2c"/>
+        <path d="M43 218 L28 248 L58 248Z"   fill="#1e1238"/>
+        <path d="M43 206 L29 236 L57 236Z"   fill="#241644"/>
+
+        <rect x="64" y="242" width="5" height="46" rx="2" fill="#0c0718"/>
+        <path d="M66.5 242 L54 266 L79 266Z" fill="#180e2c"/>
+        <path d="M66.5 230 L53 258 L80 258Z" fill="#1e1238"/>
+        <path d="M66.5 220 L54 246 L79 246Z" fill="#241644"/>
+
+        <!-- ── RIGHT PINE TREES ── -->
+        <rect x="369" y="224" width="7" height="66" rx="2.5" fill="#0c0718"/>
+        <path d="M372.5 224 L356 255 L389 255Z" fill="#180e2c"/>
+        <path d="M372.5 211 L354 245 L391 245Z" fill="#1e1238"/>
+        <path d="M372.5 198 L356 232 L389 232Z" fill="#241644"/>
+        <path d="M372.5 186 L358 218 L387 218Z" fill="#2a1a4e"/>
+
+        <rect x="344" y="234" width="6" height="55" rx="2" fill="#0c0718"/>
+        <path d="M347 234 L333 261 L361 261Z"   fill="#180e2c"/>
+        <path d="M347 222 L332 252 L362 252Z"   fill="#1e1238"/>
+        <path d="M347 210 L333 240 L361 240Z"   fill="#241644"/>
+
+        <rect x="320" y="244" width="5" height="44" rx="2" fill="#0c0718"/>
+        <path d="M322.5 244 L311 267 L334 267Z" fill="#180e2c"/>
+        <path d="M322.5 232 L310 259 L335 259Z" fill="#1e1238"/>
+        <path d="M322.5 222 L311 246 L334 246Z" fill="#241644"/>
+
+        <!-- ── BUSHES ── -->
+        <ellipse cx="92"  cy="282" rx="17" ry="8"  fill="#180e2c"/>
+        <ellipse cx="80"  cy="280" rx="11" ry="6.5" fill="#1e1238"/>
+        <ellipse cx="298" cy="282" rx="15" ry="7"  fill="#180e2c"/>
+        <ellipse cx="310" cy="280" rx="10" ry="6"  fill="#1e1238"/>
+
+        <!-- ── VAN ── -->
+        <!-- Shadow -->
+        <ellipse cx="193" cy="294" rx="56" ry="5" fill="#000" opacity="0.22"/>
+
+        <!-- Luggage on roof rack -->
+        <rect x="148" y="218" width="80" height="9" rx="3" fill="#c45e18" opacity="0.9"/>
+        <rect x="148" y="218" width="80" height="3" rx="3" fill="#e07830" opacity="0.6"/>
+        <!-- Rack posts -->
+        <rect x="152" y="214" width="5" height="13" rx="2" fill="#9a4414"/>
+        <rect x="220" y="214" width="5" height="13" rx="2" fill="#9a4414"/>
+        <!-- Rack bar -->
+        <rect x="152" y="226" width="76" height="4" rx="2" fill="#b05218"/>
+
+        <!-- Roof (trapezoid, cream) -->
+        <path d="M138 246 L144 228 L222 228 L230 246Z" fill="url(#g-vcream)"/>
+
+        <!-- Body upper (cream) -->
+        <path d="M132 246 Q126 246 126 252 L126 268 L244 268 L244 252 Q244 246 238 246 Z"
+              fill="url(#g-vcream)"/>
+        <!-- Body lower (orange stripe) -->
+        <path d="M126 268 L126 286 Q126 292 132 292 L238 292 Q244 292 244 286 L244 268 Z"
+              fill="url(#g-vstipe)"/>
+        <!-- Divider line -->
+        <rect x="126" y="267" width="118" height="2" fill="#a83010"/>
+        <!-- Stripe highlight -->
+        <rect x="126" y="268" width="118" height="4" fill="#f07030" opacity="0.35"/>
+
+        <!-- Side windows (2) -->
+        <rect x="133" y="250" width="22" height="16" rx="3" fill="#88c4e4" opacity="0.9"/>
+        <rect x="160" y="250" width="22" height="16" rx="3" fill="#98d0f2" opacity="0.9"/>
+        <!-- Window glints -->
+        <rect x="135" y="252" width="9"  height="3" rx="1" fill="#d8f4ff" opacity="0.62"/>
+        <rect x="162" y="252" width="9"  height="3" rx="1" fill="#d8f4ff" opacity="0.62"/>
+
+        <!-- Cabin divider post -->
+        <rect x="184" y="246" width="4" height="28" fill="#c6c2b2"/>
+
+        <!-- Windshield (front right) -->
+        <path d="M188 246 L193 230 L232 230 L236 246Z" fill="#88bedd" opacity="0.88"/>
+        <!-- Windshield glare -->
+        <path d="M193 234 L196 231 L226 231 L228 238 L197 240Z" fill="#d8f2ff" opacity="0.36"/>
+
+        <!-- Front hood (cream) -->
+        <rect x="188" y="266" width="52" height="6" rx="0" fill="#dedad0"/>
+        <!-- Front lower (stripe continues) -->
+        <path d="M188 272 L188 286 Q188 292 194 292 L234 292 Q240 292 240 286 L240 272 Z"
+              fill="url(#g-vstipe)"/>
+        <!-- Front grille bar -->
+        <rect x="190" y="280" width="48" height="5" rx="0" fill="#98280a" opacity="0.55"/>
+
+        <!-- VW badge -->
+        <circle cx="214" cy="259" r="6"   fill="#f0ede0"/>
+        <circle cx="214" cy="259" r="4.5" fill="#e85e28"/>
+        <line x1="211" y1="257" x2="213.5" y2="262" stroke="#fff" stroke-width="1.2"/>
+        <line x1="213.5" y1="262" x2="216" y2="257" stroke="#fff" stroke-width="1.2"/>
+        <line x1="216" y1="257" x2="218" y2="261" stroke="#fff" stroke-width="1"/>
+
+        <!-- Headlight -->
+        <rect x="237" y="253" width="12" height="11" rx="3"  fill="#fff9d0" opacity="0.95"/>
+        <rect x="238" y="255" width="10" height="7"  rx="2"  fill="#ffee80"/>
+        <!-- Headlight glow -->
+        <path d="M249 259 L268 252 L269 265 L249 264Z" fill="#ffe850" opacity="0.1"/>
+        <!-- Turn signal -->
+        <rect x="237" y="266" width="12" height="7" rx="2.5" fill="#ff9020" opacity="0.82"/>
+
+        <!-- Door handle -->
+        <rect x="150" y="276" width="13" height="3.5" rx="1.75" fill="#c6c2b2" opacity="0.65"/>
+
+        <!-- ── WHEELS ── -->
+        <!-- Left wheel (cy=286, r=16 → bottom=302, OK) -->
+        <circle cx="153" cy="286" r="17" fill="#09060f"/>
+        <circle cx="153" cy="286" r="12" fill="#14102a"/>
+        <circle cx="153" cy="286" r="7"  fill="#201a3a"/>
+        <line x1="153" y1="279" x2="153" y2="293" stroke="#302848" stroke-width="2"/>
+        <line x1="146" y1="286" x2="160" y2="286" stroke="#302848" stroke-width="2"/>
+        <line x1="148" y1="281" x2="158" y2="291" stroke="#302848" stroke-width="1.5"/>
+        <line x1="148" y1="291" x2="158" y2="281" stroke="#302848" stroke-width="1.5"/>
+        <circle cx="153" cy="286" r="3.5" fill="#14102a"/>
+        <circle cx="153" cy="286" r="2"   fill="#443a68" opacity="0.8"/>
+
+        <!-- Right wheel -->
+        <circle cx="219" cy="286" r="17" fill="#09060f"/>
+        <circle cx="219" cy="286" r="12" fill="#14102a"/>
+        <circle cx="219" cy="286" r="7"  fill="#201a3a"/>
+        <line x1="219" y1="279" x2="219" y2="293" stroke="#302848" stroke-width="2"/>
+        <line x1="212" y1="286" x2="226" y2="286" stroke="#302848" stroke-width="2"/>
+        <line x1="214" y1="281" x2="224" y2="291" stroke="#302848" stroke-width="1.5"/>
+        <line x1="214" y1="291" x2="224" y2="281" stroke="#302848" stroke-width="1.5"/>
+        <circle cx="219" cy="286" r="3.5" fill="#14102a"/>
+        <circle cx="219" cy="286" r="2"   fill="#443a68" opacity="0.8"/>
+
+        <!-- Front bumper -->
+        <rect x="238" y="283" width="14" height="7" rx="3" fill="#82200a"/>
+      </svg>
+</div>
+</body></html>
