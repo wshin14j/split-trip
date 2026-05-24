@@ -206,7 +206,6 @@ select.input{
 }
 #s-home .top-bar{
   background:transparent;border-bottom:none;position:relative;z-index:2;
-  align-items:flex-start;padding:20px 24px 0;height:auto;
 }
 #s-home .scroll{
   background:transparent;position:relative;z-index:2;
@@ -299,9 +298,9 @@ select.input{
 
 <!-- ========== SCREEN 03 HOME ========== -->
 <div id="s-home" class="screen">
-  <div class="top-bar" style="padding:0 24px;">
-    <span style="font-size:18px;font-weight:800;color:var(--primary);letter-spacing:-.5px;flex:1;">RoamSplit</span>
-    <button class="icon-btn" style="background:var(--primary);color:#fff;border-radius:10px;width:34px;height:34px;font-size:22px;margin-right:8px;margin-top:6px;" onclick="App.showCreateTrip()">+</button>
+  <div class="landing-header" style="padding:20px 24px 0;flex-shrink:0;position:relative;z-index:2;">
+    <span class="landing-logo">RoamSplit</span>
+    <button class="icon-btn" style="background:var(--primary);color:#fff;border-radius:10px;width:34px;height:34px;font-size:22px;" onclick="App.showCreateTrip()">+</button>
   </div>
   <div class="scroll">
     <div class="sm semibold muted mb3">最近的旅程</div>
