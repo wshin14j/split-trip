@@ -3022,7 +3022,11 @@ const App = {
     const url=this._shareUrl(); if(!url) return;
     const t=loadTrip(this.tripId);
     if(navigator.share){
-      navigator.share({title:`${t?.name||'RoamSplit'} - 一起記帳`,url}).catch(()=>{});
+      navigator.share({
+        title:`${t?.name||'RoamSplit'} - 一起記帳`,
+        text:`📍 加入「${t?.name||''}」旅程，一起用 RoamSplit 記錄支出、自動分帳！`,
+        url
+      }).catch(()=>{});
     } else {
       this.copyMemberLink();
     }
