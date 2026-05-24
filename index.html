@@ -2001,10 +2001,10 @@ const App = {
             onkeydown="if(event.key==='Enter')App.addMember()" oninput="App.previewMemberAvatar(this.value)">
           <button class="btn btn-accent" style="height:44px;padding:0 18px;" onclick="App.addMember()">新增</button>
         </div>
-      </div>`:`<button type="button" onclick="App._showAddMember=true;App.renderTab();" class="btn btn-ghost btn-full" style="margin-top:4px;">＋ 新增成員</button>`;
+      </div>`:`<button type="button" onclick="App._showAddMember=true;App.renderTab();" class="btn btn-ghost btn-full" style="margin-top:16px;">＋ 新增成員</button>`;
     const _su=this._shareUrl();
     const _sd=_su?_su.replace(/^https?:\/\//,''):'';
-    const shareCard=_su?`<div class="card" style="padding:14px 16px;margin-top:12px;background:var(--surface);">
+    const shareCard=_su?`<div class="card" style="padding:14px 16px;margin-top:24px;background:var(--surface);">
       <div class="sm semibold mb1">邀請成員一同紀錄</div>
       <div class="xs muted mb2">傳送此連結給旅伴，大家就能一起記帳。<br><span style="color:#F59E0B;font-weight:600;">⚠ 請務必儲存連結，換裝置時需要它才能開啟此旅程。</span></div>
       <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:10px;">
