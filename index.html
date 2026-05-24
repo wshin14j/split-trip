@@ -955,8 +955,7 @@ const App = {
     const emptyEl=document.getElementById('home-empty');
 
     if(!ids.length){
-      listEl.innerHTML=''; emptyEl.style.display='block';
-      document.getElementById('home-count').textContent='0 個旅程'; return;
+      listEl.innerHTML=''; emptyEl.style.display='block'; return;
     }
     emptyEl.style.display='none';
     const html=ids.map(id=>{
@@ -971,7 +970,6 @@ const App = {
       </div>`;
     }).join('');
     listEl.innerHTML=html;
-    document.getElementById('home-count').textContent=`${ids.length} 個旅程`;
   },
 
   openTrip(id){this.tripId=id; this.tab='expenses'; this._myMemberId=DB.get('myMember_'+id)||null; this.go('trip');},
