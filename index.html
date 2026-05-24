@@ -1000,7 +1000,7 @@ const App = {
     document.getElementById('fab').style.display=this.tab==='expenses'?'flex':'none';
     this.renderTab();
     const _sc=document.querySelector('#s-trip .scroll');
-    if(_sc) requestAnimationFrame(()=>{_sc.scrollTop=0;setTimeout(()=>{_sc.scrollTop=0;},80);});
+    if(_sc){_sc.scrollTop=0;setTimeout(()=>{_sc.scrollTop=0;},350);}
   },
 
   switchTab(tab){this.tab=tab; this.renderTrip();},
@@ -2165,7 +2165,8 @@ const App = {
     if(t.members.some(m=>m.name===name)){this.showToast('這個名字已存在');return;}
     t.members.push({id:uid(),name,color:this._pickedColor||''});
     saveTrip(t); inp.value=''; this._pickedColor=''; this._showAddMember=false;
-    this.renderTrip(); this.showToast(`已新增 ${name}`);
+    document.activeElement?.blur();
+    setTimeout(()=>{this.renderTrip(); this.showToast(`已新增 ${name}`);},50);
   },
 
   removeMember(mid){
