@@ -1003,9 +1003,13 @@ const App = {
     const fo=document.getElementById('trip-filter-outer');
     if(so) so.style.display='none';
     if(fo) fo.style.display='none';
-    if(this.tab==='expenses') this.renderExpenses(t,c);
-    else if(this.tab==='settlement') this.renderSettlement(t,c);
-    else this.renderMembers(t,c);
+    try{
+      if(this.tab==='expenses') this.renderExpenses(t,c);
+      else if(this.tab==='settlement') this.renderSettlement(t,c);
+      else this.renderMembers(t,c);
+    }catch(e){
+      if(c) c.innerHTML=`<div style="padding:20px;color:red;font-size:12px;">渲染錯誤：${e.message}</div>`;
+    }
   },
 
   setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._reRenderSummary();},
