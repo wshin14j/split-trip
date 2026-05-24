@@ -306,7 +306,7 @@ select.input{
     <div class="sm semibold muted mb3">最近的旅程</div>
     <div id="trip-list"></div>
     <div id="home-empty" class="empty" style="display:none;">
-      <div class="empty-title">旅途尚未開始</div>
+      <div class="empty-title">- 旅途尚未開始 -</div>
       <div class="empty-sub" style="margin-top:12px;">準備好出發了嗎？<br>點右上角 ＋ 建立你的第一段旅程</div>
     </div>
   </div>
@@ -794,7 +794,7 @@ const DB = {
   set(k,v){localStorage.setItem(k,JSON.stringify(v));},
 };
 const loadAll = ()=>DB.get('st_trips')||{};
-const loadTrip = id=>(DB.get('st_trips')||{})[id]||null;
+const loadTrip = id=>{const t=(DB.get('st_trips')||{})[id]||null;if(t){t.members=t.members||[];t.expenses=t.expenses||{};}return t;};
 function saveTrip(t){const a=loadAll();a[t.id]=t;DB.set('st_trips',a);fbWrite(t.id,t);fbListen(t.id);}
 function delTrip(id){const a=loadAll();delete a[id];DB.set('st_trips',a);fbDelete(id);if(_es[id]){_es[id].close();delete _es[id];}}
 
