@@ -938,9 +938,10 @@ const App = {
 
   showToast(msg,dur=2200){
     const el=document.getElementById('toast');
-    el.textContent=msg; el.classList.add('show');
+    el.innerHTML=msg; el.classList.add('show');
     clearTimeout(this._tt); this._tt=setTimeout(()=>el.classList.remove('show'),dur);
   },
+  _esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
 
   openModal(id){document.getElementById(id)?.classList.add('open');},
   closeModal(id){document.getElementById(id)?.classList.remove('open');},
@@ -2231,7 +2232,7 @@ const App = {
     };
     saveTrip(trip); this.closeModal('m-create');
     this.tripId=trip.id; this.tab='members';
-    this.go('trip'); this.showToast(`「${name}」已建立！先去加成員 👥`);
+    this.go('trip'); this.showToast(`「${this._esc(name)}」已建立！先去加成員 <span style="filter:grayscale(1)">👥</span>`);
   },
 
   // ── ADD / EDIT EXPENSE ────────────────────────
