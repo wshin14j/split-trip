@@ -981,7 +981,6 @@ const App = {
   renderTrip(){
     const t=loadTrip(this.tripId);
     if(!t){this.go('home');return;}
-    const _sc=document.querySelector('#s-trip .scroll');if(_sc)_sc.scrollTop=0;
     document.getElementById('trip-name').textContent=t.name;
     document.getElementById('trip-sub').textContent=`${t.members.length} 位成員`;
     const used=new Set(['TWD']);
@@ -993,6 +992,8 @@ const App = {
     });
     document.getElementById('fab').style.display=this.tab==='expenses'?'flex':'none';
     this.renderTab();
+    const _sc=document.querySelector('#s-trip .scroll');
+    if(_sc) requestAnimationFrame(()=>{_sc.scrollTop=0;setTimeout(()=>{_sc.scrollTop=0;},80);});
   },
 
   switchTab(tab){this.tab=tab; this.renderTrip();},
