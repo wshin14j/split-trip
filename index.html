@@ -1993,9 +1993,20 @@ const App = {
           <button class="btn btn-accent" style="height:44px;padding:0 18px;" onclick="App.addMember()">新增</button>
         </div>
       </div>`:`<button type="button" onclick="App._showAddMember=true;App.renderTab();" class="btn btn-ghost btn-full" style="margin-top:4px;">＋ 新增成員</button>`;
+    const _su=this._shareUrl();
+    const _sd=_su?_su.replace(/^https?:\/\//,''):'';
+    const shareCard=_su?`<div class="card" style="padding:14px 16px;margin-top:12px;background:var(--surface);">
+      <div class="sm semibold mb1">邀請成員加入</div>
+      <div class="xs muted mb3">分享連結讓朋友開啟同一個旅程</div>
+      <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:8px 12px;">
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--accent);font-size:12px;">${_sd}</span>
+        <button type="button" onclick="App.copyMemberLink()" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:var(--primary);font-size:12px;font-weight:700;padding:0 4px;white-space:nowrap;">複製連結</button>
+      </div>
+    </div>`:'';
     c.innerHTML=`
       <div class="sm semibold muted mb3">${t.members.length} 位成員</div>
       ${rows}
+      ${shareCard}
       ${addForm}
       <div style="height:16px;"></div>`;
   },
@@ -2237,7 +2248,7 @@ const App = {
     };
     saveTrip(trip); this.closeModal('m-create');
     this.tripId=trip.id; this.tab='members';
-    this.go('trip'); this.showToast(`「${this._esc(name)}」已建立！先去加成員 <span style="filter:grayscale(1)">👥</span>`);
+    this.go('trip'); this.showToast(`「${this._esc(name)}」已建立！複製下方連結邀請朋友加入`);
   },
 
   // ── ADD / EDIT EXPENSE ────────────────────────
@@ -2996,6 +3007,12 @@ const App = {
     navigator.clipboard?.writeText(url)
       .then(()=>{this.closeModal('m-share');this.showToast('連結已複製！');})
       .catch(()=>{prompt('複製這個連結：',url);this.closeModal('m-share');});
+  },
+  copyMemberLink(){
+    const url=this._shareUrl(); if(!url) return;
+    navigator.clipboard?.writeText(url)
+      .then(()=>this.showToast('連結已複製！'))
+      .catch(()=>prompt('複製這個連結：',url));
   },
 
   shareLine(){
