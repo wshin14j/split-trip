@@ -14,7 +14,7 @@ body{
   background:#F9FAFB;color:#111827;min-height:100vh;
   max-width:390px;margin:0 auto;overflow-x:hidden;position:relative;
 }
-button,input,select{font-family:inherit;}
+button,input,select{font-family:inherit;touch-action:manipulation;}
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
 
@@ -770,7 +770,7 @@ const AVATAR_COLORS=[
   {id:'lsky',   bg:'#BAE6FD',text:'#0C4A6E'},   // 淺藍
   {id:'llav',   bg:'#DDD6FE',text:'#2E1065'},   // 淺紫
 ];
-const EMOJIS = ['✈️','🗺️','🏔️','🌸','🏖️','🗼','🏯','🌅','🎌','🌊','🚂','🎭','🌍','🏕️','🎒','🚢','🛺','🏝️','🌮','🥂','🎪','🏛️','🚵','🌺','🎿','🦁','🌴','🗽','🎠','🛸','🐘','🦒','🐬','🦜','🐧'];
+const EMOJIS = ['✈️','🗺️','🏔️','🏖️','🗼','🏯','🌅','🌊','🚂','🎭','🌍','🏕️','🎒','🚢','🛺','🏝️','🌮','🥂','🎪','🏛️','🚵','🎿','🗽','🎠','🛸','⛩️','🌸','🌺','🦁','🐘','🦒','🐬','🦜','🐧','🦩'];
 const ICONS = {
   '餐':'🍜','飯':'🍚','食':'🍽️','午':'🥗','晚':'🍜','早':'🥐','宵':'🌙',
   '車':'🚗','計':'🚖','巴':'🚌','火':'🚂','地':'🚇','飛':'✈️','船':'⛵',
@@ -998,6 +998,7 @@ const App = {
   renderTab(){
     const t=loadTrip(this.tripId);
     const c=document.getElementById('trip-content');
+    if(!t){if(c)c.innerHTML='<div class="muted" style="padding:20px;">找不到旅程資料</div>';return;}
     const so=document.getElementById('trip-summary-outer');
     const fo=document.getElementById('trip-filter-outer');
     if(so) so.style.display='none';
