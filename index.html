@@ -957,15 +957,19 @@ const App = {
     if(!ids.length){
       listEl.innerHTML=''; emptyEl.style.display='block'; return;
     }
+    const validIds=ids.filter(id=>all[id]&&all[id].name);
+    if(!validIds.length){
+      listEl.innerHTML=''; emptyEl.style.display='block'; return;
+    }
     emptyEl.style.display='none';
-    const html=ids.map(id=>{
+    const html=validIds.map(id=>{
       const t=all[id];
       const expCount=Object.keys(t.expenses||{}).length;
       return `<div class="card trip-card" onclick="App.openTrip('${id}')">
         <div class="trip-thumb">${t.emoji?.startsWith('data:')?`<img src="${t.emoji}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`:(t.emoji||'✈️')}</div>
         <div class="flex-1 min-w-0">
           <div class="base bold truncate">${t.name}</div>
-          <div class="xs muted mt1">${t.members.length} 位成員 · ${expCount} 筆支出</div>
+          <div class="xs muted mt1">${(t.members||[]).length} 位成員 · ${expCount} 筆支出</div>
         </div>
       </div>`;
     }).join('');
