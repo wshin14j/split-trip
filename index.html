@@ -981,6 +981,7 @@ const App = {
   renderTrip(){
     const t=loadTrip(this.tripId);
     if(!t){this.go('home');return;}
+    const _sc=document.querySelector('#s-trip .scroll');if(_sc)_sc.scrollTop=0;
     document.getElementById('trip-name').textContent=t.name;
     document.getElementById('trip-sub').textContent=`${t.members.length} 位成員`;
     const used=new Set(['TWD']);
@@ -1884,6 +1885,7 @@ const App = {
   // ── MEMBERS ───────────────────────────────────
   renderMembers(t,c){
     const payRecs=t.payRecords||[];
+    const hasExpenses=Object.keys(t.expenses||{}).length>0||payRecs.length>0;
     const fundMember=t.members.find(m=>m.isGroupFund)||null;
     // Peer balance：只計算非公款帳費用，邏輯同結算頁
     const peerBal={};
@@ -1932,7 +1934,7 @@ const App = {
         v=peerBal[m.id]||0;
         if(v>0.5){cls='receive';lbl=`應收 ${fmt(v,t.baseCurrency)}`;}
         else if(v<-0.5){cls='owe';lbl=`應付 ${fmt(-v,t.baseCurrency)}`;}
-        else{cls='ok';lbl='已平帳 ✓';}
+        else{cls='ok';lbl=hasExpenses?'已平帳 ✓':'';}
       }
       const isEditing=eid===m.id;
       const editPanel=isEditing?`<div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
