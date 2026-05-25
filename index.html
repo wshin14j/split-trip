@@ -1217,10 +1217,12 @@ const App = {
     const funnelBtn=hasAnyExps?`<button type="button" onclick="App.toggleFilter()" style="margin-left:auto;display:flex;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:2px 4px;flex-shrink:0;color:${funnelCol2};"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1.5 2h11L8 7.5v4l-2-1v-3L1.5 2Z" stroke="${funnelCol2}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><svg width="10" height="10" viewBox="0 0 10 10" style="transform:${fex?'rotate(180deg)':'rotate(0deg)'};transition:transform .2s;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="${funnelCol2}" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>`:'';
     const filterMembers=isGroup?[...t.members].sort((a,b)=>(b.isGroupFund?1:0)-(a.isGroupFund?1:0)):t.members.filter(m=>!m.isGroupFund);
     const mChipSty=(active)=>`height:26px;padding:0 10px;border-radius:6px;border:none;background:${active?'var(--accent)':'var(--surface)'};color:${active?'#fff':'var(--t1)'};font-size:12px;font-weight:${active?700:500};cursor:pointer;white-space:nowrap;`;
-    const memberChips=(filterMembers.length>1||hasAnyExps)?`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+    const memberChips=(filterMembers.length>1||hasAnyExps)?`<div style="display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
       ${filterMembers.length>1?`<span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;white-space:nowrap;">成員</span>
-      <button type="button" onclick="App._filterMember=null;App.renderTab();" style="${mChipSty(!fm)}">全部</button>
-      ${filterMembers.map(m=>`<button type="button" onclick="App.setFilterMember('${m.id}')" style="${mChipSty(fm===m.id)}">${m.name}</button>`).join('')}`:''}
+      <div style="flex:1;display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0;">
+        <button type="button" onclick="App._filterMember=null;App.renderTab();" style="${mChipSty(!fm)}">全部</button>
+        ${filterMembers.map(m=>`<button type="button" onclick="App.setFilterMember('${m.id}')" style="${mChipSty(fm===m.id)}">${m.name}</button>`).join('')}
+      </div>`:'<div style="flex:1;"></div>'}
       ${funnelBtn}
     </div>`:''
     return `<div id="exp-summary-box" style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:0;">
