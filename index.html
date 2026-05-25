@@ -1207,7 +1207,6 @@ const App = {
           <rect x="11.5" y="6" width="2.5" height="8" rx="0.7"/>
         </svg>
       </button>
-      ${funnelBtnE}
     </div>`;
     const regularCount=t.members.filter(m=>!m.isGroupFund).length||1;
     // Title area: member selected → show member context; else → show totals
@@ -1256,13 +1255,14 @@ const App = {
     const funcChipsHTML=(hasCashF||hasCardF||hasPendingF)?scrollRow('功能',funcArrF.join('')):'';
     const filterRows=fex?(catChipsHTML+funcChipsHTML):'';
     const memberChips=(filterMembers.length>1||viewExps.length>0)?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
-      ${filterMembers.length>1?`<div style="display:flex;align-items:center;gap:6px;">
-        <span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;white-space:nowrap;">成員</span>
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${filterMembers.length>1?`<span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;white-space:nowrap;">成員</span>
         <div class="member-chips-scroll" style="flex:1;display:flex;flex-wrap:nowrap;gap:6px;align-items:center;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-right:8px;">
           <button type="button" onclick="App._filterMember=null;App.renderTab();" style="${mChipSty(!fm)}">全部</button>
           ${filterMembers.map(m=>`<button type="button" onclick="App.setFilterMember('${m.id}')" style="${mChipSty(fm===m.id)}">${m.name}</button>`).join('')}
-        </div>
-      </div>`:''}
+        </div>`:'<div style="flex:1;"></div>'}
+        ${funnelBtnE}
+      </div>
       ${filterRows}
     </div>`:''
     return `<div id="exp-summary-box" style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:0;">
