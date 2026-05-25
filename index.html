@@ -1038,6 +1038,12 @@ const App = {
     }
   },
 
+  _isGroupExp(e,t){
+    if(e.splitMode==='self') return false;
+    const nfc=(t.members||[]).filter(m=>!m.isGroupFund).length;
+    const parts=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);
+    return parts.length>=nfc;
+  },
   setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this.renderTab();},
   setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);this._filterPending=false;this._filterPayMethod=null;this.renderTab();},
   setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this._filterPending=false;this.renderTab();},
@@ -1047,7 +1053,7 @@ const App = {
     const base=t.baseCurrency||'TWD';
     const bSym=(C[base]||C.TWD).sym;
     const isPersonal=this._summaryView==='personal';
-    const allExps=Object.values(t.expenses||{}).filter(e=>isPersonal?e.splitMode==='self':e.splitMode!=='self');
+    const allExps=Object.values(t.expenses||{}).filter(e=>isPersonal?!this._isGroupExp(e,t):this._isGroupExp(e,t));
     const buildSection=(label,exps,showRatio)=>{
       const total=exps.reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,base),0);
       const catTotals={};
@@ -1147,7 +1153,7 @@ const App = {
     const fm=this._filterMember;
     const fmMember=fm?t.members.find(m=>m.id===fm):null;
     // Filter expenses by view, then by member filter, then by category
-    let allExps=Object.values(t.expenses||{}).filter(e=>isGroup?e.splitMode!=='self':e.splitMode==='self');
+    let allExps=Object.values(t.expenses||{}).filter(e=>isGroup?this._isGroupExp(e,t):!this._isGroupExp(e,t));
     if(fm){
       allExps=allExps.filter(e=>{
         if(typeof e.paidBy==='string') return e.paidBy===fm;
@@ -1217,7 +1223,7 @@ const App = {
   // ── EXPENSES ──────────────────────────────────
   renderExpenses(t,c){
     const _isGroup=this._summaryView==='group';
-    const allExps=Object.entries(t.expenses||{}).filter(([,e])=>_isGroup?e.splitMode!=='self':e.splitMode==='self').sort((a,b)=>{
+    const allExps=Object.entries(t.expenses||{}).filter(([,e])=>_isGroup?this._isGroupExp(e,t):!this._isGroupExp(e,t)).sort((a,b)=>{
       const da=a[1].date||''; const db=b[1].date||'';
       return da>db?-1:da<db?1:(b[1].createdAt||0)-(a[1].createdAt||0);
     });
