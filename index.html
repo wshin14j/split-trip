@@ -2837,6 +2837,7 @@ const App = {
           this.showToast(`各人合計 ${total.toLocaleString()} ≠ 支出金額 ${amount.toLocaleString()}`);
           return;
         }
+        if(parts.some(pid=>!customAmounts[pid])){this.showToast('有成員金額為 0，請取消勾選或補填金額');return;}
       }
     }
     const t=loadTrip(this.tripId);
