@@ -1048,9 +1048,9 @@ const App = {
     return parts.length>=nfc;
   },
   setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this.renderTab();},
-  setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);this._filterPending=false;this._filterPayMethod=null;this.renderTab();},
-  setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this._filterPending=false;this.renderTab();},
-  setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterCat=null;this._filterPending=false;this.renderTab();},
+  setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);this.renderTab();},
+  setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this.renderTab();},
+  setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this.renderTab();},
   toggleFilter(){this._filterExpanded=!this._filterExpanded;this.renderTab();},
   openBreakdownModal(){
     const t=loadTrip(this.tripId); if(!t) return;
@@ -1253,7 +1253,7 @@ const App = {
     const hasCard=usedPayMethods.includes('信用卡');
     const funcAllActive=!fp&&!fpm;
     const funcBtns=[`<button type="button" onclick="App._filterPending=false;App._filterPayMethod=null;App.renderTab();" style="${chipStyle(funcAllActive)}">全部</button>`];
-    if(hasPending) funcBtns.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App._filterCat=null;App._filterMember=null;App._filterPayMethod=null;App.renderTab();" style="${chipStyle(fp,'#F97316')}">待補金額</button>`);
+    if(hasPending) funcBtns.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App.renderTab();" style="${chipStyle(fp,'#F97316')}">待補金額</button>`);
     if(hasCash) funcBtns.push(`<button type="button" onclick="App.setFilterPayMethod('現金')" style="${chipStyle(fpm==='現金')}">現金</button>`);
     if(hasCard) funcBtns.push(`<button type="button" onclick="App.setFilterPayMethod('信用卡')" style="${chipStyle(fpm==='信用卡')}">信用卡</button>`);
     const funcRow=`<div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
