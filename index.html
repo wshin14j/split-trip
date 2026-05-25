@@ -1038,9 +1038,10 @@ const App = {
     }
   },
 
-  setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this.renderTab();},
-  setFilterCat(cat){this._filterCat=this._filterCat===cat?null:cat;this._filterPending=false;this.renderTab();},
+  setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this.renderTab();},
+  setFilterCat(cat){this._filterCat=this._filterCat===cat?null:cat;this._filterPending=false;this._filterPayMethod=null;this.renderTab();},
   setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this._filterPending=false;this.renderTab();},
+  setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterCat=null;this._filterPending=false;this.renderTab();},
   openBreakdownModal(){
     const t=loadTrip(this.tripId); if(!t) return;
     const base=t.baseCurrency||'TWD';
@@ -1155,6 +1156,7 @@ const App = {
       });
     }
     if(fc) allExps=allExps.filter(e=>normCat(e.category||'其他')===fc);
+    if(this._filterPayMethod) allExps=allExps.filter(e=>e.payMethod===this._filterPayMethod);
     const total=allExps.reduce((sum,e)=>{
       const amt=e.note==='金額待補'?0:(fm&&typeof e.paidBy==='object'&&e.paidBy!==null?(e.paidBy[fm]||0):e.amount);
       return sum+toBase(amt,e.currency,t.rates,t.baseCurrency);
@@ -1226,17 +1228,25 @@ const App = {
     const fc=this._filterCat;
     const fp=this._filterPending;
     const fm=this._filterMember;
-    const isFiltered=fc||fp||!!fm;
-    const clearAll=`App._filterCat=null;App._filterPending=false;App._filterMember=null;App.renderTab();`;
+    const fpm=this._filterPayMethod;
+    const isFiltered=fc||fp||!!fm||!!fpm;
+    const clearAll=`App._filterCat=null;App._filterPending=false;App._filterMember=null;App._filterPayMethod=null;App.renderTab();`;
     const isGroup=this._summaryView==='group';
     const rowLabel=(txt)=>`<span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;line-height:28px;margin-right:6px;white-space:nowrap;">${txt}</span>`;
     const chipStyle=(active,color)=>`height:28px;padding:0 12px;border-radius:6px;border:none;background:${active?(color||'var(--accent)'):'var(--surface)'};color:${active?'#fff':'var(--t1)'};font-size:13px;font-weight:${active?700:500};cursor:pointer;white-space:nowrap;`;
     const catChips=usedCats.map(cat=>`<button type="button" onclick="App.setFilterCat('${cat}')" style="${chipStyle(fc===cat)}">${cat}</button>`).join('');
     const clearBtn=isFiltered?`<button type="button" onclick="${clearAll}" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap;text-decoration:underline;">清除篩選</button>`:'';
     const hasPending=allExps.some(([,e])=>e.note==='金額待補');
-    const funcRow=hasPending?`<div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+    const usedPayMethods=[...new Set(allExps.map(([,e])=>e.payMethod).filter(Boolean))];
+    const hasCash=usedPayMethods.includes('現金');
+    const hasCard=usedPayMethods.includes('信用卡');
+    const funcBtns=[];
+    if(hasPending) funcBtns.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App._filterCat=null;App._filterMember=null;App._filterPayMethod=null;App.renderTab();" style="${chipStyle(fp,'#F97316')}">待補金額</button>`);
+    if(hasCash) funcBtns.push(`<button type="button" onclick="App.setFilterPayMethod('現金')" style="${chipStyle(fpm==='現金')}">現金</button>`);
+    if(hasCard) funcBtns.push(`<button type="button" onclick="App.setFilterPayMethod('信用卡')" style="${chipStyle(fpm==='信用卡')}">信用卡</button>`);
+    const funcRow=funcBtns.length?`<div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
         ${rowLabel('功能')}
-        <button type="button" onclick="App._filterPending=!App._filterPending;App._filterCat=null;App._filterMember=null;App.renderTab();" style="${chipStyle(fp,'#F97316')}">待補金額</button>
+        ${funcBtns.join('')}
       </div>`:'';
     const filterBar=`<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;padding:10px 0;">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -1261,6 +1271,7 @@ const App = {
     }
     if(fp) exps=exps.filter(([,e])=>e.note==='金額待補');
     else if(fc) exps=exps.filter(([,e])=>normCat(e.category||'其他')===fc);
+    if(fpm) exps=exps.filter(([,e])=>e.payMethod===fpm);
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     let lastDate='';
