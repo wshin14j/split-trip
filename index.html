@@ -1241,7 +1241,7 @@ const App = {
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     let lastDate='';
-    if(!allExps.length){c.innerHTML=`<div class="empty"><div class="empty-title">還沒有支出記錄</div><div class="empty-sub">點右下角 + 新增第一筆</div></div>`;return;}
+    if(!allExps.length){c.innerHTML=`<div class="empty"><div class="empty-title">目前尚無支出記錄</div><div class="empty-sub">點右下角 + 新增第一筆</div></div>`;return;}
     c.innerHTML=(exps.length?exps.map(([id,e])=>{
       const payer=typeof e.paidBy==='object'&&e.paidBy!==null?null:t.members.find(m=>m.id===e.paidBy);
       const payerName=typeof e.paidBy==='object'&&e.paidBy!==null?'多人':((payer?.name||'?').slice(0,2));
