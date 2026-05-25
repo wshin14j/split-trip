@@ -607,6 +607,7 @@ select.input{
       <input id="in-exp-note" class="input" type="text" placeholder="選擇下方標籤自動帶入 或 自行輸入">
       <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;">
         <button type="button" onclick="App.pickNote(this,'金額待補')" class="note-chip" style="display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1.5px solid var(--border);background:#fff;font-size:11px;color:var(--t1);cursor:pointer;white-space:nowrap;">金額待補</button>
+        <button type="button" onclick="App.pickNote(this,'代購代付')" class="note-chip" style="display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1.5px solid var(--border);background:#fff;font-size:11px;color:var(--t1);cursor:pointer;white-space:nowrap;">代購代付</button>
         <button type="button" onclick="App.pickNote(this,'含小費')" class="note-chip" style="display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1.5px solid var(--border);background:#fff;font-size:11px;color:var(--t1);cursor:pointer;white-space:nowrap;">含小費</button>
         <button type="button" onclick="App.pickNote(this,'含城市住宿稅')" class="note-chip" style="display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1.5px solid var(--border);background:#fff;font-size:11px;color:var(--t1);cursor:pointer;white-space:nowrap;">含城市住宿稅</button>
         <button type="button" onclick="App.pickNote(this,'含入湯稅')" class="note-chip" style="display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;border:1.5px solid var(--border);background:#fff;font-size:11px;color:var(--t1);cursor:pointer;white-space:nowrap;">含入湯稅</button>
@@ -2561,9 +2562,12 @@ const App = {
     const cur=document.getElementById('in-exp-cur')?.value||'TWD';
     const sym=(C[cur]||C.TWD).sym;
     if(!parts.length){box.innerHTML='';return;}
-    if(parts.length===1){box.innerHTML=`<div style="background:#FFF7ED;border-radius:12px;padding:10px 14px;font-size:13px;color:#F97316;font-weight:600;">⚠️ 只有 1 人分攤，等同自購 — 僅記錄支出，不計入分帳</div>`;return;}
-    if(this.splitMode!=='proportion'&&(!amt||isNaN(amt))){box.innerHTML='';return;}
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
+    if(parts.length===1){
+      if(parts[0]===_payerId){box.innerHTML=`<div style="background:#FFF7ED;border-radius:12px;padding:10px 14px;font-size:13px;color:#F97316;font-weight:600;">⚠️ 只有 1 人分攤，等同自購 — 僅記錄支出，不計入分帳</div>`;return;}
+      else{box.innerHTML=`<div style="background:#FFF7ED;border-radius:12px;padding:10px 14px;font-size:13px;color:#F97316;font-weight:600;">⚠️ ${mName(_payerId)} 代付，${mName(parts[0])} 須還款給 ${mName(_payerId)}</div>`;return;}
+    }
+    if(this.splitMode!=='proportion'&&(!amt||isNaN(amt))){box.innerHTML='';return;}
     if(this.splitMode==='equal'){
       const sh=amt/parts.length;
       const shFmt=fmtNum(sh);
@@ -2636,6 +2640,10 @@ const App = {
         </div>
       </div>`;
       this.updateCustomTotal();
+    }
+    // 代付提醒：多人分攤且付款人不在分攤對象中
+    if(parts.length>1&&_payerId&&!parts.includes(_payerId)){
+      box.innerHTML+=`<div style="background:#FFF7ED;border-radius:12px;padding:10px 14px;font-size:13px;color:#F97316;font-weight:600;margin-top:8px;">⚠️ ${mName(_payerId)} 不在分攤對象中，請確認是否為代付</div>`;
     }
   },
 
