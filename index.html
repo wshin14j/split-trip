@@ -704,6 +704,7 @@ select.input{
           <select id="fund-dep-cur" class="input"></select>
         </div>
       </div>
+      <div style="font-size:12px;color:var(--t2);margin-top:4px;">如需其他貨幣請至 <button type="button" onclick="App.closeModal('m-fund-deposit');App.go('rates');" style="background:none;border:none;padding:0;font-size:12px;color:var(--accent);text-decoration:underline;cursor:pointer;">匯率設定</button> 增加</div>
       <div>
         <label class="form-label">日期</label>
         <input id="fund-dep-date" class="input" type="date">
@@ -1314,7 +1315,7 @@ const App = {
         </div>
         ${expandedDetail}
       </div>`;
-    }).join(''):`<div style="padding:20px 4px;text-align:center;font-size:13px;color:var(--t2);">此類別沒有記錄</div>`)+'<div style="display:flex;align-items:center;gap:10px;padding:56px 16px 80px;"><div style="flex:1;height:1px;background:linear-gradient(to right,transparent,var(--border));"></div><span style="color:var(--border);font-size:10px;flex-shrink:0;white-space:nowrap;letter-spacing:0.3px;">Roam together. ◆ Split easier.</span><div style="flex:1;height:1px;background:linear-gradient(to left,transparent,var(--border));"></div></div>';
+    }).join(''):`<div style="padding:20px 4px;text-align:center;font-size:13px;color:var(--t2);">此類別沒有記錄</div>`)+'<div style="display:flex;align-items:center;gap:10px;padding:56px 16px 80px;"><div style="flex:1;height:1px;background:linear-gradient(to right,transparent,var(--border));"></div><span style="color:var(--border);font-size:12px;flex-shrink:0;white-space:nowrap;letter-spacing:0.3px;">Roam together ◆ Split easier</span><div style="flex:1;height:1px;background:linear-gradient(to left,transparent,var(--border));"></div></div>';
   },
 
   // ── SETTLEMENT ────────────────────────────────
@@ -1586,7 +1587,7 @@ const App = {
     const txHtml=origTxs.length===0
       ?(hasExps
         ?`<div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">大家都平帳了！</div><div class="empty-sub">旅行的帳順利結清</div></div>`
-        :`<div class="card" style="padding:16px;text-align:center;color:var(--t2);font-size:14px;">目前尚無支出記錄，<br>請先到『支出頁』新增旅程第一筆費用</div>`)
+        :`<div class="card" style="padding:16px;text-align:center;color:var(--t2);font-size:13px;">目前尚無支出記錄，<br>請先到『支出頁』新增旅程第一筆費用</div>`)
       :debtCards;
 
     const balRows=t.members.map(m=>{
@@ -1774,7 +1775,7 @@ const App = {
       <div class="sm semibold muted mb3">債務關係</div>
       ${txHtml}
       ${memberSummary}
-      <div style="display:flex;align-items:center;gap:10px;padding:56px 16px 80px;"><div style="flex:1;height:1px;background:linear-gradient(to right,transparent,var(--border));"></div><span style="color:var(--border);font-size:10px;flex-shrink:0;white-space:nowrap;letter-spacing:0.3px;">Roam together. ◆ Split easier.</span><div style="flex:1;height:1px;background:linear-gradient(to left,transparent,var(--border));"></div></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:56px 16px 80px;"><div style="flex:1;height:1px;background:linear-gradient(to right,transparent,var(--border));"></div><span style="color:var(--border);font-size:12px;flex-shrink:0;white-space:nowrap;letter-spacing:0.3px;">Roam together ◆ Split easier</span><div style="flex:1;height:1px;background:linear-gradient(to left,transparent,var(--border));"></div></div>
       `;
   },
 
