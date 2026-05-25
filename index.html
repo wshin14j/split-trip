@@ -1726,8 +1726,9 @@ const App = {
       if(!hasExps) return '';
       const spent={}, paid={};
       const inclPersonal=this._summaryIncludePersonal;
-      const selfSpent={}, groupFundSpent={}, groupPeerSpent={};
-      t.members.forEach(m=>{spent[m.id]=0;paid[m.id]=0;selfSpent[m.id]=0;groupFundSpent[m.id]=0;groupPeerSpent[m.id]=0;});
+      const selfSpent={}, groupFundSpent={}, groupPeerSpent={}, partialPeerSpent={};
+      t.members.forEach(m=>{spent[m.id]=0;paid[m.id]=0;selfSpent[m.id]=0;groupFundSpent[m.id]=0;groupPeerSpent[m.id]=0;partialPeerSpent[m.id]=0;});
+      const regularIds=t.members.filter(m=>!m.isGroupFund).map(m=>m.id);
       Object.values(t.expenses||{}).forEach(e=>{
         const isSelf=e.splitMode==='self';
         if(isSelf&&!inclPersonal) return;
@@ -1739,26 +1740,29 @@ const App = {
         } else {
           const ps=e.parts||t.members.map(m=>m.id);
           const isFundPaid=fundMember&&typeof e.paidBy==='string'&&e.paidBy===fundMember.id;
+          const isFullGroup=!isFundPaid&&regularIds.every(id=>ps.includes(id));
           // paid
           if(typeof e.paidBy==='object'&&e.paidBy!==null){
             Object.entries(e.paidBy).forEach(([id,v])=>{if(paid[id]!==undefined) paid[id]+=toBase(v,e.currency,t.rates,t.baseCurrency);});
           } else {
             if(paid[e.paidBy]!==undefined) paid[e.paidBy]+=tot;
           }
-          // spent (share) + fund/peer split
+          // spent (share) + fund/peer/partial split
           if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts){
             ps.forEach(p=>{
               const sh=toBase(e.customAmounts[p]||0,e.currency,t.rates,t.baseCurrency);
               if(spent[p]!==undefined) spent[p]+=sh;
               if(isFundPaid){if(groupFundSpent[p]!==undefined)groupFundSpent[p]+=sh;}
-              else{if(groupPeerSpent[p]!==undefined)groupPeerSpent[p]+=sh;}
+              else if(isFullGroup){if(groupPeerSpent[p]!==undefined)groupPeerSpent[p]+=sh;}
+              else{if(partialPeerSpent[p]!==undefined)partialPeerSpent[p]+=sh;}
             });
           } else {
             const sh=tot/ps.length;
             ps.forEach(p=>{
               if(spent[p]!==undefined) spent[p]+=sh;
               if(isFundPaid){if(groupFundSpent[p]!==undefined)groupFundSpent[p]+=sh;}
-              else{if(groupPeerSpent[p]!==undefined)groupPeerSpent[p]+=sh;}
+              else if(isFullGroup){if(groupPeerSpent[p]!==undefined)groupPeerSpent[p]+=sh;}
+              else{if(partialPeerSpent[p]!==undefined)partialPeerSpent[p]+=sh;}
             });
           }
         }
@@ -1811,6 +1815,7 @@ const App = {
         const div='<div style="border-top:1px solid var(--border);margin:4px 0;"></div>';
         const fsp=groupFundSpent[m.id]||0;
         const psp=groupPeerSpent[m.id]||0;
+        const ppsp=partialPeerSpent[m.id]||0;
         const personalSp=selfSpent[m.id]||0;
         const expandedRows=isExp?`
           <div style="margin-top:4px;">
@@ -1818,7 +1823,8 @@ const App = {
             ?`${psp>0.5?`<div style="${rStyle}"><span>群組花費－一般支出</span><span>${fmtS(psp)}</span></div>`:''}
                ${fsp>0.5?`<div style="${rStyle}"><span>群組花費－公費支出</span><span>${fmtS(fsp)}</span></div>`:''}`
             :`<div style="${rStyle}"><span>群組花費</span><span>${fmtS(psp)}</span></div>`}
-          ${inclPersonal?`<div style="${rStyle}"><span>個人花費</span><span>${fmtS(personalSp)}</span></div>`:''}
+          ${inclPersonal&&ppsp>0.5?`<div style="${rStyle}"><span>個人花費－部分成員</span><span>${fmtS(ppsp)}</span></div>`:''}
+          ${inclPersonal&&personalSp>0.5?`<div style="${rStyle}"><span>個人花費－自購</span><span>${fmtS(personalSp)}</span></div>`:''}
           ${fp>0.5?`${div}<div style="${rStyle}"><span>已付公費</span><span>${fmtS(fp)}</span></div>`:''}
           ${div}<div style="${rStyle}"><span>支出已付</span><span>${fmtS(pd)}</span></div>${tp>0.5?`<div style="${rStyle}"><span>轉帳已付</span><span>${fmtS(tp)}</span></div>`:''}
           </div>`:'';
