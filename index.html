@@ -1103,7 +1103,7 @@ const App = {
         ${ratioHtml}
       </div><div style="height:1px;background:var(--border);margin:16px 0;"></div>`;
     };
-    let html=buildSection('總計',allExps,true);
+    let html=buildSection('總支出',allExps,true);
     if(isPersonal){
       const selfMemberTotals=t.members.filter(m=>!m.isGroupFund).map(m=>{
         const mExps=allExps.filter(e=>e.paidBy===m.id);
@@ -1123,7 +1123,7 @@ const App = {
       allMemberTotals.forEach(({m,mExps})=>{html+=buildSection(m.name||'公款帳',mExps,false);});
     }
     const titleEl=document.getElementById('m-breakdown-title');
-    if(titleEl) titleEl.textContent=isPersonal?'個人支出分析':'支出分析';
+    if(titleEl) titleEl.textContent=isPersonal?'個人支出分析':'群組支出分析';
     const body=document.getElementById('m-breakdown-body');
     if(!body) return;
     body.innerHTML=html;
