@@ -1045,7 +1045,8 @@ const App = {
     const t=loadTrip(this.tripId); if(!t) return;
     const base=t.baseCurrency||'TWD';
     const bSym=(C[base]||C.TWD).sym;
-    const allGroupExps=Object.values(t.expenses||{}).filter(e=>e.splitMode!=='self');
+    const isPersonal=this._summaryView==='personal';
+    const allExps=Object.values(t.expenses||{}).filter(e=>isPersonal?e.splitMode==='self':e.splitMode!=='self');
     const buildSection=(label,exps,showRatio)=>{
       const total=exps.reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,base),0);
       const catTotals={};
@@ -1064,7 +1065,7 @@ const App = {
       let ratioHtml='';
       if(showRatio){
         const mp={};t.members.forEach(m=>{mp[m.id]=0;});
-        allGroupExps.forEach(e=>{
+        allExps.forEach(e=>{
           const tot=toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,base);
           if(typeof e.paidBy==='object'&&e.paidBy!==null) Object.entries(e.paidBy).forEach(([id,v])=>{if(mp[id]!==undefined)mp[id]+=toBase(v,e.currency,t.rates,base);});
           else if(mp[e.paidBy]!==undefined) mp[e.paidBy]+=tot;
@@ -1092,20 +1093,26 @@ const App = {
         ${ratioHtml}
       </div><div style="height:1px;background:var(--border);margin:16px 0;"></div>`;
     };
-    let html=buildSection('總計',allGroupExps,true);
-    t.members.filter(m=>m.isGroupFund).forEach(m=>{
-      const mExps=allGroupExps.filter(e=>{if(typeof e.paidBy==='string')return e.paidBy===m.id;if(typeof e.paidBy==='object'&&e.paidBy!==null)return !!e.paidBy[m.id];return false;});
-      html+=buildSection(m.name||'公款帳',mExps,false);
-    });
-    const nonFundWithTotals=t.members.filter(m=>!m.isGroupFund).map(m=>{
-      const mExps=allGroupExps.filter(e=>{if(typeof e.paidBy==='string')return e.paidBy===m.id;if(typeof e.paidBy==='object'&&e.paidBy!==null)return !!e.paidBy[m.id];return false;});
-      const total=mExps.reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,base),0);
-      return {m,mExps,total};
-    });
-    nonFundWithTotals.sort((a,b)=>b.total-a.total);
-    nonFundWithTotals.forEach(({m,mExps})=>{html+=buildSection(m.name,mExps,false);});
+    let html=buildSection('總計',allExps,true);
+    if(isPersonal){
+      const selfMemberTotals=t.members.filter(m=>!m.isGroupFund).map(m=>{
+        const mExps=allExps.filter(e=>e.paidBy===m.id);
+        const total=mExps.reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,base),0);
+        return {m,mExps,total};
+      });
+      selfMemberTotals.sort((a,b)=>b.total-a.total);
+      selfMemberTotals.forEach(({m,mExps})=>{html+=buildSection(m.name,mExps,false);});
+    } else {
+      const allMemberTotals=t.members.map(m=>{
+        const mExps=allExps.filter(e=>{if(typeof e.paidBy==='string')return e.paidBy===m.id;if(typeof e.paidBy==='object'&&e.paidBy!==null)return !!e.paidBy[m.id];return false;});
+        const total=mExps.reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,base),0);
+        return {m,mExps,total};
+      });
+      allMemberTotals.sort((a,b)=>b.total-a.total);
+      allMemberTotals.forEach(({m,mExps})=>{html+=buildSection(m.name||'公款帳',mExps,false);});
+    }
     const titleEl=document.getElementById('m-breakdown-title');
-    if(titleEl) titleEl.textContent='支出分析';
+    if(titleEl) titleEl.textContent=isPersonal?'個人支出分析':'支出分析';
     const body=document.getElementById('m-breakdown-body');
     if(!body) return;
     body.innerHTML=html;
