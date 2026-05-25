@@ -1024,7 +1024,7 @@ const App = {
     }
   },
 
-  setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._reRenderSummary();},
+  setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this.renderTab();},
   setFilterCat(cat){this._filterCat=this._filterCat===cat?null:cat;this._filterPending=false;this.renderTab();},
   setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this._filterPending=false;this.renderTab();},
   openBreakdownModal(){
