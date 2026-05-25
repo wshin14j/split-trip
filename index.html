@@ -1020,7 +1020,20 @@ const App = {
     this.renderTab();
     window.scrollTo(0,0);
     const _sc=document.querySelector('#s-trip .scroll');
-    if(_sc){_sc.scrollTop=0;setTimeout(()=>{_sc.scrollTop=0;},350);}
+    if(_sc){
+      _sc.scrollTop=0;setTimeout(()=>{_sc.scrollTop=0;},350);
+      _sc.removeEventListener('scroll',_sc._filterCollapseHandler||null);
+      let _lastScrollTop=0;
+      _sc._filterCollapseHandler=()=>{
+        const st=_sc.scrollTop;
+        if(st>_lastScrollTop+10&&App._filterExpanded){
+          App._filterExpanded=false;
+          App._reRenderSummary();
+        }
+        _lastScrollTop=st;
+      };
+      _sc.addEventListener('scroll',_sc._filterCollapseHandler,{passive:true});
+    }
   },
 
   switchTab(tab){this.tab=tab; this.renderTrip();},
