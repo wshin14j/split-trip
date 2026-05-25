@@ -1604,11 +1604,14 @@ const App = {
         });
       }
       const remainBase=ot.amt-paidBase;
-      const isSettled=remainBase<=0.5;
+      const isSettled=remainBase>-0.5&&remainBase<=0.5;
+      const isOverpaid=remainBase<-0.5;
       const isExp=!!this._expandedDebt[di];
       const chevron=`<svg width="12" height="12" viewBox="0 0 10 10" style="margin-left:4px;vertical-align:middle;transition:transform .2s;transform:${isExp?'rotate(180deg)':'rotate(0)'};flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`;
       const amtDisplay=isSettled
         ?`<div style="display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--t2);white-space:nowrap;min-width:110px;justify-content:flex-end;">✓ 已結清${chevron}</div>`
+        :isOverpaid
+        ?`<div style="display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:#F97316;white-space:nowrap;min-width:110px;justify-content:flex-end;">多付 ${fmtS(-remainBase)}${chevron}</div>`
         :`<div style="display:flex;align-items:center;font-size:18px;font-weight:800;color:var(--primary);white-space:nowrap;min-width:110px;justify-content:flex-end;">${fmtS(remainBase)}${chevron}</div>`;
       const isEditing=!!this._editingDebt[di];
       const detail=isExp?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--t2);">
@@ -1627,12 +1630,12 @@ const App = {
           </div>
         </div>`).join('')}
         <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);font-weight:700;margin-bottom:8px;">
-          <span style="color:var(--t1);">${isSettled?'已全數結清':'剩餘'}</span>
-          <span style="color:${isSettled?'#22c55e':'var(--primary)'};">${isSettled?'—':fmtS(remainBase)}</span>
+          <span style="color:var(--t1);">${isSettled?'已全數結清':isOverpaid?'超額付款':'剩餘'}</span>
+          <span style="color:${isSettled?'#22c55e':isOverpaid?'#F97316':'var(--primary)'};">${isSettled?'—':isOverpaid?`多付 ${fmtS(-remainBase)}`:fmtS(remainBase)}</span>
         </div>
-        ${isSettled?'':`<button onclick="event.stopPropagation();App.openAddPayRecord('${ot.from}','${ot.to}')" style="width:100%;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 記錄付款</button>`}
+        ${(isSettled||isOverpaid)?'':`<button onclick="event.stopPropagation();App.openAddPayRecord('${ot.from}','${ot.to}')" style="width:100%;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 記錄付款</button>`}
       </div>`:'';
-      return `<div class="card" style="padding:14px 16px;margin-bottom:10px;${isSettled?'opacity:0.75;':''}">
+      return `<div class="card" style="padding:14px 16px;margin-bottom:10px;${(isSettled||isOverpaid)?'opacity:0.75;':''}">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="App.toggleDebtExpand(${di})">
           <div class="avatar" style="${avStyle(t,ot.from)}">${avText(mName(ot.from))}</div>
           <div class="flex-1 min-w-0" style="position:relative;display:flex;align-items:center;height:24px;">
