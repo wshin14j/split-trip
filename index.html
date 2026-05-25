@@ -1268,9 +1268,10 @@ const App = {
       const symFmt=amt=>fmtCur(amt,e.currency);
       const twdA=toBase(e.amount,e.currency,t.rates,t.baseCurrency);
       const ps=e.parts||t.members.map(m=>m.id);
+      const nonFundCount=t.members.filter(m=>!m.isGroupFund).length;
       let partsLabel;
       if(e.splitMode==='self') partsLabel='自購';
-      else if(ps.length>=t.members.length) partsLabel='全員';
+      else if(ps.length>=nonFundCount) partsLabel='全員';
       else if(ps.length<=3) partsLabel=ps.map(mName).join('、');
       else partsLabel=ps.slice(0,2).map(mName).join('、')+` +${ps.length-2}`;
       const splitLabel={'equal':'均分','proportion':'按比例','custom':'自訂','self':'自購'}[e.splitMode]||'均分';
@@ -1287,7 +1288,7 @@ const App = {
         const splitLabelFull=e.splitMode==='self'?'自購':e.splitMode==='custom'?'自訂金額':e.splitMode==='proportion'?'按比例':'平均分攤';
         let partsLabelDetail;
         if(e.splitMode==='self'||ps.length===1) partsLabelDetail='自購';
-        else if(ps.length>=t.members.length) partsLabelDetail='全員';
+        else if(ps.length>=nonFundCount) partsLabelDetail='全員';
         else partsLabelDetail=`${ps.length}位`;
         const partRows=ps.map(pid=>{
           const m=t.members.find(m=>m.id===pid);
