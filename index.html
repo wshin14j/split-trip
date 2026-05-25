@@ -1243,7 +1243,7 @@ const App = {
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     let lastDate='';
-    if(!allExps.length){c.innerHTML=`<div class="empty"><div class="empty-title">目前尚無支出記錄</div><div class="empty-sub">點右下角 + 新增第一筆</div></div><div style="padding:20px 0 80px;text-align:center;"><span style="display:inline-flex;align-items:center;gap:8px;color:var(--border);"><span style="display:inline-block;width:50px;height:1px;background:var(--border);opacity:0.45;"></span><span style="font-size:12px;white-space:nowrap;letter-spacing:0.3px;">Roam together ◆ Split easier</span><span style="display:inline-block;width:50px;height:1px;background:var(--border);opacity:0.45;"></span></span></div>`;return;}
+    if(!allExps.length){c.innerHTML=`<div class="empty"><div class="empty-title">目前尚無支出記錄</div><div class="empty-sub">點右下角 + 新增第一筆</div></div><div style="padding:20px 0 80px;text-align:center;"><span style="display:flex;align-items:center;gap:8px;color:var(--border);"><span style="flex:1;height:1px;background:var(--border);opacity:0.45;"></span><span style="font-size:12px;white-space:nowrap;letter-spacing:0.3px;">Roam together ◆ Split easier</span><span style="flex:1;height:1px;background:var(--border);opacity:0.45;"></span></span></div>`;return;}
     c.innerHTML=(exps.length?exps.map(([id,e])=>{
       const payer=typeof e.paidBy==='object'&&e.paidBy!==null?null:t.members.find(m=>m.id===e.paidBy);
       const payerName=typeof e.paidBy==='object'&&e.paidBy!==null?'多人':((payer?.name||'?').slice(0,2));
@@ -1316,7 +1316,7 @@ const App = {
         </div>
         ${expandedDetail}
       </div>`;
-    }).join(''):`<div style="padding:20px 4px;text-align:center;font-size:13px;color:var(--t2);">此類別沒有記錄</div>`)+'<div style="padding:56px 0 80px;text-align:center;"><span style="display:inline-flex;align-items:center;gap:8px;color:var(--border);"><span style="display:inline-block;width:50px;height:1px;background:var(--border);opacity:0.45;"></span><span style="font-size:12px;white-space:nowrap;letter-spacing:0.3px;">Roam together ◆ Split easier</span><span style="display:inline-block;width:50px;height:1px;background:var(--border);opacity:0.45;"></span></span></div>';
+    }).join(''):`<div style="padding:20px 4px;text-align:center;font-size:13px;color:var(--t2);">此類別沒有記錄</div>`)+'<div style="padding:56px 0 80px;text-align:center;"><span style="display:flex;align-items:center;gap:8px;color:var(--border);"><span style="flex:1;height:1px;background:var(--border);opacity:0.45;"></span><span style="font-size:12px;white-space:nowrap;letter-spacing:0.3px;">Roam together ◆ Split easier</span><span style="flex:1;height:1px;background:var(--border);opacity:0.45;"></span></span></div>';
   },
 
   // ── SETTLEMENT ────────────────────────────────
@@ -1776,7 +1776,7 @@ const App = {
       <div class="sm semibold muted mb3">債務關係</div>
       ${txHtml}
       ${memberSummary}
-      <div style="padding:56px 0 80px;text-align:center;"><span style="display:inline-flex;align-items:center;gap:8px;color:var(--border);"><span style="display:inline-block;width:50px;height:1px;background:var(--border);opacity:0.45;"></span><span style="font-size:12px;white-space:nowrap;letter-spacing:0.3px;">Roam together ◆ Split easier</span><span style="display:inline-block;width:50px;height:1px;background:var(--border);opacity:0.45;"></span></span></div>
+      <div style="padding:56px 0 80px;text-align:center;"><span style="display:flex;align-items:center;gap:8px;color:var(--border);"><span style="flex:1;height:1px;background:var(--border);opacity:0.45;"></span><span style="font-size:12px;white-space:nowrap;letter-spacing:0.3px;">Roam together ◆ Split easier</span><span style="flex:1;height:1px;background:var(--border);opacity:0.45;"></span></span></div>
       `;
   },
 
@@ -2019,7 +2019,7 @@ const App = {
       ${rows}
       ${shareCard}
       ${addForm}
-      <div style="padding:40px 0 80px;text-align:center;"><span style="display:inline-flex;align-items:center;gap:8px;color:var(--border);"><span style="display:inline-block;width:50px;height:1px;background:var(--border);opacity:0.45;"></span><span style="font-size:12px;white-space:nowrap;letter-spacing:0.3px;">Roam together ◆ Split easier</span><span style="display:inline-block;width:50px;height:1px;background:var(--border);opacity:0.45;"></span></span></div>`;
+      <div style="padding:40px 0 80px;text-align:center;"><span style="display:flex;align-items:center;gap:8px;color:var(--border);"><span style="flex:1;height:1px;background:var(--border);opacity:0.45;"></span><span style="font-size:12px;white-space:nowrap;letter-spacing:0.3px;">Roam together ◆ Split easier</span><span style="flex:1;height:1px;background:var(--border);opacity:0.45;"></span></span></div>`;
   },
 
   pickColor(id){
