@@ -1608,8 +1608,8 @@ const App = {
       const isExp=!!this._expandedDebt[di];
       const chevron=`<svg width="12" height="12" viewBox="0 0 10 10" style="margin-left:4px;vertical-align:middle;transition:transform .2s;transform:${isExp?'rotate(180deg)':'rotate(0)'};flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`;
       const amtDisplay=isSettled
-        ?`<div style="display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--t2);white-space:nowrap;">✓ 已結清${chevron}</div>`
-        :`<div style="display:flex;align-items:center;font-size:18px;font-weight:800;color:var(--primary);white-space:nowrap;">${fmtS(remainBase)}${chevron}</div>`;
+        ?`<div style="display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--t2);white-space:nowrap;min-width:110px;justify-content:flex-end;">✓ 已結清${chevron}</div>`
+        :`<div style="display:flex;align-items:center;font-size:18px;font-weight:800;color:var(--primary);white-space:nowrap;min-width:110px;justify-content:flex-end;">${fmtS(remainBase)}${chevron}</div>`;
       const isEditing=!!this._editingDebt[di];
       const detail=isExp?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--t2);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1640,7 +1640,7 @@ const App = {
             <div style="flex-shrink:0;color:var(--t2);font-size:15px;padding:0 2px;">→</div>
             <div style="flex:1;min-width:0;font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${mName(ot.to)}</div>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;min-width:140px;justify-content:flex-end;">
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
             <div class="avatar" style="${avStyle(t,ot.to)}">${avText(mName(ot.to))}</div>
             ${amtDisplay}
           </div>
