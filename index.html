@@ -1097,10 +1097,13 @@ const App = {
       const mExps=allGroupExps.filter(e=>{if(typeof e.paidBy==='string')return e.paidBy===m.id;if(typeof e.paidBy==='object'&&e.paidBy!==null)return !!e.paidBy[m.id];return false;});
       html+=buildSection(m.name||'公款帳',mExps,false);
     });
-    t.members.filter(m=>!m.isGroupFund).forEach(m=>{
+    const nonFundWithTotals=t.members.filter(m=>!m.isGroupFund).map(m=>{
       const mExps=allGroupExps.filter(e=>{if(typeof e.paidBy==='string')return e.paidBy===m.id;if(typeof e.paidBy==='object'&&e.paidBy!==null)return !!e.paidBy[m.id];return false;});
-      html+=buildSection(m.name,mExps,false);
+      const total=mExps.reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,base),0);
+      return {m,mExps,total};
     });
+    nonFundWithTotals.sort((a,b)=>b.total-a.total);
+    nonFundWithTotals.forEach(({m,mExps})=>{html+=buildSection(m.name,mExps,false);});
     const titleEl=document.getElementById('m-breakdown-title');
     if(titleEl) titleEl.textContent='支出分析';
     const body=document.getElementById('m-breakdown-body');
