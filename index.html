@@ -1193,7 +1193,8 @@ const App = {
 
   // ── EXPENSES ──────────────────────────────────
   renderExpenses(t,c){
-    const allExps=Object.entries(t.expenses||{}).sort((a,b)=>{
+    const _isGroup=this._summaryView==='group';
+    const allExps=Object.entries(t.expenses||{}).filter(([,e])=>_isGroup?e.splitMode!=='self':e.splitMode==='self').sort((a,b)=>{
       const da=a[1].date||''; const db=b[1].date||'';
       return da>db?-1:da<db?1:(b[1].createdAt||0)-(a[1].createdAt||0);
     });
@@ -1586,7 +1587,7 @@ const App = {
     }).join('');
     const txHtml=origTxs.length===0
       ?(hasExps
-        ?`<div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">大家都平帳了！</div><div class="empty-sub">旅行的帳順利結清</div></div>`
+        ?`<div class="card" style="padding:16px;text-align:center;color:var(--t2);font-size:13px;"><div style="font-weight:700;margin-bottom:4px;">目前無待結算款項</div><div>所有費用已平均分配，無需轉帳</div></div>`
         :`<div class="card" style="padding:16px;text-align:center;color:var(--t2);font-size:13px;"><div style="font-weight:700;margin-bottom:4px;">目前尚無支出記錄</div><div>請到『支出頁』新增旅程第一筆費用</div></div>`)
       :debtCards;
 
