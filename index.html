@@ -1253,9 +1253,10 @@ const App = {
     const hasCard=usedPayMethods.includes('信用卡');
     const funcAllActive=!fp&&!fpm;
     const funcBtns=[`<button type="button" onclick="App._filterPending=false;App._filterPayMethod=null;App.renderTab();" style="${chipStyle(funcAllActive)}">全部</button>`];
-    if(hasPending) funcBtns.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App.renderTab();" style="${chipStyle(fp,'#F97316')}">待補金額</button>`);
     if(hasCash) funcBtns.push(`<button type="button" onclick="App.setFilterPayMethod('現金')" style="${chipStyle(fpm==='現金')}">現金</button>`);
     if(hasCard) funcBtns.push(`<button type="button" onclick="App.setFilterPayMethod('信用卡')" style="${chipStyle(fpm==='信用卡')}">信用卡</button>`);
+    const pendingChipStyle=fp?`height:28px;padding:0 12px;border-radius:6px;border:1.5px solid #F97316;background:#F97316;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;`:`height:28px;padding:0 12px;border-radius:6px;border:1.5px solid #F97316;background:transparent;color:#F97316;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;`;
+    if(hasPending) funcBtns.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App.renderTab();" style="${pendingChipStyle}">待補金額</button>`);
     const funcRow=`<div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
         ${rowLabel('功能')}
         ${funcBtns.join('')}
@@ -1653,10 +1654,16 @@ const App = {
 
     const balRows=t.members.map(m=>{
       const v=adjBal[m.id]||0;
+      const memberInExp=Object.values(t.expenses||{}).some(e=>{
+        if(typeof e.paidBy==='string') return e.paidBy===m.id;
+        if(typeof e.paidBy==='object'&&e.paidBy!==null&&e.paidBy[m.id]) return true;
+        const ps=e.parts||(t.members||[]).filter(x=>!x.isGroupFund).map(x=>x.id);
+        return ps.includes(m.id);
+      });
       let cls,lbl;
       if(v>0.5){cls='receive';lbl=`應收 ${fmtS(v)}`;}
       else if(v<-0.5){cls='owe';lbl=`應付 ${fmtS(-v)}`;}
-      else{cls='ok';lbl='已平帳 ✓';}
+      else{cls='ok';lbl=memberInExp?'已平帳 ✓':'';}
       return `<div class="card member-row">
         <div class="avatar" style="${avStyle(t,m.id)}">${avText(m.name)}</div>
         <div class="flex-1 semibold">${m.name}</div>
