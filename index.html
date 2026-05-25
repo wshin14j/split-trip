@@ -2293,7 +2293,7 @@ const App = {
       document.getElementById('in-exp-cat').value=e.category||'其他';
       document.getElementById('in-exp-name').value=e.name;
       document.getElementById('in-exp-cur').value=e.currency;
-      document.getElementById('in-exp-amt').value=e.amount;
+      document.getElementById('in-exp-amt').value=e.amount;this.fmtAmtInput(document.getElementById('in-exp-amt'));
       if(typeof e.paidBy==='object'&&e.paidBy!==null){
         this.setPayerMode('multi');
         this.renderMultiPayerList(e.paidBy);
@@ -2551,6 +2551,7 @@ const App = {
           value="${prefill&&prefill[m.id]?prefill[m.id]:''}" oninput="App.fmtAmtInput(this);App.updateMultiPayerHint()">
       </div>`).join('')+
       `<div id="multi-payer-hint" style="font-size:12px;color:var(--t2);margin-top:4px;text-align:right;"></div></div>`;
+    if(prefill) box.querySelectorAll('input[type="text"]').forEach(el=>this.fmtAmtInput(el));
     this.updateMultiPayerHint();
   },
   updateMultiPayerHint(){
