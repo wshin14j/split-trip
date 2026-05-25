@@ -1056,11 +1056,11 @@ const App = {
           else if(mp[e.paidBy]!==undefined) mp[e.paidBy]+=tot;
         });
         const allT=Object.values(mp).reduce((s,v)=>s+v,0);
-        const MCOLS=['#6366F1','#F59E0B','#10B981','#3B82F6','#EC4899','#EF4444','#14B8A6','#8B5CF6'];
+        const mCol=m=>{const c=AVATAR_COLORS.find(c=>c.id===m.color);return c?c.bg:'#6366F1';};
         const sortedM=[...t.members].sort((a,b)=>(mp[b.id]||0)-(mp[a.id]||0));
-        const stackSegs=sortedM.map((m,i)=>{const pct=allT>0?(mp[m.id]||0)/allT*100:0;return pct<0.3?'':`<div style="flex:${pct.toFixed(1)};height:100%;background:${MCOLS[i%MCOLS.length]};min-width:2px;"></div>`;}).join('');
-        const mRows=sortedM.map((m,i)=>{
-          const paid=mp[m.id]||0,pct=allT>0?Math.round(paid/allT*100):0,col=MCOLS[i%MCOLS.length];
+        const stackSegs=sortedM.map(m=>{const pct=allT>0?(mp[m.id]||0)/allT*100:0;return pct<0.3?'':`<div style="flex:${pct.toFixed(1)};height:100%;background:${mCol(m)};min-width:2px;"></div>`;}).join('');
+        const mRows=sortedM.map(m=>{
+          const paid=mp[m.id]||0,pct=allT>0?Math.round(paid/allT*100):0,col=mCol(m);
           return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><div style="width:8px;height:8px;border-radius:2px;background:${col};flex-shrink:0;"></div><div class="avatar" style="width:24px;height:24px;font-size:10px;${avStyle(t,m.id)}">${avText(m.name)}</div><span style="font-size:12px;font-weight:600;flex:1;min-width:0;">${m.name}</span><span style="font-size:12px;color:var(--t2);">${bSym} ${Math.round(paid).toLocaleString()}</span><span style="font-size:12px;font-weight:700;color:${col};width:36px;text-align:right;">${pct}%</span></div>`;
         }).join('');
         ratioHtml=`<div style="margin-top:12px;"><div style="font-size:12px;font-weight:700;color:var(--t2);margin-bottom:8px;">成員已支出％</div><div style="height:8px;border-radius:4px;overflow:hidden;display:flex;margin-bottom:10px;background:#E5E7EB;">${stackSegs}</div>${mRows}</div>`;
