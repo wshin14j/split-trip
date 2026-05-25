@@ -39,7 +39,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
 
 /* ===== SCREENS ===== */
 .screen{min-height:100vh;background:#fff;display:none;flex-direction:column;}
-.screen.active{display:flex;height:100vh;height:100dvh;min-height:unset;overflow:hidden;}
+.screen.active{display:flex;position:fixed;top:0;left:max(0px,calc((100vw - 390px)/2));right:max(0px,calc((100vw - 390px)/2));bottom:0;min-height:unset;overflow:hidden;}
 
 /* ===== TOP BAR ===== */
 .top-bar{
@@ -730,11 +730,13 @@ select.input{
 </div>
 
 <div class="modal-overlay" id="m-breakdown" onclick="if(event.target===this)App.closeModal('m-breakdown')">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <button class="modal-x-btn" onclick="App.closeModal('m-breakdown')">×</button>
-    <div class="modal-title" id="m-breakdown-title">支出分布</div>
-    <div id="m-breakdown-body" style="margin-top:8px;"></div>
+  <div class="modal-sheet" style="padding:0;display:flex;flex-direction:column;overflow:hidden;">
+    <div style="padding:20px 20px 0;flex-shrink:0;position:relative;">
+      <div class="modal-handle"></div>
+      <button class="modal-x-btn" onclick="App.closeModal('m-breakdown')">×</button>
+      <div class="modal-title" id="m-breakdown-title">支出分布</div>
+    </div>
+    <div id="m-breakdown-body" style="overflow-y:auto;flex:1;padding:8px 20px calc(24px + env(safe-area-inset-bottom));"></div>
   </div>
 </div>
 
