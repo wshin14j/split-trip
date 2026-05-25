@@ -487,7 +487,7 @@ select.input{
         <input id="pay-rec-amt" class="input" type="text" inputmode="decimal" placeholder="0" style="flex:1;" oninput="this.value=this.value.replace(/[^\d.]/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,',')">
       </div>
       <div class="xs muted" style="margin-bottom:6px;">日期</div>
-      <input id="pay-rec-date" class="input mb3" type="date" style="width:100%;">
+      <input id="pay-rec-date" class="input mb3" type="text" readonly placeholder="選擇日期" onclick="App.openDatePicker('pay-rec-date')" style="width:100%;cursor:pointer;">
       <div class="xs muted" style="margin-bottom:6px;">付款方式</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
         <button type="button" onclick="App.togglePayNote('LINE Pay')" id="pay-note-LINE Pay" style="padding:5px 12px;border-radius:999px;border:1.5px solid var(--border);background:#fff;color:var(--t1);font-size:13px;cursor:pointer;white-space:nowrap;">LINE Pay</button>
@@ -531,7 +531,7 @@ select.input{
     <div class="flex gap-2 mb3">
       <div style="flex:1;min-width:0;">
         <label class="form-label">日期</label>
-        <input id="in-exp-date" class="input" type="text" inputmode="numeric" placeholder="YYYY/MM/DD" maxlength="10" oninput="App.fmtDateInput(this)" required style="text-align:left;">
+        <input id="in-exp-date" class="input" type="text" readonly placeholder="選擇日期" onclick="App.openDatePicker('in-exp-date')" required style="text-align:left;cursor:pointer;">
       </div>
       <div style="flex:1;min-width:0;">
         <label class="form-label">類別</label>
@@ -707,7 +707,7 @@ select.input{
       <div style="font-size:12px;color:var(--t2);margin-top:4px;">如需其他貨幣請至 <button type="button" onclick="App.closeModal('m-fund-deposit');App.go('rates');" style="background:none;border:none;padding:0;font-size:12px;color:var(--accent);text-decoration:underline;cursor:pointer;">匯率設定</button> 增加</div>
       <div>
         <label class="form-label">日期</label>
-        <input id="fund-dep-date" class="input" type="date">
+        <input id="fund-dep-date" class="input" type="text" readonly placeholder="選擇日期" onclick="App.openDatePicker('fund-dep-date')" style="cursor:pointer;">
       </div>
       <div>
         <label class="form-label">備註（選填）</label>
@@ -735,6 +735,19 @@ select.input{
     <button class="modal-x-btn" onclick="App.closeModal('m-breakdown')">×</button>
     <div class="modal-title" id="m-breakdown-title">支出分布</div>
     <div id="m-breakdown-body" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="m-date-picker" onclick="if(event.target===this)App.closeDatePicker()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <button onclick="App.dpPrevMonth()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--t1);padding:4px 12px;line-height:1;">‹</button>
+      <span id="dp-title" style="font-size:16px;font-weight:700;"></span>
+      <button onclick="App.dpNextMonth()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--t1);padding:4px 12px;line-height:1;">›</button>
+    </div>
+    <div id="dp-grid"></div>
+    <button onclick="App.closeDatePicker()" style="width:100%;margin-top:14px;padding:12px;border:1.5px solid var(--border);border-radius:12px;background:#fff;font-size:15px;color:var(--t2);cursor:pointer;">取消</button>
   </div>
 </div>
 
@@ -1809,7 +1822,7 @@ const App = {
       if(b){b.style.background='#fff';b.style.color='var(--t1)';b.style.borderColor='var(--border)';}
     });
     const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
-    const today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const today=`${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
     document.getElementById('pay-rec-date').value=today;
     const settleCur=this._settleCur||t.baseCurrency||'TWD';
     const allCurs=[...new Set([...Object.keys(t.rates||{}), ...Object.keys(DEF), settleCur])];
@@ -2091,13 +2104,13 @@ const App = {
     if(existing){
       document.getElementById('fund-dep-amt').value=existing.amt;
       document.getElementById('fund-dep-cur').value=existing.cur||baseCur;
-      document.getElementById('fund-dep-date').value=existing.date||'';
+      document.getElementById('fund-dep-date').value=(existing.date||'').replace(/-/g,'/');
       document.getElementById('fund-dep-note').value=existing.note||'';
     } else {
       document.getElementById('fund-dep-amt').value='';
       document.getElementById('fund-dep-note').value='';
       const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
-      document.getElementById('fund-dep-date').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+      document.getElementById('fund-dep-date').value=`${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
     }
     this._editingDepId=depId||null;
     this.openModal('m-fund-deposit');
@@ -2672,6 +2685,71 @@ const App = {
     el.value=v;
     const diff=v.length-el.value.length;
     try{el.setSelectionRange(pos+diff,pos+diff);}catch(e){}
+  },
+  _dpTarget:null,_dpYear:null,_dpMonth:null,_dpSelected:null,
+  openDatePicker(targetId){
+    const el=document.getElementById(targetId);
+    const val=el?.value;
+    const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
+    if(val&&val.length===10){
+      const parts=val.replace(/-/g,'/').split('/');
+      this._dpYear=parseInt(parts[0]);
+      this._dpMonth=parseInt(parts[1])-1;
+      this._dpSelected=parts.join('/');
+    } else {
+      this._dpYear=now.getFullYear();
+      this._dpMonth=now.getMonth();
+      this._dpSelected=null;
+    }
+    this._dpTarget=targetId;
+    this.renderCalendar();
+    this.openModal('m-date-picker');
+  },
+  closeDatePicker(){this.closeModal('m-date-picker');},
+  dpPrevMonth(){
+    this._dpMonth--;
+    if(this._dpMonth<0){this._dpMonth=11;this._dpYear--;}
+    this.renderCalendar();
+  },
+  dpNextMonth(){
+    this._dpMonth++;
+    if(this._dpMonth>11){this._dpMonth=0;this._dpYear++;}
+    this.renderCalendar();
+  },
+  dpSelectDate(y,m,d){
+    const ds=`${y}/${String(m+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+    const el=document.getElementById(this._dpTarget);
+    if(el) el.value=ds;
+    this._dpSelected=ds;
+    this.closeDatePicker();
+  },
+  renderCalendar(){
+    const y=this._dpYear,m=this._dpMonth;
+    const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
+    const ty=now.getFullYear(),tm=now.getMonth(),td=now.getDate();
+    document.getElementById('dp-title').textContent=`${y} 年 ${m+1} 月`;
+    const firstDay=new Date(y,m,1).getDay();
+    const daysInMonth=new Date(y,m+1,0).getDate();
+    const WDAYS=['日','一','二','三','四','五','六'];
+    let html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">';
+    WDAYS.forEach((w,i)=>{
+      const col=i===0?'#EF4444':i===6?'var(--accent)':'var(--t2)';
+      html+=`<div style="text-align:center;font-size:12px;font-weight:700;color:${col};padding:6px 0;">${w}</div>`;
+    });
+    for(let i=0;i<firstDay;i++) html+=`<div></div>`;
+    for(let d=1;d<=daysInMonth;d++){
+      const dow=(firstDay+d-1)%7;
+      const isToday=y===ty&&m===tm&&d===td;
+      const ds=`${y}/${String(m+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+      const isSel=ds===this._dpSelected;
+      const col=dow===0?'#EF4444':dow===6?'var(--accent)':'var(--t1)';
+      const bg=isSel?'var(--primary)':'transparent';
+      const tc=isSel?'#fff':col;
+      const todayDot=isToday&&!isSel?`<div style="position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--primary);"></div>`:'';
+      html+=`<div onclick="App.dpSelectDate(${y},${m},${d})" style="position:relative;text-align:center;padding:9px 2px;border-radius:50%;cursor:pointer;background:${bg};color:${tc};font-size:15px;font-weight:${isToday?'700':'400'};">${d}${todayDot}</div>`;
+    }
+    html+='</div>';
+    document.getElementById('dp-grid').innerHTML=html;
   },
   fmtAmtInput(el){
     const cursorFromEnd=el.value.length-el.selectionStart;
