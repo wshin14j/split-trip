@@ -1327,7 +1327,7 @@ const App = {
           const pctStr=e.splitMode==='proportion'&&e.proportions?`<span style="color:var(--t2);font-weight:400;margin-left:4px;">${e.proportions[pid]||0}%</span>`:'';
           return `<div style="display:flex;justify-content:space-between;font-size:12px;align-items:center;">
             <span style="color:var(--t1);">${m?.name||'?'}${pctStr}</span>
-            <span style="font-weight:600;">${symFmt(Math.round(sh))}${e.currency!==t.baseCurrency?` <span style="color:var(--t2);font-weight:400;">≈${bSym}${Math.round(shB)}</span>`:''}</span>
+            <span style="font-weight:600;">${symFmt(Math.round(sh))}${e.currency!==t.baseCurrency?` <span style="color:var(--t2);font-weight:400;">≈${bSym}${Math.round(shB).toLocaleString()}</span>`:''}</span>
           </div>`;
         }).join('');
         const noteVal=e.note||'—';
@@ -1336,6 +1336,7 @@ const App = {
             ${e.date?`<div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">日期</span><span>${e.date}</span></div>`:''}
             <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">支付人</span><span style="font-weight:600;">${payerLabel}</span></div>
             <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">分攤方式</span><span>${splitLabelFull}</span></div>
+            ${e.payMethod?`<div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">支付方式</span><span>${e.payMethod}</span></div>`:''}
           </div>
           <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span style="color:var(--t2);">分攤成員</span><span>${partsLabelDetail}</span></div>
           <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;padding:8px 10px;background:var(--soft);border-radius:8px;">${partRows}</div>
@@ -2938,7 +2939,7 @@ const App = {
         <div class="avatar" style="margin:0 auto 6px;${avStyle(t,pid)}">${avText(m?.name)}</div>
         <div class="xs semibold">${m?.name||'?'}${pctStr}</div>
         <div class="xs bold mt1 dark">${sym}${Math.round(sh).toLocaleString()}</div>
-        <div class="xs muted">≈ ${bSym}${Math.round(shB)}</div>
+        <div class="xs muted">≈ ${bSym}${Math.round(shB).toLocaleString()}</div>
       </div>`;
     }).join('');
     const catIcon=CAT_ICON[e.category]||'🎁';
