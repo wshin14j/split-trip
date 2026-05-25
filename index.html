@@ -1586,7 +1586,7 @@ const App = {
     const txHtml=origTxs.length===0
       ?(hasExps
         ?`<div class="empty"><div class="empty-icon">🎉</div><div class="empty-title">大家都平帳了！</div><div class="empty-sub">旅行的帳順利結清</div></div>`
-        :`<div class="card" style="padding:16px;text-align:center;color:var(--t2);font-size:14px;">還沒有支出記錄，先到支出頁新增費用</div>`)
+        :`<div class="card" style="padding:16px;text-align:center;color:var(--t2);font-size:14px;">目前尚無支出記錄，<br>請先到『支出頁』新增旅程第一筆費用</div>`)
       :debtCards;
 
     const balRows=t.members.map(m=>{
