@@ -1210,12 +1210,18 @@ const App = {
         ${isGroup?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">每人平均 ${bSym} ${Math.round(total/regularCount).toLocaleString()}</span></div>`:''}
       </div>`;
     }
+    const hasAnyExps=Object.values(t.expenses||{}).some(e=>isGroup?this._isGroupExp(e,t):!this._isGroupExp(e,t));
+    const fp=this._filterPending; const fpm=this._filterPayMethod; const fex=this._filterExpanded;
+    const isFiltered2=fc||fp||!!fm||!!fpm;
+    const funnelCol2=isFiltered2?'var(--accent)':'var(--t2)';
+    const funnelBtn=hasAnyExps?`<button type="button" onclick="App.toggleFilter()" style="margin-left:auto;display:flex;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:2px 4px;flex-shrink:0;color:${funnelCol2};"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1.5 2h11L8 7.5v4l-2-1v-3L1.5 2Z" stroke="${funnelCol2}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><svg width="10" height="10" viewBox="0 0 10 10" style="transform:${fex?'rotate(180deg)':'rotate(0deg)'};transition:transform .2s;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="${funnelCol2}" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>`:'';
     const filterMembers=isGroup?[...t.members].sort((a,b)=>(b.isGroupFund?1:0)-(a.isGroupFund?1:0)):t.members.filter(m=>!m.isGroupFund);
     const mChipSty=(active)=>`height:26px;padding:0 10px;border-radius:6px;border:none;background:${active?'var(--accent)':'var(--surface)'};color:${active?'#fff':'var(--t1)'};font-size:12px;font-weight:${active?700:500};cursor:pointer;white-space:nowrap;`;
-    const memberChips=filterMembers.length>1?`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
-      <span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;white-space:nowrap;">成員</span>
+    const memberChips=(filterMembers.length>1||hasAnyExps)?`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+      ${filterMembers.length>1?`<span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;white-space:nowrap;">成員</span>
       <button type="button" onclick="App._filterMember=null;App.renderTab();" style="${mChipSty(!fm)}">全部</button>
-      ${filterMembers.map(m=>`<button type="button" onclick="App.setFilterMember('${m.id}')" style="${mChipSty(fm===m.id)}">${m.name}</button>`).join('')}
+      ${filterMembers.map(m=>`<button type="button" onclick="App.setFilterMember('${m.id}')" style="${mChipSty(fm===m.id)}">${m.name}</button>`).join('')}`:''}
+      ${funnelBtn}
     </div>`:''
     return `<div id="exp-summary-box" style="background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:0;">
       ${tabs}
@@ -1255,38 +1261,24 @@ const App = {
     const funcBtns=[`<button type="button" onclick="App._filterPending=false;App._filterPayMethod=null;App.renderTab();" style="${chipStyle(funcAllActive)}">全部</button>`];
     if(hasCash) funcBtns.push(`<button type="button" onclick="App.setFilterPayMethod('現金')" style="${chipStyle(fpm==='現金')}">現金</button>`);
     if(hasCard) funcBtns.push(`<button type="button" onclick="App.setFilterPayMethod('信用卡')" style="${chipStyle(fpm==='信用卡')}">信用卡</button>`);
-    const pendingChipStyle=fp?`height:28px;padding:0 12px;border-radius:6px;border:1.5px solid #F97316;background:#F97316;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;`:`height:28px;padding:0 12px;border-radius:6px;border:1.5px solid #F97316;background:transparent;color:#F97316;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;`;
+    const pendingChipStyle=fp?`height:28px;padding:0 12px;border-radius:6px;border:1.5px solid #F97316;background:#F97316;color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;`:`height:28px;padding:0 12px;border-radius:6px;border:1.5px solid #F97316;background:var(--surface);color:var(--t1);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;`;
     if(hasPending) funcBtns.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App.renderTab();" style="${pendingChipStyle}">待補金額</button>`);
     const funcRow=`<div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
         ${rowLabel('功能')}
         ${funcBtns.join('')}
       </div>`;
     const fex=this._filterExpanded;
-    const activeCount=[fc,fp,fpm].filter(Boolean).length;
-    const funnelCol=isFiltered?'var(--accent)':'var(--t2)';
-    const funnelSvg=`<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1.5 2h11L8 7.5v4l-2-1v-3L1.5 2Z" stroke="${funnelCol}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    const chevSvg=`<svg width="10" height="10" viewBox="0 0 10 10" style="transform:${fex?'rotate(180deg)':'rotate(0deg)'};transition:transform .2s;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="${funnelCol}" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`;
-    const filterBar=`<div style="padding:4px 0 2px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;">
-        <button type="button" onclick="App.toggleFilter()" style="display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:2px 0;color:${funnelCol};">
-          ${funnelSvg}
-          <span style="font-size:12px;font-weight:600;line-height:1;">篩選${activeCount>0?` <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:700;line-height:1;">${activeCount}</span>`:''}</span>
-          ${chevSvg}
-        </button>
-        ${isFiltered?clearBtn:''}
+    const filterBar=`<div style="display:flex;flex-direction:column;gap:8px;padding:6px 0 10px;">
+      <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+        ${rowLabel('類別')}${catAllBtn}${catChips}
       </div>
-      <div style="display:${fex?'flex':'none'};flex-direction:column;gap:8px;padding:4px 0 8px;">
-        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
-          ${rowLabel('類別')}
-          ${catAllBtn}${catChips}
-        </div>
-        ${funcRow}
-      </div>
+      ${funcRow}
+      ${isFiltered?`<div style="display:flex;justify-content:flex-end;">${clearBtn}</div>`:''}
     </div>`;
     const so=document.getElementById('trip-summary-outer');
     const fo=document.getElementById('trip-filter-outer');
     if(so){so.style.display='block';so.innerHTML=summaryHTML;}
-    if(fo){fo.style.display=allExps.length?'block':'none';fo.innerHTML=filterBar.replace('margin-bottom:14px;','');}
+    if(fo){fo.style.display=(fex&&allExps.length)?'block':'none';fo.innerHTML=filterBar;}
     // Apply filters: member → category/pending
     let exps=allExps;
     if(fm){
