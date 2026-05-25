@@ -1335,8 +1335,8 @@ const App = {
           <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
             ${e.date?`<div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">日期</span><span>${e.date}</span></div>`:''}
             <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">支付人</span><span style="font-weight:600;">${payerLabel}</span></div>
-            <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">分攤方式</span><span>${splitLabelFull}</span></div>
             ${e.payMethod?`<div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">支付方式</span><span>${e.payMethod}</span></div>`:''}
+            <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">分攤方式</span><span>${splitLabelFull}</span></div>
           </div>
           <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;"><span style="color:var(--t2);">分攤成員</span><span>${partsLabelDetail}</span></div>
           <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;padding:8px 10px;background:var(--soft);border-radius:8px;">${partRows}</div>
