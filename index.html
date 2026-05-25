@@ -1156,6 +1156,9 @@ const App = {
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const fc=this._filterCat;
     const fm=this._filterMember;
+    const fp=this._filterPending;
+    const fpm=this._filterPayMethod;
+    const fex=this._filterExpanded;
     const fmMember=fm?t.members.find(m=>m.id===fm):null;
     // Filter expenses by view, then by member filter, then by category
     let allExps=Object.values(t.expenses||{}).filter(e=>isGroup?this._isGroupExp(e,t):!this._isGroupExp(e,t));
@@ -1195,6 +1198,8 @@ const App = {
         <div style="margin-bottom:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
           <span style="font-size:14px;font-weight:700;color:var(--accent);">${fmMember.name}</span>
           ${fc?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fc}</span>`:''}
+          ${fpm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fpm}</span>`:''}
+          ${fp?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">待補金額</span>`:''}
           <span style="font-size:13px;color:var(--t2);">已支出</span>
         </div>
         <div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>
@@ -1206,13 +1211,14 @@ const App = {
         <div style="margin-bottom:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
           <span style="font-size:14px;font-weight:700;color:var(--accent);">總支出</span>
           ${fc?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fc}</span>`:''}
+          ${fpm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fpm}</span>`:''}
+          ${fp?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">待補金額</span>`:''}
         </div>
         <div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>
         ${isGroup?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">每人平均 ${bSym} ${Math.round(total/regularCount).toLocaleString()}</span></div>`:''}
       </div>`;
     }
     const hasAnyExps=Object.values(t.expenses||{}).some(e=>isGroup?this._isGroupExp(e,t):!this._isGroupExp(e,t));
-    const fp=this._filterPending; const fpm=this._filterPayMethod; const fex=this._filterExpanded;
     const isFiltered2=fc||fp||!!fm||!!fpm;
     const funnelCol2=isFiltered2?'var(--accent)':'var(--t2)';
     const funnelBtn=hasAnyExps?`<button type="button" onclick="App.toggleFilter()" style="margin-left:auto;display:flex;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:2px 4px;flex-shrink:0;color:${funnelCol2};"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1.5 2h11L8 7.5v4l-2-1v-3L1.5 2Z" stroke="${funnelCol2}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><svg width="10" height="10" viewBox="0 0 10 10" style="transform:${fex?'rotate(180deg)':'rotate(0deg)'};transition:transform .2s;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="${funnelCol2}" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>`:'';
@@ -1226,16 +1232,14 @@ const App = {
     const fChipSty=(active,color)=>`height:26px;padding:0 10px;border-radius:6px;border:none;background:${active?(color||'var(--accent)'):'var(--surface)'};color:${active?'#fff':'var(--t1)'};font-size:12px;font-weight:${active?700:500};cursor:pointer;white-space:nowrap;`;
     const scrollRow=(label,content)=>`<div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;white-space:nowrap;">${label}</span><div class="member-chips-scroll" style="flex:1;display:flex;flex-wrap:nowrap;gap:6px;align-items:center;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;">${content}</div></div>`;
     const catChipsHTML=usedCatsF.length>0?scrollRow('類別',`<button type="button" onclick="App.setFilterCat(null)" style="${fChipSty(!fc)}">全部</button>${usedCatsF.map(cat=>`<button type="button" onclick="App.setFilterCat('${cat}')" style="${fChipSty(fc===cat)}">${cat}</button>`).join('')}`):'';
-    const pendStyF=fp?`height:26px;padding:0 10px;border-radius:6px;border:1.5px solid #F97316;background:#F97316;color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;`:`height:26px;padding:0 10px;border-radius:6px;border:1.5px solid #F97316;background:var(--surface);color:var(--t1);font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;`;
+    const pendStyF=fChipSty(fp);
     const funcAllActiveF=!fp&&!fpm;
     const funcArrF=[`<button type="button" onclick="App._filterPending=false;App._filterPayMethod=null;App.renderTab();" style="${fChipSty(funcAllActiveF)}">全部</button>`];
     if(hasCashF) funcArrF.push(`<button type="button" onclick="App.setFilterPayMethod('現金')" style="${fChipSty(fpm==='現金')}">現金</button>`);
     if(hasCardF) funcArrF.push(`<button type="button" onclick="App.setFilterPayMethod('信用卡')" style="${fChipSty(fpm==='信用卡')}">信用卡</button>`);
     if(hasPendingF) funcArrF.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App.renderTab();" style="${pendStyF}">待補金額</button>`);
     const funcChipsHTML=(hasCashF||hasCardF||hasPendingF)?scrollRow('功能',funcArrF.join('')):'';
-    const clearAll2F=`App._filterCat=null;App._filterPending=false;App._filterMember=null;App._filterPayMethod=null;App.renderTab();`;
-    const clearRow2=isFiltered2?`<div style="display:flex;justify-content:flex-end;margin-top:6px;"><button type="button" onclick="${clearAll2F}" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">清除篩選</button></div>`:'';
-    const filterRows=fex?(catChipsHTML+funcChipsHTML+clearRow2):'';
+    const filterRows=fex?(catChipsHTML+funcChipsHTML):'';
     const memberChips=(filterMembers.length>1||hasAnyExps)?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
       <div style="display:flex;align-items:center;gap:6px;">
         ${filterMembers.length>1?`<span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;white-space:nowrap;">成員</span>
