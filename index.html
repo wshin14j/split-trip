@@ -1823,7 +1823,7 @@ const App = {
     });
     const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
     const today=`${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
-    document.getElementById('pay-rec-date').value=today;
+    document.getElementById('pay-rec-date').value=this.dateWithDay(today);
     const settleCur=this._settleCur||t.baseCurrency||'TWD';
     const allCurs=[...new Set([...Object.keys(t.rates||{}), ...Object.keys(DEF), settleCur])];
     const curSel=document.getElementById('pay-rec-cur');
@@ -1840,7 +1840,7 @@ const App = {
     const amt=parseFloat(document.getElementById('pay-rec-amt').value.replace(/,/g,''));
     const note=document.getElementById('pay-rec-note').value.trim();
     const remark=document.getElementById('pay-rec-remark').value.trim();
-    const date=document.getElementById('pay-rec-date').value;
+    const date=document.getElementById('pay-rec-date').value.slice(0,10);
     const method=document.getElementById('pay-rec-note').value.trim();
     if(!from||!to||!amt||from===to){this.showToast('請確認付款人、收款人不同且金額正確');return;}
     if(!method){this.showToast('請選擇付款方式');return;}
@@ -2104,13 +2104,13 @@ const App = {
     if(existing){
       document.getElementById('fund-dep-amt').value=existing.amt;
       document.getElementById('fund-dep-cur').value=existing.cur||baseCur;
-      document.getElementById('fund-dep-date').value=(existing.date||'').replace(/-/g,'/');
+      document.getElementById('fund-dep-date').value=this.dateWithDay((existing.date||'').replace(/-/g,'/'));
       document.getElementById('fund-dep-note').value=existing.note||'';
     } else {
       document.getElementById('fund-dep-amt').value='';
       document.getElementById('fund-dep-note').value='';
       const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
-      document.getElementById('fund-dep-date').value=`${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+      document.getElementById('fund-dep-date').value=this.dateWithDay(`${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`);
     }
     this._editingDepId=depId||null;
     this.openModal('m-fund-deposit');
@@ -2128,7 +2128,7 @@ const App = {
     const t=loadTrip(this.tripId); if(!t) return;
     const amt=parseFloat(document.getElementById('fund-dep-amt').value.replace(/,/g,''));
     const cur=document.getElementById('fund-dep-cur').value;
-    const date=document.getElementById('fund-dep-date').value;
+    const date=document.getElementById('fund-dep-date').value.slice(0,10);
     const note=document.getElementById('fund-dep-note').value.trim();
     if(!amt||amt<=0){this.showToast('請填入金額');return;}
     if(!t.fundDeposits) t.fundDeposits=[];
@@ -2302,7 +2302,7 @@ const App = {
     const todayStr=(()=>{const d=new Date();return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;})();
     if(eid){
       const e=t.expenses[eid];
-      document.getElementById('in-exp-date').value=e.date?e.date.replace(/-/g,'/'):'';
+      document.getElementById('in-exp-date').value=e.date?this.dateWithDay(e.date.replace(/-/g,'/')):'';
 
       document.getElementById('in-exp-cat').value=e.category||'其他';
       document.getElementById('in-exp-name').value=e.name;
@@ -2334,7 +2334,7 @@ const App = {
       }
       document.getElementById('in-exp-note').value=e.note||'';
     } else {
-      document.getElementById('in-exp-date').value=todayStr;
+      document.getElementById('in-exp-date').value=this.dateWithDay(todayStr);
       document.getElementById('in-exp-cat').value='餐飲';
       document.getElementById('in-exp-name').value='';
       document.getElementById('in-exp-cur').value='TWD';
@@ -2687,9 +2687,17 @@ const App = {
     try{el.setSelectionRange(pos+diff,pos+diff);}catch(e){}
   },
   _dpTarget:null,_dpYear:null,_dpMonth:null,_dpSelected:null,
+  dateWithDay(ds){
+    if(!ds||ds.length<10) return ds;
+    const [y,mo,d]=ds.slice(0,10).split('/').map(Number);
+    const DAYS=['日','一','二','三','四','五','六'];
+    const dow=new Date(y,mo-1,d).getDay();
+    return `${ds.slice(0,10)}（${DAYS[dow]}）`;
+  },
   openDatePicker(targetId){
     const el=document.getElementById(targetId);
-    const val=el?.value;
+    const raw=el?.value;
+    const val=raw?raw.slice(0,10):'';
     const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
     if(val&&val.length===10){
       const parts=val.replace(/-/g,'/').split('/');
@@ -2719,7 +2727,7 @@ const App = {
   dpSelectDate(y,m,d){
     const ds=`${y}/${String(m+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
     const el=document.getElementById(this._dpTarget);
-    if(el) el.value=ds;
+    if(el) el.value=this.dateWithDay(ds);
     this._dpSelected=ds;
     this.closeDatePicker();
   },
@@ -2745,8 +2753,8 @@ const App = {
       const col=dow===0?'#EF4444':dow===6?'var(--accent)':'var(--t1)';
       const bg=isSel?'var(--primary)':'transparent';
       const tc=isSel?'#fff':col;
-      const todayDot=isToday&&!isSel?`<div style="position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--primary);"></div>`:'';
-      html+=`<div onclick="App.dpSelectDate(${y},${m},${d})" style="position:relative;text-align:center;padding:9px 2px;border-radius:50%;cursor:pointer;background:${bg};color:${tc};font-size:15px;font-weight:${isToday?'700':'400'};">${d}${todayDot}</div>`;
+      const todayDot=isToday&&!isSel?`<div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--primary);"></div>`:'';
+      html+=`<div onclick="App.dpSelectDate(${y},${m},${d})" style="display:flex;align-items:center;justify-content:center;padding:3px 0;cursor:pointer;"><div style="position:relative;width:36px;height:36px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;color:${tc};font-size:15px;font-weight:${isToday?'700':'400'};">${d}${todayDot}</div></div>`;
     }
     html+='</div>';
     document.getElementById('dp-grid').innerHTML=html;
@@ -2835,7 +2843,7 @@ const App = {
     if(!t) return;
     const dateInput=document.getElementById('in-exp-date').value;
     if(!dateInput||dateInput.length<10){this.showToast('請填寫完整日期（YYYY/MM/DD）');return;}
-    const date=dateInput;
+    const date=dateInput.slice(0,10);
     const exp={category,payMethod,name,amount:isPending?0:amount,currency,paidBy,parts,splitMode:this.splitMode,customAmounts,proportions,note,date,createdAt:Date.now()};
     if(this.editId){t.expenses[this.editId]={...t.expenses[this.editId],...exp};}
     else{t.expenses[uid()]=exp;}
