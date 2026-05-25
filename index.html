@@ -1196,10 +1196,6 @@ const App = {
       const da=a[1].date||''; const db=b[1].date||'';
       return da>db?-1:da<db?1:(b[1].createdAt||0)-(a[1].createdAt||0);
     });
-    if(!allExps.length){
-      c.innerHTML=`<div class="empty"><div class="empty-title">還沒有支出記錄</div><div class="empty-sub">點右下角 + 新增第一筆</div></div>`;
-      return;
-    }
     const summaryHTML=this.expenseSummaryHTML(t);
     // Filter bar
     const CAT_ORDER=['餐飲','住宿','交通','玩樂','購物','其他'];
@@ -1230,7 +1226,7 @@ const App = {
     const so=document.getElementById('trip-summary-outer');
     const fo=document.getElementById('trip-filter-outer');
     if(so){so.style.display='block';so.innerHTML=summaryHTML;}
-    if(fo){fo.style.display='block';fo.innerHTML=filterBar.replace('margin-bottom:14px;','');}
+    if(fo){fo.style.display=allExps.length?'block':'none';fo.innerHTML=filterBar.replace('margin-bottom:14px;','');}
     // Apply filters: member → category/pending
     let exps=allExps;
     if(fm){
@@ -1245,6 +1241,7 @@ const App = {
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     let lastDate='';
+    if(!allExps.length){c.innerHTML=`<div class="empty"><div class="empty-title">還沒有支出記錄</div><div class="empty-sub">點右下角 + 新增第一筆</div></div>`;return;}
     c.innerHTML=(exps.length?exps.map(([id,e])=>{
       const payer=typeof e.paidBy==='object'&&e.paidBy!==null?null:t.members.find(m=>m.id===e.paidBy);
       const payerName=typeof e.paidBy==='object'&&e.paidBy!==null?'多人':((payer?.name||'?').slice(0,2));
