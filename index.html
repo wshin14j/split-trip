@@ -1103,7 +1103,7 @@ const App = {
         ${ratioHtml}
       </div><div style="height:1px;background:var(--border);margin:16px 0;"></div>`;
     };
-    let html=buildSection('總支出',allExps,true);
+    let html=isPersonal?'':buildSection('總支出',allExps,true);
     if(isPersonal){
       const selfMemberTotals=t.members.filter(m=>!m.isGroupFund).map(m=>{
         const mExps=allExps.filter(e=>e.paidBy===m.id);
