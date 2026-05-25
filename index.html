@@ -944,7 +944,7 @@ function avText(name){ return (name||'?').slice(0,2); }
 const App = {
   screen:'landing', tripId:null, expId:null,
   tab:'expenses', editId:null, splitMode:'equal', pending:null, _payerMode:'single',
-  _myMemberId:null, _showMyShare:false, _showBreakdown:false, _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedExp:{}, _fundCardExpanded:false, _editingFundDeposits:false, _showRatePanel:false,
+  _myMemberId:null, _showMyShare:false, _showBreakdown:false, _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedExp:{}, _fundCardExpanded:false, _editingFundDeposits:false, _showRatePanel:false,
 
   go(s){
     document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -1051,6 +1051,7 @@ const App = {
   setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);this._filterPending=false;this._filterPayMethod=null;this.renderTab();},
   setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this._filterPending=false;this.renderTab();},
   setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterCat=null;this._filterPending=false;this.renderTab();},
+  toggleFilter(){this._filterExpanded=!this._filterExpanded;this.renderTab();},
   openBreakdownModal(){
     const t=loadTrip(this.tripId); if(!t) return;
     const base=t.baseCurrency||'TWD';
@@ -1259,13 +1260,27 @@ const App = {
         ${rowLabel('功能')}
         ${funcBtns.join('')}
       </div>`;
-    const filterBar=`<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;padding:10px 0;">
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        ${rowLabel('類別')}
-        ${catAllBtn}${catChips}
+    const fex=this._filterExpanded;
+    const activeCount=[fc,fp,fpm].filter(Boolean).length;
+    const funnelCol=isFiltered?'var(--accent)':'var(--t2)';
+    const funnelSvg=`<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1.5 2h11L8 7.5v4l-2-1v-3L1.5 2Z" stroke="${funnelCol}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    const chevSvg=`<svg width="10" height="10" viewBox="0 0 10 10" style="transform:${fex?'rotate(180deg)':'rotate(0deg)'};transition:transform .2s;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="${funnelCol}" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`;
+    const filterBar=`<div style="padding:4px 0 2px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;">
+        <button type="button" onclick="App.toggleFilter()" style="display:flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:2px 0;color:${funnelCol};">
+          ${funnelSvg}
+          <span style="font-size:12px;font-weight:600;line-height:1;">篩選${activeCount>0?` <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:700;line-height:1;">${activeCount}</span>`:''}</span>
+          ${chevSvg}
+        </button>
+        ${isFiltered?clearBtn:''}
       </div>
-      ${funcRow}
-      ${isFiltered?`<div style="display:flex;justify-content:flex-end;">${clearBtn}</div>`:''}
+      <div style="display:${fex?'flex':'none'};flex-direction:column;gap:8px;padding:4px 0 8px;">
+        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+          ${rowLabel('類別')}
+          ${catAllBtn}${catChips}
+        </div>
+        ${funcRow}
+      </div>
     </div>`;
     const so=document.getElementById('trip-summary-outer');
     const fo=document.getElementById('trip-filter-outer');
