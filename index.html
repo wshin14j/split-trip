@@ -2417,6 +2417,12 @@ const App = {
     if(!box) return;
     const t=loadTrip(this.tripId);
     if(!t) return;
+    const _payerId=document.getElementById('in-exp-paid')?.value;
+    const _payer=t.members.find(m=>m.id===_payerId);
+    const _isGroupFund=!!_payer?.isGroupFund;
+    const _selfBtn=document.getElementById('cp-none');
+    if(_selfBtn) _selfBtn.style.display=_isGroupFund?'none':'';
+    if(_isGroupFund&&this.splitMode==='self') this.splitMode='equal';
     const countEl=document.getElementById('parts-count');
     if(countEl){
       if(this.splitMode==='self'){countEl.textContent='';}
