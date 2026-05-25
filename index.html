@@ -1198,7 +1198,8 @@ const App = {
     const tabs=`<div style="display:flex;align-items:flex-end;border-bottom:1px solid var(--border);margin-bottom:12px;margin-top:-2px;">
       <button type="button" onclick="App.setSummaryView('group')" style="${tabStyle(isGroup)}">群組支出</button>
       <button type="button" onclick="App.setSummaryView('personal')" style="${tabStyle(!isGroup)}">個人支出</button>
-      <button type="button" onclick="App.openBreakdownModal()" title="支出分析" style="border:none;background:transparent;color:var(--t2);cursor:pointer;padding:4px 0 1px 4px;line-height:1;border-radius:6px;-webkit-tap-highlight-color:transparent;align-self:center;">
+      <div style="flex:1;"></div>
+      <button type="button" onclick="App.openBreakdownModal()" title="支出分析" style="border:none;background:transparent;color:var(--t2);cursor:pointer;padding:4px 0 1px 4px;margin-right:6px;line-height:1;border-radius:6px;-webkit-tap-highlight-color:transparent;align-self:center;">
         <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
           <rect x="1" y="9" width="2.5" height="5" rx="0.7"/>
           <rect x="4.5" y="1" width="2.5" height="13" rx="0.7"/>
