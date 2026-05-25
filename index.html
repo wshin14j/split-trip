@@ -1039,7 +1039,7 @@ const App = {
   },
 
   setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this.renderTab();},
-  setFilterCat(cat){this._filterCat=this._filterCat===cat?null:cat;this._filterPending=false;this._filterPayMethod=null;this.renderTab();},
+  setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);this._filterPending=false;this._filterPayMethod=null;this.renderTab();},
   setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this._filterPending=false;this.renderTab();},
   setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterCat=null;this._filterPending=false;this.renderTab();},
   openBreakdownModal(){
@@ -1234,24 +1234,26 @@ const App = {
     const isGroup=this._summaryView==='group';
     const rowLabel=(txt)=>`<span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;line-height:28px;margin-right:6px;white-space:nowrap;">${txt}</span>`;
     const chipStyle=(active,color)=>`height:28px;padding:0 12px;border-radius:6px;border:none;background:${active?(color||'var(--accent)'):'var(--surface)'};color:${active?'#fff':'var(--t1)'};font-size:13px;font-weight:${active?700:500};cursor:pointer;white-space:nowrap;`;
+    const catAllBtn=`<button type="button" onclick="App.setFilterCat(null)" style="${chipStyle(!fc)}">全部</button>`;
     const catChips=usedCats.map(cat=>`<button type="button" onclick="App.setFilterCat('${cat}')" style="${chipStyle(fc===cat)}">${cat}</button>`).join('');
     const clearBtn=isFiltered?`<button type="button" onclick="${clearAll}" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;white-space:nowrap;text-decoration:underline;">清除篩選</button>`:'';
     const hasPending=allExps.some(([,e])=>e.note==='金額待補');
     const usedPayMethods=[...new Set(allExps.map(([,e])=>e.payMethod).filter(Boolean))];
     const hasCash=usedPayMethods.includes('現金');
     const hasCard=usedPayMethods.includes('信用卡');
-    const funcBtns=[];
+    const funcAllActive=!fp&&!fpm;
+    const funcBtns=[`<button type="button" onclick="App._filterPending=false;App._filterPayMethod=null;App.renderTab();" style="${chipStyle(funcAllActive)}">全部</button>`];
     if(hasPending) funcBtns.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App._filterCat=null;App._filterMember=null;App._filterPayMethod=null;App.renderTab();" style="${chipStyle(fp,'#F97316')}">待補金額</button>`);
     if(hasCash) funcBtns.push(`<button type="button" onclick="App.setFilterPayMethod('現金')" style="${chipStyle(fpm==='現金')}">現金</button>`);
     if(hasCard) funcBtns.push(`<button type="button" onclick="App.setFilterPayMethod('信用卡')" style="${chipStyle(fpm==='信用卡')}">信用卡</button>`);
-    const funcRow=funcBtns.length?`<div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+    const funcRow=`<div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
         ${rowLabel('功能')}
         ${funcBtns.join('')}
-      </div>`:'';
+      </div>`;
     const filterBar=`<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;padding:10px 0;">
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
         ${rowLabel('類別')}
-        ${catChips}
+        ${catAllBtn}${catChips}
       </div>
       ${funcRow}
       ${isFiltered?`<div style="display:flex;justify-content:flex-end;">${clearBtn}</div>`:''}
