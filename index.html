@@ -1635,10 +1635,10 @@ const App = {
       return `<div class="card" style="padding:14px 16px;margin-bottom:10px;${isSettled?'opacity:0.75;':''}">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="App.toggleDebtExpand(${di})">
           <div class="avatar" style="${avStyle(t,ot.from)}">${avText(mName(ot.from))}</div>
-          <div class="flex-1 min-w-0" style="display:flex;align-items:center;gap:4px;">
-            <div style="flex:0 0 4em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;">${mName(ot.from)}</div>
-            <div style="flex-shrink:0;color:var(--t2);font-size:15px;padding:0 4px;">→</div>
-            <div style="flex:1;min-width:0;font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${mName(ot.to)}</div>
+          <div class="flex-1 min-w-0" style="position:relative;display:flex;align-items:center;height:24px;">
+            <div style="position:absolute;left:50%;transform:translateX(-50%);color:var(--t2);font-size:15px;pointer-events:none;">→</div>
+            <div style="width:50%;padding-right:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;">${mName(ot.from)}</div>
+            <div style="width:50%;padding-left:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;">${mName(ot.to)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
             <div class="avatar" style="${avStyle(t,ot.to)}">${avText(mName(ot.to))}</div>
