@@ -1213,7 +1213,7 @@ const App = {
     </div>`;
     const regularCount=t.members.filter(m=>!m.isGroupFund).length||1;
     const pendingCount=allExps.filter(e=>e.note==='金額待補').length;
-    const pendingBadge=pendingCount>0&&!fp?`<span style="margin-left:auto;font-size:13px;font-weight:700;color:#DC2626;white-space:nowrap;">${pendingCount}筆待補</span>`:'';
+    const pendingBadge=pendingCount>0?`<span style="margin-left:auto;font-size:13px;font-weight:700;color:#DC2626;white-space:nowrap;">${pendingCount}筆待補</span>`:'';
     // Title area: member selected → show member context; else → show totals
     let titleBlock;
     if(fm&&fmMember){
