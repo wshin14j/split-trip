@@ -2920,10 +2920,12 @@ const App = {
     const category=document.getElementById('in-exp-cat').value;
     const payMethod=document.getElementById('in-exp-pay-method').value;
     const name=document.getElementById('in-exp-name').value.trim().replace(/-$/,'');
-    const amount=parseFloat(document.getElementById('in-exp-amt').value.replace(/,/g,''));
+    const rawAmount=parseFloat(document.getElementById('in-exp-amt').value.replace(/,/g,''));
     const currency=document.getElementById('in-exp-cur').value;
-    const note=document.getElementById('in-exp-note')?.value.trim()||'';
+    let note=document.getElementById('in-exp-note')?.value.trim()||'';
+    if(note==='金額待補'&&rawAmount>0&&!isNaN(rawAmount)){note='';}
     const isPending=note==='金額待補';
+    const amount=isPending?0:rawAmount;
     if(!name){this.showToast('請輸入支出項目');return;}
     if(!isPending&&(!amount||isNaN(amount)||amount<=0)){this.showToast('請輸入有效金額，或備註填入「金額待補」');return;}
     let paidBy;
