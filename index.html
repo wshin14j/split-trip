@@ -1187,6 +1187,8 @@ const App = {
     }
     if(fc) allExps=allExps.filter(e=>normCat(e.category||'其他')===fc);
     if(this._filterPayMethod) allExps=allExps.filter(e=>e.payMethod===this._filterPayMethod);
+    if(fsm==='self') allExps=allExps.filter(e=>e.splitMode==='self');
+    else if(fsm==='nonself') allExps=allExps.filter(e=>e.splitMode!=='self');
     const total=allExps.reduce((sum,e)=>{
       const amt=e.note==='金額待補'?0:(fm&&typeof e.paidBy==='object'&&e.paidBy!==null?(e.paidBy[fm]||0):e.amount);
       return sum+toBase(amt,e.currency,t.rates,t.baseCurrency);
