@@ -856,7 +856,7 @@ function fbListen(id){
       const {data}=JSON.parse(e.data);
       if(!data) return;
       const all=loadAll(); all[id]=data; DB.set('st_trips',all);
-      if(App.tripId===id && (App.screen==='trip'||App.screen==='detail')) App.renderTrip();
+      if(App.tripId===id && (App.screen==='trip'||App.screen==='detail')) App.renderTrip(false);
       if(App.screen==='home') App.renderHome();
     }catch{}
   });
@@ -1018,7 +1018,7 @@ const App = {
   openTrip(id){this.tripId=id; this.tab='expenses'; this._myMemberId=DB.get('myMember_'+id)||null; this.go('trip');},
 
   // ── TRIP PAGE ─────────────────────────────────
-  renderTrip(){
+  renderTrip(resetScroll=true){
     const t=loadTrip(this.tripId);
     if(!t){this.go('home');return;}
     document.getElementById('trip-name').textContent=t.name;
@@ -1032,6 +1032,7 @@ const App = {
     });
     document.getElementById('fab').style.display=this.tab==='expenses'?'flex':'none';
     this.renderTab();
+    if(!resetScroll) return;
     window.scrollTo(0,0);
     const _sc=document.querySelector('#s-trip .scroll');
     if(_sc){
@@ -1043,6 +1044,9 @@ const App = {
         if(st>_lastScrollTop+10&&App._filterExpanded){
           App._filterExpanded=false;
           App._reRenderSummary();
+        }
+        if(Math.abs(st-_lastScrollTop)>10&&Object.values(App._expandedDebt).some(Boolean)){
+          App._expandedDebt={};App._editingDebt={};App.renderTab();
         }
         _lastScrollTop=st;
       };
