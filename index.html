@@ -1254,7 +1254,7 @@ const App = {
     const funcArrF=[`<button type="button" onclick="App._filterPending=false;App._filterPayMethod=null;App._filterSelfMode=null;App.renderTab();" style="${fChipSty(funcAllActiveF)}">全部</button>`];
     if(hasCashF) funcArrF.push(`<button type="button" onclick="App.setFilterPayMethod('現金')" style="${fChipSty(fpm==='現金')}">現金</button>`);
     if(hasCardF) funcArrF.push(`<button type="button" onclick="App.setFilterPayMethod('信用卡')" style="${fChipSty(fpm==='信用卡')}">信用卡</button>`);
-    if(hasPendingF) funcArrF.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App.renderTab();" style="${pendStyF}">待補金額</button>`);
+    if(hasPendingF) funcArrF.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App._filterPayMethod=null;App._filterSelfMode=null;App.renderTab();" style="${pendStyF}">待補金額</button>`);
     if(!isGroup){
       funcArrF.push(`<button type="button" onclick="App.setFilterSelfMode('self')" style="${fChipSty(fsm==='self')}">自購</button>`);
       funcArrF.push(`<button type="button" onclick="App.setFilterSelfMode('nonself')" style="${fChipSty(fsm==='nonself')}">非自購</button>`);
