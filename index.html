@@ -2750,11 +2750,13 @@ const App = {
   },
 
   pickNote(btn,name){
+    const el=document.getElementById('in-exp-note');
+    const isActive=btn.style.background==='var(--accent)'||(el&&el.value===name&&btn.style.color==='#fff');
     document.querySelectorAll('.note-chip').forEach(b=>{
       b.style.background='#fff';b.style.borderColor='var(--border)';b.style.color='var(--t1)';b.style.fontWeight='400';
     });
+    if(isActive){if(el)el.value='';return;}
     btn.style.background='var(--accent)';btn.style.borderColor='var(--accent)';btn.style.color='#fff';btn.style.fontWeight='700';
-    const el=document.getElementById('in-exp-note');
     if(el){el.value=name;el.focus();}
   },
   pickSuggestion(btn,name){
