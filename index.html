@@ -1224,8 +1224,8 @@ const App = {
           ${fsm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fsm==='self'?'自購':'非自購'}</span>`:''}
           <span style="font-size:13px;color:var(--t2);">已支出</span>
         </div>
-        <div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>
-        ${isGroup?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">每人平均 ${bSym} ${Math.round(total/regularCount).toLocaleString()}</span></div>`:''}
+        ${fp?`<div style="font-size:26px;font-weight:800;color:#DC2626;">待補</div>`:`<div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>`}
+        ${!fp&&isGroup?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">每人平均 ${bSym} ${Math.round(total/regularCount).toLocaleString()}</span></div>`:''}
       </div>`;
     } else {
       const baseCur=t.baseCurrency||'TWD';
@@ -1237,8 +1237,8 @@ const App = {
           ${fp?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">待補金額</span>`:''}
           ${fsm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fsm==='self'?'自購':'非自購'}</span>`:''}
         </div>
-        <div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>
-        ${isGroup?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">每人平均 ${bSym} ${Math.round(total/regularCount).toLocaleString()}</span></div>`:''}
+        ${fp?`<div style="font-size:26px;font-weight:800;color:#DC2626;">待補</div>`:`<div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>`}
+        ${!fp&&isGroup?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">每人平均 ${bSym} ${Math.round(total/regularCount).toLocaleString()}</span></div>`:''}
       </div>`;
     }
     const filterMembers=isGroup?[...t.members].sort((a,b)=>(b.isGroupFund?1:0)-(a.isGroupFund?1:0)):t.members.filter(m=>!m.isGroupFund);
@@ -1256,7 +1256,7 @@ const App = {
     const funcArrF=[`<button type="button" onclick="App._filterPending=false;App._filterPayMethod=null;App._filterSelfMode=null;App.renderTab();" style="${fChipSty(funcAllActiveF)}">全部</button>`];
     if(hasCashF) funcArrF.push(`<button type="button" onclick="App.setFilterPayMethod('現金')" style="${fChipSty(fpm==='現金')}">現金</button>`);
     if(hasCardF) funcArrF.push(`<button type="button" onclick="App.setFilterPayMethod('信用卡')" style="${fChipSty(fpm==='信用卡')}">信用卡</button>`);
-    if(hasPendingF) funcArrF.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App._filterPayMethod=null;App._filterSelfMode=null;App.renderTab();" style="${pendStyF}">待補金額</button>`);
+    if(hasPendingF) funcArrF.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App._filterPayMethod=null;App._filterSelfMode=null;if(App._filterPending){App._filterMember=null;App._filterCat=null;}App.renderTab();" style="${pendStyF}">待補金額</button>`);
     if(!isGroup){
       funcArrF.push(`<button type="button" onclick="App.setFilterSelfMode('self')" style="${fChipSty(fsm==='self')}">自購</button>`);
       funcArrF.push(`<button type="button" onclick="App.setFilterSelfMode('nonself')" style="${fChipSty(fsm==='nonself')}">非自購</button>`);
