@@ -1854,7 +1854,10 @@ const App = {
             <div style="font-size:16px;font-weight:800;">${fmtS(groupTotal)}</div>
           </div>
         </div>
-        ${fundMember?`<div style="font-size:11px;color:var(--t2);margin-top:6px;padding:0 4px;">＊ 應付／應收 不含公款存入金額，公款餘額請見上方卡片</div>`:''}
+        ${fundMember?`<div style="font-size:11px;color:var(--t2);margin-top:6px;padding:0 4px;">＊ 全部合計 及 應付／應收 均不含公款存入金額，公款支出與餘額請見上方卡片</div>`:''}
+        ${fundMember
+          ?`<div style="font-size:11px;color:var(--t2);margin-top:4px;padding:0 4px;">＊ 群組花費－一般支出：全員分攤、非公款支付的項目</div>`
+          :`<div style="font-size:11px;color:var(--t2);margin-top:4px;padding:0 4px;">＊ 群組花費：全員分攤的項目，非全員分攤則歸入「個人花費－部分成員」</div>`}
         ${inclPersonal?`<div style="font-size:11px;color:var(--t2);margin-top:4px;padding:0 4px;">＊ 個人花費－部分成員：非全員分攤的項目，已納入應付／應收計算</div>`:''}`
 
     })();
