@@ -1741,11 +1741,37 @@ const App = {
         ${rDetail}
       </div>`;
     }).join('');
+    // 找出孤兒付款紀錄（已付但 origTxs 已無對應方向的欄），顯示為歷史卡片
+    const origPairs=new Set(origTxs.map(ot=>`${ot.from}|${ot.to}`));
+    const orphanGroups={};
+    payRecs.forEach(r=>{
+      const key=`${r.from}|${r.to}`;
+      if(!origPairs.has(key)){
+        if(!orphanGroups[key]) orphanGroups[key]={from:r.from,to:r.to,recs:[]};
+        orphanGroups[key].recs.push(r);
+      }
+    });
+    const historicCards=Object.values(orphanGroups).map(({from,to,recs})=>{
+      const totalPaid=recs.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+      if(totalPaid<0.5) return '';
+      return `<div class="card" style="padding:14px 16px;margin-bottom:10px;opacity:0.55;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="avatar" style="${avStyle(t,from)}">${avText(mName(from))}</div>
+          <div class="flex-1 min-w-0" style="position:relative;height:24px;">
+            <div style="position:absolute;left:50%;transform:translateX(-50%);top:0;line-height:24px;color:var(--t2);font-size:15px;pointer-events:none;z-index:1;">→</div>
+            <div style="position:absolute;top:0;left:0;right:50%;padding-right:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(from)}</div>
+            <div style="position:absolute;top:0;left:50%;right:0;padding-left:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(to)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--t2);white-space:nowrap;min-width:110px;justify-content:flex-end;">✓ 已處理</div>
+        </div>
+      </div>`;
+    }).join('');
     const txHtml=origTxs.length===0
       ?(hasExps
         ?`<div class="card" style="padding:16px;text-align:center;color:var(--t2);font-size:13px;"><div style="font-weight:700;margin-bottom:4px;">目前無待結算款項</div><div>所有費用已平均分配，無需轉帳</div></div>`
         :`<div class="card" style="padding:16px;text-align:center;color:var(--t2);font-size:13px;"><div style="font-weight:700;margin-bottom:4px;">目前尚無支出記錄</div><div>請到『支出頁』新增旅程第一筆費用</div></div>`)
       :(debtCards+reversalCards);
+    const historicSection=historicCards?`<div style="margin-top:10px;">${historicCards}</div>`:'';
 
     const balRows=t.members.map(m=>{
       const v=adjBal[m.id]||0;
@@ -1947,6 +1973,7 @@ const App = {
       ${payRecordCard}
       <div class="sm semibold muted mb3">債務關係</div>
       ${txHtml}
+      ${historicSection}
       ${memberSummary}
       <div style="padding:56px 0 80px;"></div>
       `;
