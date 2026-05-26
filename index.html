@@ -1296,7 +1296,13 @@ const App = {
     const fsm=this._filterSelfMode;
     const so=document.getElementById('trip-summary-outer');
     const fo=document.getElementById('trip-filter-outer');
-    if(so){so.style.display='block';so.innerHTML=summaryHTML;}
+    if(so){so.style.display='block';so.innerHTML=summaryHTML;
+      // 渲染後把選中的 chip scroll 到可見範圍
+      so.querySelectorAll('.member-chips-scroll').forEach(row=>{
+        const active=row.querySelector('button[style*="var(--accent)"]');
+        if(active) active.scrollIntoView({block:'nearest',inline:'nearest'});
+      });
+    }
     if(fo){fo.style.display='none';}
     // Apply filters: member → category/pending
     let exps=allExps;
