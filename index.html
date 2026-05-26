@@ -1065,8 +1065,8 @@ const App = {
   setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterSelfMode=null;this.renderTab();},
   setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);this.renderTab();},
   setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this.renderTab();},
-  setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this.renderTab();},
-  setFilterSelfMode(m){this._filterSelfMode=this._filterSelfMode===m?null:m;this.renderTab();},
+  setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterPending=false;this._filterSelfMode=null;this.renderTab();},
+  setFilterSelfMode(m){this._filterSelfMode=this._filterSelfMode===m?null:m;this._filterPayMethod=null;this._filterPending=false;this.renderTab();},
   toggleFilter(){this._filterExpanded=!this._filterExpanded;this.renderTab();},
   openBreakdownModal(){
     const t=loadTrip(this.tripId); if(!t) return;
