@@ -2089,6 +2089,13 @@ const App = {
         ps.forEach(p=>{if(peerBal[p]!==undefined)peerBal[p]-=sh;});
       }
     });
+    // 用純費用 peerBal（未加 payRecs）算未結清成員
+    const basePeerTxsM=minimizeTx({...peerBal});
+    const unsettledMembersM=new Set();
+    basePeerTxsM.forEach(ot=>{
+      const paid=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+      if(ot.amt-paid>0.5){unsettledMembersM.add(ot.from);unsettledMembersM.add(ot.to);}
+    });
     payRecs.forEach(r=>{
       const a=toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
       if(peerBal[r.from]!==undefined) peerBal[r.from]+=a;
@@ -2118,7 +2125,7 @@ const App = {
         v=peerBal[m.id]||0;
         if(v>0.5){cls='receive';lbl=`應收 ${fmt(v,t.baseCurrency)}`;}
         else if(v<-0.5){cls='owe';lbl=`應付 ${fmt(-v,t.baseCurrency)}`;}
-        else{cls='ok';lbl=hasExpenses?'已平帳 ✓':'';}
+        else{cls='ok';lbl=(hasExpenses&&!unsettledMembersM.has(m.id))?'已平帳 ✓':'';}
       }
       const isEditing=eid===m.id;
       const editPanel=isEditing?`<div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
