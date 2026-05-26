@@ -1826,7 +1826,7 @@ const App = {
           ${inclPersonal&&ppsp>0.5?`<div style="${rStyle}"><span>個人花費－部分成員</span><span>${fmtS(ppsp)}</span></div>`:''}
           ${inclPersonal&&personalSp>0.5?`<div style="${rStyle}"><span>個人花費－自購</span><span>${fmtS(personalSp)}</span></div>`:''}
           ${fp>0.5?`${div}<div style="${rStyle}"><span>已付公費</span><span>${fmtS(fp)}</span></div>`:''}
-          ${div}<div style="${rStyle}"><span>支出已付</span><span>${fmtS(pd)}</span></div>${tp>0.5?`<div style="${rStyle}"><span>轉帳已付</span><span>${fmtS(tp)}</span></div>`:''}
+          ${div}<div style="${rStyle}"><span>已付支出</span><span>${fmtS(pd)}</span></div>${tp>0.5?`<div style="${rStyle}"><span>轉帳銷帳</span><span>${fmtS(tp)}</span></div>`:''}
           </div>`:'';
         return `<div style="display:flex;align-items:${isExp?'flex-start':'center'};gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
           <div class="avatar" style="${avStyle(t,m.id)};${isExp?'margin-top:2px;':''}">${avText(m.name)}</div>
