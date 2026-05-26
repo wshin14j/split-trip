@@ -1746,12 +1746,13 @@ const App = {
       const rPaidCheck=payRecs.filter(p=>p.from===r.from&&p.to===r.to).reduce((s,p)=>s+toBase(p.amt,p.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
       if(r.amt-rPaidCheck>0.5){unsettledMembers.add(r.from);unsettledMembers.add(r.to);}
     });
-    // 找出孤兒付款紀錄（已付但 origTxs 已無對應方向的欄），顯示為歷史卡片
+    // 找出孤兒付款紀錄（已付但 origTxs 及 reversals 均無對應方向的欄），顯示為歷史卡片
     const origPairs=new Set(origTxs.map(ot=>`${ot.from}|${ot.to}`));
+    const reversalPairs=new Set(reversals.map(r=>`${r.from}|${r.to}`));
     const orphanGroups={};
     payRecs.forEach(r=>{
       const key=`${r.from}|${r.to}`;
-      if(!origPairs.has(key)){
+      if(!origPairs.has(key)&&!reversalPairs.has(key)){
         if(!orphanGroups[key]) orphanGroups[key]={from:r.from,to:r.to,recs:[]};
         orphanGroups[key].recs.push(r);
       }
