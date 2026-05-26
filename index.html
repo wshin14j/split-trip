@@ -1806,7 +1806,21 @@ const App = {
       let cls,lbl;
       if(v>0.5){cls='receive';lbl=`應收 ${fmtS(v)}`;}
       else if(v<-0.5){cls='owe';lbl=`應付 ${fmtS(-v)}`;}
-      else{cls='ok';lbl=(memberInExp&&!unsettledMembers.has(m.id))?'已平帳 ✓':'';}
+      else{
+        cls='ok';
+        const hasUnsettledCard=origTxs.some(ot=>{
+          if(ot.from!==m.id&&ot.to!==m.id) return false;
+          const _p=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to);
+          let _pb=_p.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+          if(fundMember&&ot.to===fundMember.id)(t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{_pb+=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);});
+          return ot.amt-_pb>0.5;
+        })||reversals.some(r=>{
+          if(r.from!==m.id&&r.to!==m.id) return false;
+          const _rp=payRecs.filter(p=>p.from===r.from&&p.to===r.to).reduce((s,p)=>s+toBase(p.amt,p.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+          return r.amt-_rp>0.5;
+        });
+        lbl=(memberInExp&&!hasUnsettledCard)?'已平帳 ✓':'';
+      }
       return `<div class="card member-row">
         <div class="avatar" style="${avStyle(t,m.id)}">${avText(m.name)}</div>
         <div class="flex-1 semibold">${m.name}</div>
@@ -2180,7 +2194,21 @@ const App = {
         v=peerBal[m.id]||0;
         if(v>0.5){cls='receive';lbl=`應收 ${fmt(v,t.baseCurrency)}`;}
         else if(v<-0.5){cls='owe';lbl=`應付 ${fmt(-v,t.baseCurrency)}`;}
-        else{cls='ok';lbl=(hasExpenses&&!unsettledMembersM.has(m.id))?'已平帳 ✓':'';}
+        else{
+          cls='ok';
+          const hasUnsettledM=basePeerTxsM.some(ot=>{
+            if(ot.from!==m.id&&ot.to!==m.id) return false;
+            const paid2=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+            const rem=ot.amt-paid2;
+            if(rem>0.5) return true;
+            if(rem<-0.5){
+              const rp2=payRecs.filter(r=>r.from===ot.to&&r.to===ot.from).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+              return (-rem)-rp2>0.5;
+            }
+            return false;
+          });
+          lbl=(hasExpenses&&!hasUnsettledM)?'已平帳 ✓':'';
+        }
       }
       const isEditing=eid===m.id;
       const editPanel=isEditing?`<div style="border-top:1px solid var(--border);margin-top:10px;padding-top:10px;">
