@@ -2143,7 +2143,12 @@ const App = {
     const unsettledMembersM=new Set();
     basePeerTxsM.forEach(ot=>{
       const paid=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-      if(ot.amt-paid>0.5){unsettledMembersM.add(ot.from);unsettledMembersM.add(ot.to);}
+      const remain=ot.amt-paid;
+      if(remain>0.5){unsettledMembersM.add(ot.from);unsettledMembersM.add(ot.to);}
+      else if(remain<-0.5){
+        const rPaid=payRecs.filter(r=>r.from===ot.to&&r.to===ot.from).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+        if((-remain)-rPaid>0.5){unsettledMembersM.add(ot.from);unsettledMembersM.add(ot.to);}
+      }
     });
     payRecs.forEach(r=>{
       const a=toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
