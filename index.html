@@ -1193,7 +1193,7 @@ const App = {
     },0);
     // Funnel icon (computed early for use in tabs row)
     const hasAnyExpsEarly=Object.values(t.expenses||{}).some(e=>isGroup?this._isGroupExp(e,t):!this._isGroupExp(e,t));
-    const isFiltered2Early=fc||fp||!!fm||!!fpm;
+    const isFiltered2Early=fc||fp||!!fm||!!fpm||!!fsm;
     const funnelColE=isFiltered2Early?'var(--accent)':'var(--t2)';
     const funnelBtnE=hasAnyExpsEarly?`<button type="button" onclick="App.toggleFilter()" style="display:flex;align-items:center;gap:3px;background:none;border:none;cursor:pointer;padding:4px 0 1px 8px;flex-shrink:0;color:${funnelColE};-webkit-tap-highlight-color:transparent;align-self:center;"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1.5 2h11L8 7.5v4l-2-1v-3L1.5 2Z" stroke="${funnelColE}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg><svg width="10" height="10" viewBox="0 0 10 10" style="transform:${fex?'rotate(180deg)':'rotate(0deg)'};transition:transform .2s;flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="${funnelColE}" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>`:'';
     // Tab switcher
@@ -1221,6 +1221,7 @@ const App = {
           ${fc?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fc}</span>`:''}
           ${fpm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fpm}</span>`:''}
           ${fp?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">待補金額</span>`:''}
+          ${fsm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fsm==='self'?'自購':'非自購'}</span>`:''}
           <span style="font-size:13px;color:var(--t2);">已支出</span>
         </div>
         <div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>
@@ -1234,6 +1235,7 @@ const App = {
           ${fc?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fc}</span>`:''}
           ${fpm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fpm}</span>`:''}
           ${fp?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">待補金額</span>`:''}
+          ${fsm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fsm==='self'?'自購':'非自購'}</span>`:''}
         </div>
         <div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>
         ${isGroup?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">每人平均 ${bSym} ${Math.round(total/regularCount).toLocaleString()}</span></div>`:''}
