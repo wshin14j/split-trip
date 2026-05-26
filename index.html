@@ -353,7 +353,7 @@ select.input{
       <button class="tab-btn" onclick="App.switchTab('members')">成員</button>
     </div>
   </div>
-  <div id="trip-summary-outer" style="display:none;flex-shrink:0;padding:16px 20px 10px;background:var(--bg);"></div>
+  <div id="trip-summary-outer" style="display:none;flex-shrink:0;padding:16px 20px 10px;background:var(--bg);position:sticky;top:0;z-index:10;"></div>
   <div id="trip-filter-outer" style="display:none;flex-shrink:0;padding:8px 20px;background:var(--bg);border-bottom:1px solid var(--border);"></div>
   <div class="scroll pb-fab" id="trip-content"></div>
   <button class="fab" id="fab" onclick="App.showAddExpense()">+</button>
