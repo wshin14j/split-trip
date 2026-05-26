@@ -1762,18 +1762,26 @@ const App = {
       if(totalPaid<0.5) return '';
       const hExp=!!this._expandedHistoric[hi];
       const hChevron=`<svg width="12" height="12" viewBox="0 0 10 10" style="margin-left:4px;vertical-align:middle;transition:transform .2s;transform:${hExp?'rotate(180deg)':'rotate(0)'};flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`;
+      // 現有帳務反方向是否有欠款
+      const relFwdTx=origTxs.find(ot=>ot.from===to&&ot.to===from);
+      const relFwdRev=reversals.find(r=>r.from===to&&r.to===from);
+      const relNote=(relFwdTx||relFwdRev)
+        ?`<div style="padding-top:6px;font-size:11px;color:#F97316;">目前 ${mName(to)} 尚欠 ${mName(from)} ${fmtS((relFwdTx||relFwdRev).amt)}（現有帳務）</div>`:'';
       const hDetail=hExp?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--t2);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span>原始欠款</span><span style="color:var(--t2);font-style:italic;font-size:11px;">帳務結構調整後無法還原</span>
+        </div>
         ${recs.map(r=>{
-          const rBase=toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
           return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <span>${r.date||''}${r.note?` · ${r.note}`:''}</span>
+            <span>${r.date||''}${r.note?` · ${r.note}`:''} - ${mName(from)}轉帳</span>
             <span style="color:#22c55e;font-weight:600;">${fmtCur(Math.round(r.amt),r.cur||t.baseCurrency)}</span>
           </div>`;
         }).join('')}
-        <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);font-weight:700;">
+        <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);font-weight:700;margin-bottom:${relNote?'4px':'0'};">
           <span style="color:var(--t1);">合計</span>
           <span style="color:#22c55e;">${fmtS(totalPaid)}</span>
         </div>
+        ${relNote}
       </div>`:'';
       return `<div class="card" style="padding:14px 16px;margin-bottom:10px;opacity:0.55;">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="App.toggleHistoricExpand(${hi})">
