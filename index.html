@@ -946,7 +946,7 @@ function avText(name){ return (name||'?').slice(0,2); }
 const App = {
   screen:'landing', tripId:null, expId:null,
   tab:'expenses', editId:null, splitMode:'equal', pending:null, _payerMode:'single',
-  _myMemberId:null, _showMyShare:false, _showBreakdown:false, _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedExp:{}, _fundCardExpanded:false, _editingFundDeposits:false, _showRatePanel:false,
+  _myMemberId:null, _showMyShare:false, _showBreakdown:false, _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedExp:{}, _fundCardExpanded:false, _editingFundDeposits:false, _showRatePanel:false,
 
   go(s){
     document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -1062,10 +1062,11 @@ const App = {
     const parts=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);
     return parts.length>=nfc;
   },
-  setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this.renderTab();},
+  setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterSelfMode=null;this.renderTab();},
   setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);this.renderTab();},
   setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this.renderTab();},
   setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this.renderTab();},
+  setFilterSelfMode(m){this._filterSelfMode=this._filterSelfMode===m?null:m;this.renderTab();},
   toggleFilter(){this._filterExpanded=!this._filterExpanded;this.renderTab();},
   openBreakdownModal(){
     const t=loadTrip(this.tripId); if(!t) return;
@@ -1172,6 +1173,7 @@ const App = {
     const fm=this._filterMember;
     const fp=this._filterPending;
     const fpm=this._filterPayMethod;
+    const fsm=this._filterSelfMode;
     const fex=this._filterExpanded;
     const fmMember=fm?t.members.find(m=>m.id===fm):null;
     // Filter expenses by view, then by member filter, then by category
@@ -1248,12 +1250,16 @@ const App = {
     const scrollRow=(label,content)=>`<div style="display:flex;align-items:center;gap:6px;margin-top:8px;"><span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;white-space:nowrap;">${label}</span><div class="member-chips-scroll" style="flex:1;display:flex;flex-wrap:nowrap;gap:6px;align-items:center;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;">${content}</div></div>`;
     const catChipsHTML=usedCatsF.length>0?scrollRow('類別',`<button type="button" onclick="App.setFilterCat(null)" style="${fChipSty(!fc)}">全部</button>${usedCatsF.map(cat=>`<button type="button" onclick="App.setFilterCat('${cat}')" style="${fChipSty(fc===cat)}">${cat}</button>`).join('')}`):'';
     const pendStyF=fChipSty(fp);
-    const funcAllActiveF=!fp&&!fpm;
-    const funcArrF=[`<button type="button" onclick="App._filterPending=false;App._filterPayMethod=null;App.renderTab();" style="${fChipSty(funcAllActiveF)}">全部</button>`];
+    const funcAllActiveF=!fp&&!fpm&&!fsm;
+    const funcArrF=[`<button type="button" onclick="App._filterPending=false;App._filterPayMethod=null;App._filterSelfMode=null;App.renderTab();" style="${fChipSty(funcAllActiveF)}">全部</button>`];
     if(hasCashF) funcArrF.push(`<button type="button" onclick="App.setFilterPayMethod('現金')" style="${fChipSty(fpm==='現金')}">現金</button>`);
     if(hasCardF) funcArrF.push(`<button type="button" onclick="App.setFilterPayMethod('信用卡')" style="${fChipSty(fpm==='信用卡')}">信用卡</button>`);
     if(hasPendingF) funcArrF.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App.renderTab();" style="${pendStyF}">待補金額</button>`);
-    const funcChipsHTML=(hasCashF||hasCardF||hasPendingF)?scrollRow('功能',funcArrF.join('')):'';
+    if(!isGroup){
+      funcArrF.push(`<button type="button" onclick="App.setFilterSelfMode('self')" style="${fChipSty(fsm==='self')}">自購</button>`);
+      funcArrF.push(`<button type="button" onclick="App.setFilterSelfMode('nonself')" style="${fChipSty(fsm==='nonself')}">非自購</button>`);
+    }
+    const funcChipsHTML=(hasCashF||hasCardF||hasPendingF||!isGroup)?scrollRow('功能',funcArrF.join('')):'';
     const filterRows=fex?(catChipsHTML+funcChipsHTML):'';
     const memberChips=(filterMembers.length>1||viewExps.length>0)?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
       <div style="display:flex;align-items:center;gap:6px;">
@@ -1301,6 +1307,8 @@ const App = {
     if(fp) exps=exps.filter(([,e])=>e.note==='金額待補');
     else if(fc) exps=exps.filter(([,e])=>normCat(e.category||'其他')===fc);
     if(fpm) exps=exps.filter(([,e])=>e.payMethod===fpm);
+    if(fsm==='self') exps=exps.filter(([,e])=>e.splitMode==='self');
+    else if(fsm==='nonself') exps=exps.filter(([,e])=>e.splitMode!=='self');
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     let lastDate='';
