@@ -1854,7 +1854,8 @@ const App = {
             <div style="font-size:16px;font-weight:800;">${fmtS(groupTotal)}</div>
           </div>
         </div>
-        ${fundMember?`<div style="font-size:11px;color:var(--t2);margin-top:6px;padding:0 4px;">＊ 應付／應收 不含公款存入金額，公款餘額請見上方卡片</div>`:''}`;
+        ${fundMember?`<div style="font-size:11px;color:var(--t2);margin-top:6px;padding:0 4px;">＊ 應付／應收 不含公款存入金額，公款餘額請見上方卡片</div>`:''}
+        ${inclPersonal?`<div style="font-size:11px;color:var(--t2);margin-top:4px;padding:0 4px;">＊ 個人花費－部分成員：非全員分攤的項目，已納入應付／應收計算</div>`:''}`
 
     })();
 
