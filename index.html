@@ -1212,7 +1212,7 @@ const App = {
       </button>
     </div>`;
     const regularCount=t.members.filter(m=>!m.isGroupFund).length||1;
-    const pendingCount=Object.values(t.expenses||{}).filter(e=>(isGroup?this._isGroupExp(e,t):!this._isGroupExp(e,t))&&e.note==='金額待補').length;
+    const pendingCount=allExps.filter(e=>e.note==='金額待補').length;
     const pendingBadge=pendingCount>0&&!fp?`<span style="flex:1;text-align:right;font-size:13px;font-weight:700;color:#DC2626;">${pendingCount}筆待補</span>`:'';
     // Title area: member selected → show member context; else → show totals
     let titleBlock;
@@ -1260,7 +1260,7 @@ const App = {
     const funcArrF=[`<button type="button" onclick="App._filterPending=false;App._filterPayMethod=null;App._filterSelfMode=null;App.renderTab();" style="${fChipSty(funcAllActiveF)}">全部</button>`];
     if(hasCashF) funcArrF.push(`<button type="button" onclick="App.setFilterPayMethod('現金')" style="${fChipSty(fpm==='現金')}">現金</button>`);
     if(hasCardF) funcArrF.push(`<button type="button" onclick="App.setFilterPayMethod('信用卡')" style="${fChipSty(fpm==='信用卡')}">信用卡</button>`);
-    if(hasPendingF) funcArrF.push(`<button type="button" onclick="App._filterPending=!App._filterPending;App._filterPayMethod=null;App._filterSelfMode=null;if(App._filterPending){App._filterMember=null;App._filterCat=null;}App.renderTab();" style="${pendStyF}">待補金額</button>`);
+    if(hasPendingF) funcArrF.push(`<button type="button" onclick="if(!App._filterPending){App._filterPending=true;App._filterPayMethod=null;App._filterSelfMode=null;App._filterMember=null;App._filterCat=null;}else{App._filterPending=false;}App.renderTab();" style="${pendStyF}">待補金額</button>`);
     if(!isGroup){
       funcArrF.push(`<button type="button" onclick="App.setFilterSelfMode('self')" style="${fChipSty(fsm==='self')}">自購</button>`);
       funcArrF.push(`<button type="button" onclick="App.setFilterSelfMode('nonself')" style="${fChipSty(fsm==='nonself')}">非自購</button>`);
