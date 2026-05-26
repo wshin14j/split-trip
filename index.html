@@ -78,6 +78,8 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
 .btn-full{width:100%;}
 .btn-sm{height:40px;font-size:13px;padding:0 16px;}
 .btn-sm:disabled{opacity:0.4;}
+.btn-toggle{background:var(--surface);color:var(--t1);border:1px solid var(--border);border-radius:999px;}
+.btn-toggle.on{background:var(--accent);color:#fff;border-color:var(--accent);}
 
 /* FAB */
 .fab{
@@ -596,9 +598,9 @@ select.input{
     <div class="mb3">
       <label class="form-label">分攤方式</label>
       <div id="split-btns" class="flex gap-2">
-        <button id="sp-eq" class="btn btn-accent flex-1 btn-sm" onclick="App.setSplit('equal')">平均分攤</button>
-        <button id="sp-pr" class="btn btn-ghost flex-1 btn-sm" onclick="App.setSplit('proportion')">按比例</button>
-        <button id="sp-cu" class="btn btn-ghost flex-1 btn-sm" onclick="App.setSplit('custom')">自訂金額</button>
+        <button id="sp-eq" class="btn btn-toggle on flex-1 btn-sm" onclick="App.setSplit('equal')">平均分攤</button>
+        <button id="sp-pr" class="btn btn-toggle flex-1 btn-sm" onclick="App.setSplit('proportion')">按比例</button>
+        <button id="sp-cu" class="btn btn-toggle flex-1 btn-sm" onclick="App.setSplit('custom')">自訂金額</button>
       </div>
     </div>
     <div id="split-preview" style="margin-bottom:16px;"></div>
@@ -2438,9 +2440,9 @@ const App = {
     document.getElementById('in-exp-parts').innerHTML=
       t.members.filter(m=>!m.isGroupFund).map(m=>`<button class="chip chip-lg on" id="cp-${m.id}" onclick="App.togglePart('${m.id}')">${m.name}</button>`).join('')+
       `<button class="chip chip-lg" id="cp-none" onclick="App.toggleSelfPurchase()">無（自購）</button>`;
-    document.getElementById('sp-eq').className='btn btn-accent flex-1 btn-sm';
-    document.getElementById('sp-pr').className='btn btn-ghost flex-1 btn-sm';
-    document.getElementById('sp-cu').className='btn btn-ghost flex-1 btn-sm';
+    document.getElementById('sp-eq').className='btn btn-toggle on flex-1 btn-sm';
+    document.getElementById('sp-pr').className='btn btn-toggle flex-1 btn-sm';
+    document.getElementById('sp-cu').className='btn btn-toggle flex-1 btn-sm';
     document.getElementById('sp-eq').disabled=false;
     document.getElementById('sp-pr').disabled=false;
     document.getElementById('sp-cu').disabled=false;
@@ -2560,9 +2562,9 @@ const App = {
 
   setSplit(mode){
     this.splitMode=mode;
-    document.getElementById('sp-eq').className=mode==='equal'?'btn btn-accent flex-1 btn-sm':'btn btn-ghost flex-1 btn-sm';
-    document.getElementById('sp-pr').className=mode==='proportion'?'btn btn-accent flex-1 btn-sm':'btn btn-ghost flex-1 btn-sm';
-    document.getElementById('sp-cu').className=mode==='custom'?'btn btn-accent flex-1 btn-sm':'btn btn-ghost flex-1 btn-sm';
+    document.getElementById('sp-eq').className=mode==='equal'?'btn btn-toggle on flex-1 btn-sm':'btn btn-toggle flex-1 btn-sm';
+    document.getElementById('sp-pr').className=mode==='proportion'?'btn btn-toggle on flex-1 btn-sm':'btn btn-toggle flex-1 btn-sm';
+    document.getElementById('sp-cu').className=mode==='custom'?'btn btn-toggle on flex-1 btn-sm':'btn btn-toggle flex-1 btn-sm';
     this.updateSplitPreview();
   },
 
