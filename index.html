@@ -1636,6 +1636,14 @@ const App = {
       });
     }
     const origTxs=[...peerTxs,...fundTxs];
+    // 計算哪些成員有未結清的債務卡片，供下方 已平帳 判斷使用
+    const unsettledMembers=new Set();
+    origTxs.forEach(ot=>{
+      const m2=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to);
+      let pb2=m2.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+      if(fundMember&&ot.to===fundMember.id)(t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{pb2+=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);});
+      if(ot.amt-pb2>0.5){unsettledMembers.add(ot.from);unsettledMembers.add(ot.to);}
+    });
     const reversals=[];
     const debtCards=origTxs.map((ot,di)=>{
       const matched=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to);
@@ -1750,7 +1758,7 @@ const App = {
       let cls,lbl;
       if(v>0.5){cls='receive';lbl=`應收 ${fmtS(v)}`;}
       else if(v<-0.5){cls='owe';lbl=`應付 ${fmtS(-v)}`;}
-      else{cls='ok';lbl=memberInExp?'已平帳 ✓':'';}
+      else{cls='ok';lbl=(memberInExp&&!unsettledMembers.has(m.id))?'已平帳 ✓':'';}
       return `<div class="card member-row">
         <div class="avatar" style="${avStyle(t,m.id)}">${avText(m.name)}</div>
         <div class="flex-1 semibold">${m.name}</div>
