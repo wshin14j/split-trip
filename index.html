@@ -1675,7 +1675,7 @@ const App = {
           <span style="color:var(--t1);">${(isSettled||isOverpaid)?'已全數結清':'剩餘'}</span>
           <span style="color:${(isSettled||isOverpaid)?'#22c55e':'var(--primary)'};">${(isSettled||isOverpaid)?'—':fmtS(remainBase)}</span>
         </div>
-        ${(isSettled||isOverpaid)?'':`<button onclick="event.stopPropagation();App.openAddPayRecord('${ot.from}','${ot.to}')" style="width:100%;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 記錄付款</button>`}
+        ${(isSettled||isOverpaid)?'':`<button onclick="event.stopPropagation();App.openAddPayRecord('${ot.from}','${ot.to}',${Math.round(ot.amt)})" style="width:100%;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 記錄付款</button>`}
       </div>`:'';
       return `<div class="card" style="padding:14px 16px;margin-bottom:10px;${(isSettled||isOverpaid)?'opacity:0.75;':''}">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="App.toggleDebtExpand(${di})">
@@ -1723,7 +1723,7 @@ const App = {
           <span style="color:var(--t1);">${rSettled?'已全數結清':'剩餘'}</span>
           <span style="color:${rSettled?'#22c55e':'var(--primary)'};">${rSettled?'—':fmtS(rRemain)}</span>
         </div>
-        ${rSettled?'':`<button onclick="event.stopPropagation();App.openAddPayRecord('${r.from}','${r.to}')" style="width:100%;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 記錄付款</button>`}
+        ${rSettled?'':`<button onclick="event.stopPropagation();App.openAddPayRecord('${r.from}','${r.to}',${Math.round(r.amt)},${Math.round(r.origAmt)})" style="width:100%;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 記錄付款</button>`}
       </div>`:'';
       return `<div class="card" style="padding:14px 16px;margin-bottom:10px;${rSettled?'opacity:0.75;':''}border:1.5px solid #FED7AA;">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="App.toggleDebtExpand(${rdi})">
@@ -1767,20 +1767,28 @@ const App = {
       const relFwdRev=reversals.find(r=>r.from===to&&r.to===from);
       const relNote=(relFwdTx||relFwdRev)
         ?`<div style="padding-top:6px;font-size:11px;color:#F97316;">目前 ${mName(to)} 尚欠 ${mName(from)} ${fmtS((relFwdTx||relFwdRev).amt)}（現有帳務）</div>`:'';
+      const storedDebt=recs[0]?.debtAmt||null;
+      const storedOrigDebt=recs[0]?.origDebt||null;
+      const overpaid=storedDebt?Math.round(totalPaid-storedDebt):0;
       const hDetail=hExp?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--t2);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <span>原始欠款</span><span style="color:var(--t2);font-style:italic;font-size:11px;">帳務結構調整後無法還原</span>
+          <span style="font-weight:600;color:var(--t1);">原始欠款</span>
+          <span style="color:var(--t1);font-weight:600;">${storedDebt?fmtS(storedDebt):'<span style=\'font-style:italic;color:var(--t2);font-size:11px;\'>帳務結構調整後無法還原</span>'}</span>
         </div>
+        ${storedOrigDebt?`<div style="padding:4px 8px;background:rgba(249,115,22,0.08);border-radius:6px;color:#F97316;font-size:11px;margin-bottom:6px;">此筆為超額匯款退還，原始借貸 ${fmtS(storedOrigDebt)}</div>`:''}
         ${recs.map(r=>{
           return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
             <span>${r.date||''}${r.note?` · ${r.note}`:''} - ${mName(from)}轉帳</span>
             <span style="color:#22c55e;font-weight:600;">${fmtCur(Math.round(r.amt),r.cur||t.baseCurrency)}</span>
           </div>`;
         }).join('')}
-        <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);font-weight:700;margin-bottom:${relNote?'4px':'0'};">
+        <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);font-weight:700;margin-bottom:${(overpaid>0.5||relNote)?'4px':'0'};">
           <span style="color:var(--t1);">合計</span>
           <span style="color:#22c55e;">${fmtS(totalPaid)}</span>
         </div>
+        ${overpaid>0.5?`<div style="display:flex;justify-content:space-between;align-items:center;padding-top:4px;font-size:11px;color:#F97316;">
+          <span>超額匯款</span><span style="font-weight:600;">+ ${fmtS(overpaid)}</span>
+        </div>`:''}
         ${relNote}
       </div>`:'';
       return `<div class="card" style="padding:14px 16px;margin-bottom:10px;opacity:0.55;">
@@ -2045,7 +2053,9 @@ const App = {
       inp.value='';
     }
   },
-  openAddPayRecord(fromId,toId){
+  openAddPayRecord(fromId,toId,debtAmt,origDebt){
+    this._payRecDebtAmt=debtAmt||null;
+    this._payRecOrigDebt=origDebt||null;
     const t=loadTrip(this.tripId); if(!t) return;
     const opts=t.members.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
     document.getElementById('pay-rec-from').innerHTML=opts;
@@ -2083,7 +2093,10 @@ const App = {
     if(!from||!to||!amt||from===to){this.showToast('請確認付款人、收款人不同且金額正確');return;}
     if(!method){this.showToast('請選擇付款方式');return;}
     if(!t.payRecords) t.payRecords=[];
-    t.payRecords.push({from,to,amt,cur,note,remark,date});
+    const _pr={from,to,amt,cur,note,remark,date};
+    if(this._payRecDebtAmt) _pr.debtAmt=this._payRecDebtAmt;
+    if(this._payRecOrigDebt) _pr.origDebt=this._payRecOrigDebt;
+    t.payRecords.push(_pr);
     saveTrip(t); this.closeModal('m-pay-record'); this.renderTab();
     // 檢查是否全部結清
     const bal2=calcBal(t);
