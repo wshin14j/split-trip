@@ -959,7 +959,7 @@ function avText(name){ return (name||'?').slice(0,2); }
 const App = {
   screen:'landing', tripId:null, expId:null,
   tab:'expenses', editId:null, splitMode:'equal', pending:null, _payerMode:'single',
-  _myMemberId:null, _showMyShare:false, _showBreakdown:false, _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedExp:{}, _fundCardExpanded:false, _editingFundDeposits:false, _showRatePanel:false,
+  _myMemberId:null, _showMyShare:false, _showBreakdown:false, _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _editingFundDeposits:false, _showRatePanel:false,
 
   go(s){
     document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -1981,6 +1981,7 @@ const App = {
 
   toggleMemberExpand(mid){this._expandedMemberSummary[mid]=!this._expandedMemberSummary[mid];this.renderTab();},
   toggleDebtExpand(i){this._expandedDebt[i]=!this._expandedDebt[i];if(!this._expandedDebt[i])this._editingDebt[i]=false;this.renderTab();},
+  toggleHistoricExpand(i){this._expandedHistoric[i]=!this._expandedHistoric[i];this.renderTab();},
   toggleDebtEdit(i){this._editingDebt[i]=!this._editingDebt[i];this.renderTab();},
   togglePayNote(opt){
     const inp=document.getElementById('pay-rec-note');
