@@ -1701,11 +1701,11 @@ const App = {
           <span>原始欠款</span><span style="color:var(--t1);font-weight:600;">${fmtS(r.origAmt)}</span>
         </div>
         ${r.origMatched.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-          <span>${mName(r.to)}。<span style="color:#F97316;font-size:10px;font-weight:600;">超額匯款</span></span>
+          <span>${p.date||''}${p.note?` · ${p.note}`:''}${p.date||p.note?' - ':' '}${mName(r.to)}轉帳</span>
           <span style="color:var(--t1);font-weight:600;">${fmtCur(Math.round(p.amt),p.cur||t.baseCurrency)}</span>
         </div>`).join('')}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding-top:4px;">
-          <span style="color:#F97316;font-weight:600;">超額退款</span><span style="color:#F97316;font-weight:600;">${fmtS(r.amt)}</span>
+          <span style="color:#F97316;font-weight:600;">${mName(r.to)} - 超額匯款</span><span style="color:#F97316;font-weight:600;">${fmtS(r.amt)}</span>
         </div>
         ${rMatched.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
           <span>${p.date||''}${p.note?` · ${p.note}`:''}</span>
