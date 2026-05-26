@@ -1265,7 +1265,7 @@ const App = {
     const filterRows=fex?(catChipsHTML+funcChipsHTML):'';
     const memberChips=(filterMembers.length>1||viewExps.length>0)?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
       <div style="display:flex;align-items:center;gap:6px;">
-        ${filterMembers.length>1?`<span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;white-space:nowrap;">成員</span>
+        ${filterMembers.length>1?`<span style="font-size:11px;color:var(--t2);font-weight:600;flex-shrink:0;white-space:nowrap;">支付人</span>
         <div class="member-chips-scroll" style="flex:1;display:flex;flex-wrap:nowrap;gap:6px;align-items:center;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-right:8px;">
           <button type="button" onclick="App._filterMember=null;App.renderTab();" style="${mChipSty(!fm)}">全部</button>
           ${filterMembers.map(m=>`<button type="button" onclick="App.setFilterMember('${m.id}')" style="${mChipSty(fm===m.id)}">${m.name}</button>`).join('')}
