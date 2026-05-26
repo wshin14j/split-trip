@@ -1656,10 +1656,10 @@ const App = {
       return `<div class="card" style="padding:14px 16px;margin-bottom:10px;${(isSettled||isOverpaid)?'opacity:0.75;':''}">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="App.toggleDebtExpand(${di})">
           <div class="avatar" style="${avStyle(t,ot.from)}">${avText(mName(ot.from))}</div>
-          <div class="flex-1 min-w-0" style="position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:center;height:24px;overflow:hidden;">
-            <div style="position:absolute;left:50%;transform:translateX(-50%);color:var(--t2);font-size:15px;pointer-events:none;">→</div>
-            <div style="min-width:0;padding-right:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;">${mName(ot.from)}</div>
-            <div style="min-width:0;padding-left:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;">${mName(ot.to)}</div>
+          <div class="flex-1 min-w-0" style="position:relative;height:24px;">
+            <div style="position:absolute;left:50%;transform:translateX(-50%);top:0;line-height:24px;color:var(--t2);font-size:15px;pointer-events:none;z-index:1;">→</div>
+            <div style="position:absolute;top:0;left:0;right:50%;padding-right:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(ot.from)}</div>
+            <div style="position:absolute;top:0;left:50%;right:0;padding-left:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(ot.to)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
             <div class="avatar" style="${avStyle(t,ot.to)}">${avText(mName(ot.to))}</div>
@@ -1704,10 +1704,10 @@ const App = {
       return `<div class="card" style="padding:14px 16px;margin-bottom:10px;${rSettled?'opacity:0.75;':''}border:1.5px solid #FED7AA;">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="App.toggleDebtExpand(${rdi})">
           <div class="avatar" style="${avStyle(t,r.from)}">${avText(mName(r.from))}</div>
-          <div class="flex-1 min-w-0" style="position:relative;display:grid;grid-template-columns:1fr 1fr;align-items:center;height:24px;overflow:hidden;">
-            <div style="position:absolute;left:50%;transform:translateX(-50%);color:var(--t2);font-size:15px;pointer-events:none;">→</div>
-            <div style="min-width:0;padding-right:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;">${mName(r.from)}</div>
-            <div style="min-width:0;padding-left:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;">${mName(r.to)}</div>
+          <div class="flex-1 min-w-0" style="position:relative;height:24px;">
+            <div style="position:absolute;left:50%;transform:translateX(-50%);top:0;line-height:24px;color:var(--t2);font-size:15px;pointer-events:none;z-index:1;">→</div>
+            <div style="position:absolute;top:0;left:0;right:50%;padding-right:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(r.from)}</div>
+            <div style="position:absolute;top:0;left:50%;right:0;padding-left:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(r.to)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
             <div class="avatar" style="${avStyle(t,r.to)}">${avText(mName(r.to))}</div>
@@ -2575,6 +2575,18 @@ const App = {
     const _selfBtn=document.getElementById('cp-none');
     if(_selfBtn) _selfBtn.style.display=_isGroupFund?'none':'';
     if(_isGroupFund&&this.splitMode==='self') this.splitMode='equal';
+    // 公款帳付款時：限定貨幣為已存入的幣別
+    const curSel=document.getElementById('in-exp-cur');
+    if(curSel){
+      const allOpts=Array.from(curSel.options);
+      if(_isGroupFund){
+        const fundCurs=new Set((t.fundDeposits||[]).map(d=>d.cur||t.baseCurrency||'TWD'));
+        allOpts.forEach(o=>{o.hidden=!fundCurs.has(o.value);});
+        if(!fundCurs.has(curSel.value)){const first=allOpts.find(o=>!o.hidden);if(first)curSel.value=first.value;}
+      } else {
+        allOpts.forEach(o=>{o.hidden=false;});
+      }
+    }
     const countEl=document.getElementById('parts-count');
     if(countEl){
       if(this.splitMode==='self'){countEl.textContent='';}
@@ -2672,8 +2684,8 @@ const App = {
       </div>`;
       this.updateCustomTotal();
     }
-    // 代付提醒：多人分攤且付款人不在分攤對象中
-    if(parts.length>1&&_payerId&&!parts.includes(_payerId)){
+    // 代付提醒：多人分攤且付款人不在分攤對象中（公款帳不適用）
+    if(parts.length>1&&_payerId&&!parts.includes(_payerId)&&!_isGroupFund){
       box.innerHTML+=`<div style="background:#FFF7ED;border-radius:12px;padding:10px 14px;font-size:13px;color:#F97316;font-weight:600;margin-top:8px;">⚠️ ${mName(_payerId)} 不在分攤對象中，請確認是否為代付</div>`;
     }
   },
