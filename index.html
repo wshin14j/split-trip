@@ -1913,7 +1913,7 @@ const App = {
             <div style="font-size:13px;font-weight:700;color:#C2410C;">有 ${pendingExps.length} 筆支出費用尚未補金額</div>
             <div style="font-size:12px;color:#EA580C;margin-top:2px;">結算數字可能不準確，建議補完後再結清</div>
           </div>
-          <button onclick="App.tab='expenses';App._filterPending=true;App._filterCat=null;App.renderTab();" style="font-size:12px;color:#EA580C;background:none;border:1.5px solid #FDBA74;border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap;">去補填</button>
+          <button onclick="(()=>{const t=loadTrip(App.tripId);const hasPendingGroup=t&&Object.values(t.expenses||{}).some(e=>e.note==='金額待補'&&App._isGroupExp(e,t));App.tab='expenses';App._filterPending=true;App._filterCat=null;App._filterMember=null;App._filterPayMethod=null;App._filterSelfMode=null;App._summaryView=hasPendingGroup?'group':'personal';App.renderTab();})()" style="font-size:12px;color:#EA580C;background:none;border:1.5px solid #FDBA74;border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap;">去補填</button>
         </div>`
       :'';
     c.innerHTML=`
