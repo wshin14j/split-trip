@@ -1212,6 +1212,8 @@ const App = {
       </button>
     </div>`;
     const regularCount=t.members.filter(m=>!m.isGroupFund).length||1;
+    const pendingCount=Object.values(t.expenses||{}).filter(e=>(isGroup?this._isGroupExp(e,t):!this._isGroupExp(e,t))&&e.note==='金額待補').length;
+    const pendingBadge=pendingCount>0&&!fp?`<span style="flex:1;text-align:right;font-size:13px;font-weight:700;color:#DC2626;">${pendingCount}筆待補</span>`:'';
     // Title area: member selected → show member context; else → show totals
     let titleBlock;
     if(fm&&fmMember){
@@ -1223,6 +1225,7 @@ const App = {
           ${fp?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">待補金額</span>`:''}
           ${fsm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fsm==='self'?'自購':'非自購'}</span>`:''}
           <span style="font-size:13px;color:var(--t2);">已支出</span>
+          ${pendingBadge}
         </div>
         ${fp?`<div style="font-size:26px;font-weight:800;color:#DC2626;">待補</div>`:`<div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>`}
         ${!fp&&isGroup?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">每人平均 ${bSym} ${Math.round(total/regularCount).toLocaleString()}</span></div>`:''}
@@ -1236,6 +1239,7 @@ const App = {
           ${fpm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fpm}</span>`:''}
           ${fp?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">待補金額</span>`:''}
           ${fsm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fsm==='self'?'自購':'非自購'}</span>`:''}
+          ${pendingBadge}
         </div>
         ${fp?`<div style="font-size:26px;font-weight:800;color:#DC2626;">待補</div>`:`<div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>`}
         ${!fp&&isGroup?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">每人平均 ${bSym} ${Math.round(total/regularCount).toLocaleString()}</span></div>`:''}
