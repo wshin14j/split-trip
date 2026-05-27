@@ -1569,7 +1569,6 @@ const App = {
           ${deps.length>0?`<button onclick="event.stopPropagation();App._editingFundDeposits=!App._editingFundDeposits;App.renderTab();" style="font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);background:${isEditFund?'var(--accent)':'transparent'};color:${isEditFund?'#fff':'var(--t2)'};cursor:pointer;">${isEditFund?'完成':'明細／編輯'}</button>`:''}
         </div>
         ${regular.length?mergedRows:`<div style="font-size:12px;color:var(--t2);text-align:center;padding:8px 0;">尚無存入紀錄</div>`}
-        <button onclick="event.stopPropagation();App.openFundDeposit()" style="width:100%;margin-top:12px;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 存入公款</button>
       </div>`:'';
       return `<div class="card" style="padding:14px 16px;margin-bottom:16px;border:1.5px solid #A5B4FC;cursor:pointer;" onclick="App._fundCardExpanded=!App._fundCardExpanded;App._editingFundDeposits=false;App.renderTab();">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
@@ -1587,6 +1586,7 @@ const App = {
           <span>已支出</span><span style="text-align:right;">${fmtLocal(totalOutBase)}</span>${showBase?`<span>(${fmtBase(totalOutBase)})</span>`:''}
         </div>`:''}
         ${detail}
+        <button onclick="event.stopPropagation();App.openFundDeposit()" style="width:100%;margin-top:10px;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 存入公款</button>
       </div>`;
     })();
 
