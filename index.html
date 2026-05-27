@@ -1045,7 +1045,7 @@ const App = {
           App._filterExpanded=false;
           App._reRenderSummary();
         }
-        if(Math.abs(st-_lastScrollTop)>10&&(Object.values(App._expandedDebt).some(Boolean)||App._fundCardExpanded)){
+        if(Math.abs(st-_lastScrollTop)>80&&(Object.values(App._expandedDebt).some(Boolean)||App._fundCardExpanded)){
           App._expandedDebt={};App._editingDebt={};App._fundCardExpanded=false;App.renderTab();
         }
         _lastScrollTop=st;
