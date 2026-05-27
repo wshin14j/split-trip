@@ -3531,6 +3531,7 @@ const App = {
     const fundLocalCur=_fDepCurs.length>0?_fDepCurs.sort((a,b)=>_fDepCurs.filter(c=>c===b).length-_fDepCurs.filter(c=>c===a).length)[0]:baseCur;
     const fundLocalRate=fundLocalCur===baseCur?1:(t.rates[fundLocalCur]||DEF[fundLocalCur]||1);
     const fmtFundLocal=v=>{const n=parseFloat((Math.abs(v)/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});const s=(C[fundLocalCur]||{}).sym||'';return s?`${s}${n}`:`${n} ${fundLocalCur}`;};
+    const fmtFundNum=v=>parseFloat((Math.abs(v)/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
     const baseSym=(C[baseCur]||C.TWD).sym;
     const mName=id=>{const m=members.find(m=>m.id===id);return m?.name||id;};
     const otherCurs=[...new Set(exps.map(e=>e.currency||baseCur))].filter(c=>c&&c!==baseCur);
@@ -3565,8 +3566,15 @@ const App = {
     </tr>`;
     // Separate accumulators: group vs personal
     const memberGroupShare={};const memberSelfPay={};const memberGroupPaid={};const memberFundDeposit={};
-    members.forEach(m=>{memberGroupShare[m.id]=0;memberSelfPay[m.id]=0;memberGroupPaid[m.id]=0;memberFundDeposit[m.id]=0;});
-    fundDeposits.forEach(d=>{if(d.fromMemberId&&memberFundDeposit[d.fromMemberId]!==undefined) memberFundDeposit[d.fromMemberId]+=Math.round(toBase(d.amt,d.cur||baseCur,t.rates,baseCur));});
+    const memberFundDepositLocal={};
+    members.forEach(m=>{memberGroupShare[m.id]=0;memberSelfPay[m.id]=0;memberGroupPaid[m.id]=0;memberFundDeposit[m.id]=0;memberFundDepositLocal[m.id]=0;});
+    fundDeposits.forEach(d=>{
+      if(d.fromMemberId&&memberFundDeposit[d.fromMemberId]!==undefined){
+        const baseAmt=Math.round(toBase(d.amt,d.cur||baseCur,t.rates,baseCur));
+        memberFundDeposit[d.fromMemberId]+=baseAmt;
+        memberFundDepositLocal[d.fromMemberId]+=baseAmt/fundLocalRate;
+      }
+    });
     const totalFundDeposit=Object.values(memberFundDeposit).reduce((s,v)=>s+v,0);
     const buildRows=(list,isGroup=true)=>list.map(e=>{
       const expCur=e.currency||baseCur;
@@ -3593,7 +3601,8 @@ const App = {
           if(isPending) return `<td style="${numS}${_mbl}color:#F97316;">待補</td>`;
           const fundAmt=typeof e.paidBy==='object'?Math.round(toBase(e.paidBy[m.id]||0,expCur,t.rates,baseCur)):baseTotalNum;
           if(isGroup) memberGroupShare[m.id]=(memberGroupShare[m.id]||0)+fundAmt;
-          return `<td style="${numS}${_mbl}">${fmtFundLocal(fundAmt)}</td>`;
+          const _twdLine=fundLocalCur!==baseCur?`<br><span style="font-size:10px;color:#9CA3AF;">${baseSym}${fundAmt.toLocaleString()}</span>`:'';
+          return `<td style="${numS}${_mbl}white-space:normal;">${fmtFundNum(fundAmt)}${_twdLine}</td>`;
         }
         if(!ps.includes(m.id)) return `<td style="${numS}${_mbl}color:#9CA3AF;">—</td>`;
         if(isPending) return `<td style="${numS}${_mbl}color:#F97316;">待補</td>`;
@@ -3658,9 +3667,11 @@ const App = {
       ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
       <td style="${ttl2}text-align:center;color:#6B7280;">已付公費</td>
       ${displayMembers.map((m,i)=>{
-        if(m.isGroupFund) return `<td style="${ttl2n}${mbl(i)}color:#6B7280;">${fmtFundLocal(totalFundDeposit)}</td>`;
+        if(m.isGroupFund) return `<td style="${ttl2n}${mbl(i)}color:#6B7280;white-space:normal;">${fmtFundLocal(totalFundDeposit)}</td>`;
         const dep=memberFundDeposit[m.id]||0;
-        return `<td style="${ttl2n}${mbl(i)}">${dep>0?dep.toLocaleString():'—'}</td>`;
+        const depLocal=memberFundDepositLocal[m.id]||0;
+        const localLine=(fundLocalCur!==baseCur&&dep>0)?`${parseFloat(depLocal.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})}<br>`:''
+        return `<td style="${ttl2n}${mbl(i)}white-space:normal;">${dep>0?localLine+dep.toLocaleString():'—'}</td>`;
       }).join('')}
     </tr>
     <tr>
