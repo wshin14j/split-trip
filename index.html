@@ -959,7 +959,7 @@ function avText(name){ return (name||'?').slice(0,2); }
 const App = {
   screen:'landing', tripId:null, expId:null,
   tab:'expenses', editId:null, splitMode:'equal', pending:null, _payerMode:'single',
-  _myMemberId:null, _showMyShare:false, _showBreakdown:false, _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _editingFundDeposits:false, _showRatePanel:false,
+  _myMemberId:null, _showMyShare:false, _showBreakdown:false, _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false, _showRatePanel:false,
 
   go(s){
     document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -1956,15 +1956,11 @@ const App = {
     })();
 
     const payRecords=t.payRecords||[];
-    const payRecordCard=`
-      <div class="sm semibold muted mb3">轉帳結清紀錄</div>
-      <div class="card" style="padding:16px;margin-bottom:20px;">
-        ${payRecords.length===0
-          ?`<div style="text-align:center;padding:8px 0;">
-              <div style="font-size:13px;color:var(--t2);line-height:1.8;"><div style="font-weight:700;">目前尚無轉帳紀錄</div><div>請大家確認下方債務關係，盡快匯款並記錄</div></div>
-              <button type="button" onclick="App.openAddPayRecord()" style="margin-top:12px;font-size:13px;font-weight:600;color:var(--accent);background:none;border:1.5px solid var(--accent);border-radius:999px;padding:6px 16px;cursor:pointer;">＋ 新增轉帳紀錄</button>
-            </div>`
-          :`${payRecords.map((r,i)=>`
+    const _prExp=this._payRecExpanded;
+    const _prTotal=payRecords.length;
+    const _prShow=_prExp||_prTotal<=3?payRecords:payRecords.slice(-3);
+    const _prHidden=_prTotal>3?_prTotal-3:0;
+    const payRecordRow=(r,i)=>`
             <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
               <div class="avatar" style="${avStyle(t,r.from)}">${avText(mName(r.from))}</div>
               <div style="flex:1;min-width:0;">
@@ -1972,9 +1968,18 @@ const App = {
                 <div style="font-size:12px;color:var(--t2);">${r.date||''} ${r.note||''}${r.remark?` · ${r.remark}`:''}</div>
               </div>
               <div style="font-size:15px;font-weight:700;color:var(--primary);">${fmtS(r.amt)}</div>
-              <button onclick="App.deletePayRecord(${i})" style="background:none;border:none;cursor:pointer;padding:0 4px;display:flex;align-items:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
-            </div>`).join('')}
-          <button type="button" onclick="App.openAddPayRecord()" style="margin-top:12px;font-size:13px;font-weight:600;color:var(--accent);background:none;border:1.5px solid var(--accent);border-radius:999px;padding:6px 16px;cursor:pointer;width:100%;">＋ 新增轉帳紀錄</button>`}
+              <button onclick="App.deletePayRecord(${payRecords.indexOf(r)})" style="background:none;border:none;cursor:pointer;padding:0 4px;display:flex;align-items:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--t2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>
+            </div>`;
+    const payRecordCard=`
+      <div class="sm semibold muted mb3">轉帳結清紀錄</div>
+      <div class="card" style="padding:16px;margin-bottom:20px;">
+        ${payRecords.length===0
+          ?`<div style="text-align:center;padding:8px 0;">
+              <div style="font-size:13px;color:var(--t2);line-height:1.8;"><div style="font-weight:700;">目前尚無轉帳紀錄</div><div>請大家確認下方債務關係，盡快匯款並記錄</div></div>
+            </div>`
+          :`${!_prExp&&_prHidden>0?`<button type="button" onclick="App._payRecExpanded=true;App.renderTab();" style="width:100%;font-size:12px;color:var(--t2);background:none;border:none;cursor:pointer;padding:6px 0;margin-bottom:4px;text-align:center;">▲ 顯示更早的 ${_prHidden} 筆</button>`:''}
+          ${_prShow.map((r,i)=>payRecordRow(r,i)).join('')}`}
+        <button type="button" onclick="App.openAddPayRecord()" style="margin-top:12px;font-size:13px;font-weight:600;color:var(--accent);background:none;border:1.5px solid var(--accent);border-radius:999px;padding:6px 16px;cursor:pointer;width:100%;">＋ 新增轉帳紀錄</button>
       </div>`;
 
     const pendingExps=Object.values(t.expenses||{}).filter(e=>e.note==='金額待補');
