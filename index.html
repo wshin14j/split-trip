@@ -566,23 +566,6 @@ select.input{
       <div id="cat-suggestions" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;"></div>
     </div>
     <div class="mb3">
-      <label class="form-label">金額</label>
-      <div class="flex gap-2">
-        <select id="in-exp-cur" class="input" style="width:140px;" onchange="App.previewTWD()">
-          <option value="TWD">TWD 台幣</option>
-          <option value="JPY">JPY 日圓</option>
-          <option value="USD">USD 美金</option>
-          <option value="EUR">EUR 歐元</option>
-          <option value="GBP">GBP 英鎊</option>
-          <option value="KRW">KRW 韓元</option>
-          <option value="VND">VND 越南盾</option>
-        </select>
-        <input id="in-exp-amt" class="input flex-1" type="text" inputmode="decimal" placeholder="0" oninput="App.fmtAmtInput(this);App.previewTWD()">
-      </div>
-      <div id="twd-hint" class="form-hint"></div>
-      <div style="margin-top:6px;font-size:12px;color:var(--t2);">如需其他貨幣請至<a href="javascript:void(0)" onclick="App.closeModal('m-expense');App.go('rates');" style="color:var(--accent);text-decoration:underline;">匯率設定</a>增加</div>
-    </div>
-    <div class="mb3">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
         <label class="form-label" style="margin-bottom:0;">由誰支付</label>
         <div style="display:flex;border-radius:8px;overflow:hidden;border:1.5px solid var(--border);">
@@ -601,6 +584,23 @@ select.input{
         <option value="現金">💵 現金</option>
         <option value="信用卡">💳 信用卡</option>
       </select>
+    </div>
+    <div class="mb3">
+      <label class="form-label">金額</label>
+      <div class="flex gap-2">
+        <select id="in-exp-cur" class="input" style="width:140px;" onchange="App.previewTWD()">
+          <option value="TWD">TWD 台幣</option>
+          <option value="JPY">JPY 日圓</option>
+          <option value="USD">USD 美金</option>
+          <option value="EUR">EUR 歐元</option>
+          <option value="GBP">GBP 英鎊</option>
+          <option value="KRW">KRW 韓元</option>
+          <option value="VND">VND 越南盾</option>
+        </select>
+        <input id="in-exp-amt" class="input flex-1" type="text" inputmode="decimal" placeholder="0" oninput="App.fmtAmtInput(this);App.previewTWD()">
+      </div>
+      <div id="twd-hint" class="form-hint"></div>
+      <div style="margin-top:6px;font-size:12px;color:var(--t2);">如需其他貨幣請至<a href="javascript:void(0)" onclick="App.closeModal('m-expense');App.go('rates');" style="color:var(--accent);text-decoration:underline;">匯率設定</a>增加</div>
     </div>
     <div class="mb3">
       <label class="form-label">分攤對象 <span id="parts-count" style="font-weight:400;color:var(--accent);font-size:12px;"></span></label>
