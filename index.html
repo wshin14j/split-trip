@@ -3523,6 +3523,14 @@ const App = {
     const displayMembers=[...members.filter(m=>!m.isGroupFund),...members.filter(m=>m.isGroupFund)];
     const exps=Object.values(t.expenses||{}).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     const baseCur=t.baseCurrency||'TWD';
+    // Fund setup
+    const fundMember=displayMembers.find(m=>m.isGroupFund)||null;
+    const fundDisplayIdx=displayMembers.findIndex(m=>m.isGroupFund);
+    const fundDeposits=t.fundDeposits||[];
+    const _fDepCurs=fundDeposits.map(d=>d.cur||baseCur).filter(c=>c!==baseCur);
+    const fundLocalCur=_fDepCurs.length>0?_fDepCurs.sort((a,b)=>_fDepCurs.filter(c=>c===b).length-_fDepCurs.filter(c=>c===a).length)[0]:baseCur;
+    const fundLocalRate=fundLocalCur===baseCur?1:(t.rates[fundLocalCur]||DEF[fundLocalCur]||1);
+    const fmtFundLocal=v=>{const n=parseFloat((Math.abs(v)/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});const s=(C[fundLocalCur]||{}).sym||'';return s?`${s}${n}`:`${n} ${fundLocalCur}`;};
     const baseSym=(C[baseCur]||C.TWD).sym;
     const mName=id=>{const m=members.find(m=>m.id===id);return m?.name||id;};
     const otherCurs=[...new Set(exps.map(e=>e.currency||baseCur))].filter(c=>c&&c!==baseCur);
@@ -3534,7 +3542,7 @@ const App = {
     const fixedLeft=5;const fixedMid=3;
     const totalCols=fixedLeft+allCurs.length+fixedMid+displayMembers.length;
     const splitLabel=m=>({equal:'平均',custom:'自訂',proportion:'比例',self:'自購'}[m]||'平均');
-    const mbl=i=>i===0?'border-left:2.5px solid #9CA3AF;':'';
+    const mbl=i=>(i===0||(fundDisplayIdx>=0&&i===fundDisplayIdx))?'border-left:2.5px solid #9CA3AF;':'';
     // TTL row styles — strong top border for clear separation
     const ttl1=`padding:6px 9px;font-size:11px;background:#EEF2FF;border:1px solid #C7D2FE;border-top:2px solid #818CF8;white-space:nowrap;vertical-align:middle;`;
     const ttl1n=ttl1+'text-align:right;';
@@ -3553,11 +3561,13 @@ const App = {
       <th style="${thS}">日期</th><th style="${thS}">項目</th><th style="${thS}">明細</th><th style="${thS}">分攤方式</th><th style="${thS}">單位（人數）</th>
       ${allCurs.map(c=>`<th style="${thS}">${c}</th>`).join('')}
       <th style="${thS}">付款人</th><th style="${thS}">總金額(${baseCur})</th><th style="${thS}">單價(${baseCur})</th>
-      ${displayMembers.map((m,i)=>`<th style="${thS}${mbl(i)}">${m.name}</th>`).join('')}
+      ${displayMembers.map((m,i)=>`<th style="${thS}${mbl(i)}">${m.isGroupFund&&fundLocalCur!==baseCur?`${m.name}（${fundLocalCur}）`:m.name}</th>`).join('')}
     </tr>`;
     // Separate accumulators: group vs personal
-    const memberGroupShare={};const memberSelfPay={};const memberGroupPaid={};
-    members.forEach(m=>{memberGroupShare[m.id]=0;memberSelfPay[m.id]=0;memberGroupPaid[m.id]=0;});
+    const memberGroupShare={};const memberSelfPay={};const memberGroupPaid={};const memberFundDeposit={};
+    members.forEach(m=>{memberGroupShare[m.id]=0;memberSelfPay[m.id]=0;memberGroupPaid[m.id]=0;memberFundDeposit[m.id]=0;});
+    fundDeposits.forEach(d=>{if(d.fromMemberId&&memberFundDeposit[d.fromMemberId]!==undefined) memberFundDeposit[d.fromMemberId]+=Math.round(toBase(d.amt,d.cur||baseCur,t.rates,baseCur));});
+    const totalFundDeposit=Object.values(memberFundDeposit).reduce((s,v)=>s+v,0);
     const buildRows=(list,isGroup=true)=>list.map(e=>{
       const expCur=e.currency||baseCur;
       const isPending=e.note==='金額待補';
@@ -3583,7 +3593,7 @@ const App = {
           if(isPending) return `<td style="${numS}${_mbl}color:#F97316;">待補</td>`;
           const fundAmt=typeof e.paidBy==='object'?Math.round(toBase(e.paidBy[m.id]||0,expCur,t.rates,baseCur)):baseTotalNum;
           if(isGroup) memberGroupShare[m.id]=(memberGroupShare[m.id]||0)+fundAmt;
-          return `<td style="${numS}${_mbl}">${fundAmt.toLocaleString()}</td>`;
+          return `<td style="${numS}${_mbl}">${fmtFundLocal(fundAmt)}</td>`;
         }
         if(!ps.includes(m.id)) return `<td style="${numS}${_mbl}color:#9CA3AF;">—</td>`;
         if(isPending) return `<td style="${numS}${_mbl}color:#F97316;">待補</td>`;
@@ -3629,13 +3639,29 @@ const App = {
       ${groupCurTotals}
       <td style="${ttl1}"></td>
       <td style="${ttl1n}font-weight:700;">${Math.round(groupGrandTotal).toLocaleString()}</td>
-      <td style="${ttl1}font-weight:700;text-align:center;">每人</td>
-      ${displayMembers.map((m,i)=>`<td style="${ttl1n}${mbl(i)}font-weight:700;">${(memberGroupShare[m.id]||0).toLocaleString()}</td>`).join('')}
+      <td style="${ttl1}"></td>
+      ${displayMembers.map((m,i)=>{
+        const v=memberGroupShare[m.id]||0;
+        if(m.isGroupFund&&fundMember){
+          const bal=totalFundDeposit-v;
+          return `<td style="${ttl1n}${mbl(i)}font-weight:700;white-space:normal;">${fmtFundLocal(v)}<br><span style="font-size:10px;font-weight:400;color:#6B7280;">原始 ${fmtFundLocal(totalFundDeposit)}</span><br><span style="font-size:10px;font-weight:600;color:${bal>=0?'#22c55e':'#EF4444'};">剩餘 ${fmtFundLocal(bal)}</span></td>`;
+        }
+        return `<td style="${ttl1n}${mbl(i)}font-weight:700;">${v.toLocaleString()}</td>`;
+      }).join('')}
     </tr>
     <tr>
       ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
       <td style="${ttl2}text-align:center;color:#6B7280;">已付款</td>
       ${displayMembers.map((m,i)=>`<td style="${ttl2n}${mbl(i)}">${(memberGroupPaid[m.id]||0).toLocaleString()}</td>`).join('')}
+    </tr>
+    <tr>
+      ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
+      <td style="${ttl2}text-align:center;color:#6B7280;">已付公費</td>
+      ${displayMembers.map((m,i)=>{
+        if(m.isGroupFund) return `<td style="${ttl2n}${mbl(i)}color:#6B7280;">${fmtFundLocal(totalFundDeposit)}</td>`;
+        const dep=memberFundDeposit[m.id]||0;
+        return `<td style="${ttl2n}${mbl(i)}">${dep>0?dep.toLocaleString():'—'}</td>`;
+      }).join('')}
     </tr>
     <tr>
       ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
