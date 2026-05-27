@@ -2162,12 +2162,22 @@ const App = {
     // 公款帳餘額
     let fundRemain=0;
     let hasFundActivity=false;
+    let fundLocalCur=t.baseCurrency||'TWD';
+    let fundFmtLocal=null;
+    let fundShowBase=false;
     if(fundMember){
       const totalIn=(t.fundDeposits||[]).reduce((s,d)=>s+toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
       const totalOut=Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'&&e.paidBy===fundMember.id)
         .reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,t.baseCurrency),0);
       fundRemain=totalIn-totalOut;
       hasFundActivity=(t.fundDeposits||[]).length>0||totalOut>0;
+      const _deps=t.fundDeposits||[];
+      const _depCurs=_deps.map(d=>d.cur||t.baseCurrency||'TWD').filter(c=>c!==(t.baseCurrency||'TWD'));
+      fundLocalCur=_depCurs.length>0?_depCurs.sort((a,b)=>_depCurs.filter(c=>c===b).length-_depCurs.filter(c=>c===a).length)[0]:(t.baseCurrency||'TWD');
+      fundShowBase=fundLocalCur!==(t.baseCurrency||'TWD');
+      const _localRate=fundLocalCur===(t.baseCurrency||'TWD')?1:(t.rates[fundLocalCur]||DEF[fundLocalCur]||1);
+      const _localSym=(C[fundLocalCur]||{}).sym||'';
+      fundFmtLocal=v=>{const r=parseFloat(Math.abs(v/_localRate).toFixed(3));const n=r.toLocaleString(undefined,{maximumFractionDigits:3});return _localSym?`${_localSym}${n}`:`${n} ${fundLocalCur}`;};
     }
     const eid=this._editingMember;
     const sorted=[...t.members].sort((a,b)=>(b.isGroupFund?1:0)-(a.isGroupFund?1:0));
@@ -2175,8 +2185,8 @@ const App = {
       let v,cls,lbl;
       if(m.isGroupFund){
         v=fundRemain;
-        if(v>0.5){cls='receive';lbl=`餘額 ${fmt(v,t.baseCurrency)}`;}
-        else if(v<-0.5){cls='owe';lbl=`缺口 ${fmt(-v,t.baseCurrency)}`;}
+        if(v>0.5){cls='receive';lbl=`餘額 ${fundFmtLocal?fundFmtLocal(v):fmt(v,t.baseCurrency)}${fundShowBase?` ≈ ${fmt(v,t.baseCurrency)}`:''}`;}
+        else if(v<-0.5){cls='owe';lbl=`缺口 ${fundFmtLocal?fundFmtLocal(-v):fmt(-v,t.baseCurrency)}${fundShowBase?` ≈ ${fmt(-v,t.baseCurrency)}`:''}`;}
         else{cls='ok';lbl=hasFundActivity?'收支平衡 ✓':'';}
 
       } else {
