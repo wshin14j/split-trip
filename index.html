@@ -1636,119 +1636,76 @@ const App = {
       });
     }
     const origTxs=[...peerTxs,...fundTxs];
-    // 計算哪些成員有未結清的債務卡片，供下方 已平帳 判斷使用
-    const unsettledMembers=new Set();
-    origTxs.forEach(ot=>{
-      const m2=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to);
-      let pb2=m2.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-      if(fundMember&&ot.to===fundMember.id)(t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{pb2+=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);});
-      if(ot.amt-pb2>0.5){unsettledMembers.add(ot.from);unsettledMembers.add(ot.to);}
-    });
-    const reversals=[];
-    const debtCards=origTxs.map((ot,di)=>{
-      const matched=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to);
-      let paidBase=matched.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+    // 以淨餘額（正向付款 − 反向退還）計算各對之間目前狀態，支援無限次來回
+    const debtStates=origTxs.map(ot=>{
+      const fwdMatched=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to);
+      let fwdPaid=fwdMatched.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
       if(fundMember&&ot.to===fundMember.id){
-        (t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{
-          paidBase+=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
-        });
+        (t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{fwdPaid+=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);});
       }
-      const remainBase=ot.amt-paidBase;
-      const isSettled=remainBase>-0.5&&remainBase<=0.5;
-      const isOverpaid=remainBase<-0.5;
-      if(isOverpaid) reversals.push({from:ot.to,to:ot.from,amt:-remainBase,origAmt:ot.amt,origMatched:matched});
+      const bwdMatched=(fundMember&&ot.to===fundMember.id)?[]:payRecs.filter(r=>r.from===ot.to&&r.to===ot.from);
+      const bwdPaid=bwdMatched.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+      const netBal=ot.amt-fwdPaid+bwdPaid;
+      return{ot,fwdMatched,fwdPaid,bwdMatched,bwdPaid,netBal};
+    });
+    // 淨餘額為負時方向反轉（creditor 反欠 debtor），保留 reversals 供 historicCard relNote 使用
+    const reversals=debtStates.filter(ds=>ds.netBal<-0.5).map(ds=>({
+      from:ds.ot.to,to:ds.ot.from,amt:-ds.netBal,origAmt:ds.ot.amt,origMatched:ds.fwdMatched
+    }));
+    const unsettledMembers=new Set();
+    debtStates.forEach(({netBal,ot})=>{if(Math.abs(netBal)>0.5){unsettledMembers.add(ot.from);unsettledMembers.add(ot.to);}});
+    const debtCards=debtStates.map(({ot,fwdMatched,fwdPaid,bwdMatched,bwdPaid,netBal},di)=>{
+      const isSettled=Math.abs(netBal)<=0.5;
+      const isReversed=netBal<-0.5;
+      const remainBase=isReversed?-netBal:netBal;
+      const cardFrom=isReversed?ot.to:ot.from;
+      const cardTo=isReversed?ot.from:ot.to;
       const isExp=!!this._expandedDebt[di];
       const chevron=`<svg width="12" height="12" viewBox="0 0 10 10" style="margin-left:4px;vertical-align:middle;transition:transform .2s;transform:${isExp?'rotate(180deg)':'rotate(0)'};flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`;
       const amtDisplay=isSettled
         ?`<div style="display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--t2);white-space:nowrap;min-width:110px;justify-content:flex-end;">✓ 已結清${chevron}</div>`
-        :(isOverpaid)
-        ?`<div style="display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--t2);white-space:nowrap;min-width:110px;justify-content:flex-end;">✓ 已結清${chevron}</div>`
         :`<div style="display:flex;align-items:center;font-size:18px;font-weight:800;color:var(--primary);white-space:nowrap;min-width:110px;justify-content:flex-end;">${fmtS(remainBase)}${chevron}</div>`;
-      const isEditing=!!this._editingDebt[di];
+      const fwdOver=Math.max(0,fwdPaid-ot.amt);
       const detail=isExp?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--t2);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
           <span>原始欠款</span>
           <span style="color:var(--t1);font-weight:600;">${fmtS(ot.amt)}</span>
         </div>
-        ${(()=>{let runRem=ot.amt;return matched.map((r)=>{const rBase=toBase(r.amt,r.cur||t.baseCurrency,t.rates,t.baseCurrency);const effBase=Math.min(rBase,Math.max(0,runRem));runRem-=rBase;const dispAmt=rBase>0.01?Math.round(r.amt*effBase/rBase):0;const isCapped=rBase-effBase>0.5;return`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span>${r.date||''}${r.note?` · ${r.note}`:''}</span><div style="display:flex;align-items:center;gap:6px;"><span style="color:#22c55e;font-weight:600;">−${fmtCur(dispAmt,r.cur||t.baseCurrency)}${isCapped?`<span style="color:#F97316;font-size:10px;margin-left:3px;">（結清）</span>`:''}</span></div></div>`;}).join('');})()}
-        <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);font-weight:700;margin-bottom:8px;">
-          <span style="color:var(--t1);">${(isSettled||isOverpaid)?'已全數結清':'剩餘'}</span>
-          <span style="color:${(isSettled||isOverpaid)?'#22c55e':'var(--primary)'};">${(isSettled||isOverpaid)?'—':fmtS(remainBase)}</span>
+        ${(()=>{let runRem=ot.amt;return fwdMatched.map((r)=>{const rBase=toBase(r.amt,r.cur||t.baseCurrency,t.rates,t.baseCurrency);const effBase=Math.min(rBase,Math.max(0,runRem));runRem-=rBase;const dispAmt=rBase>0.01?Math.round(r.amt*effBase/rBase):0;const isCapped=rBase-effBase>0.5;return`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span>${r.date||''}${r.note?` · ${r.note}`:''}</span><div style="display:flex;align-items:center;gap:6px;"><span style="color:#22c55e;font-weight:600;">−${fmtCur(dispAmt,r.cur||t.baseCurrency)}${isCapped?`<span style="color:#F97316;font-size:10px;margin-left:3px;">（結清）</span>`:''}</span></div></div>`;}).join('');})()}
+        ${fwdOver>0.5?`<div style="display:flex;justify-content:space-between;align-items:center;padding-top:4px;border-top:1px dashed var(--border);margin-bottom:4px;">
+          <span style="color:#F97316;font-weight:600;">${mName(ot.from)} 超額匯款</span>
+          <span style="color:#F97316;font-weight:600;">${fmtS(fwdOver)}</span>
+        </div>`:''}
+        ${bwdMatched.length>0?bwdMatched.map(r=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <span>${r.date||''}${r.note?` · ${r.note}`:''} − ${mName(ot.to)}退還</span>
+          <span style="color:#22c55e;font-weight:600;">−${fmtCur(Math.round(r.amt),r.cur||t.baseCurrency)}</span>
+        </div>`).join(''):''}
+        <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);font-weight:700;margin-bottom:${!isSettled?'8px':'0'};">
+          <span style="color:var(--t1);">${isSettled?'已全數結清':'剩餘'}</span>
+          <span style="color:${isSettled?'#22c55e':'var(--primary)'};">${isSettled?'—':fmtS(remainBase)}</span>
         </div>
-        ${(isSettled||isOverpaid)?'':`<button onclick="event.stopPropagation();App.openAddPayRecord('${ot.from}','${ot.to}',${Math.round(ot.amt)})" style="width:100%;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 記錄付款</button>`}
+        ${!isSettled?`<button onclick="event.stopPropagation();App.openAddPayRecord('${cardFrom}','${cardTo}',${Math.round(remainBase)})" style="width:100%;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 記錄付款</button>`:''}
       </div>`:'';
-      return `<div class="card" style="padding:14px 16px;margin-bottom:10px;${(isSettled||isOverpaid)?'opacity:0.75;':''}">
+      return `<div class="card" style="padding:14px 16px;margin-bottom:10px;${isSettled?'opacity:0.75;':''}${isReversed&&!isSettled?'border:1.5px solid #FED7AA;':''}">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="App.toggleDebtExpand(${di})">
-          <div class="avatar" style="${avStyle(t,ot.from)}">${avText(mName(ot.from))}</div>
+          <div class="avatar" style="${avStyle(t,cardFrom)}">${avText(mName(cardFrom))}</div>
           <div class="flex-1 min-w-0" style="position:relative;height:24px;">
             <div style="position:absolute;left:50%;transform:translateX(-50%);top:0;line-height:24px;color:var(--t2);font-size:15px;pointer-events:none;z-index:1;">→</div>
-            <div style="position:absolute;top:0;left:0;right:50%;padding-right:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(ot.from)}</div>
-            <div style="position:absolute;top:0;left:50%;right:0;padding-left:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(ot.to)}</div>
+            <div style="position:absolute;top:0;left:0;right:50%;padding-right:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(cardFrom)}</div>
+            <div style="position:absolute;top:0;left:50%;right:0;padding-left:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(cardTo)}</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-            <div class="avatar" style="${avStyle(t,ot.to)}">${avText(mName(ot.to))}</div>
+            <div class="avatar" style="${avStyle(t,cardTo)}">${avText(mName(cardTo))}</div>
             ${amtDisplay}
           </div>
         </div>
         ${detail}
       </div>`;
     }).join('');
-    const reversalCards=reversals.map((r,ri)=>{
-      const rdi=origTxs.length+ri;
-      const rMatched=payRecs.filter(p=>p.from===r.from&&p.to===r.to);
-      const rPaid=rMatched.reduce((s,p)=>s+toBase(p.amt,p.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-      const rRemain=r.amt-rPaid;
-      const rSettled=rRemain<=0.5;
-      const rExp=!!this._expandedDebt[rdi];
-      const rChevron=`<svg width="12" height="12" viewBox="0 0 10 10" style="margin-left:4px;vertical-align:middle;transition:transform .2s;transform:${rExp?'rotate(180deg)':'rotate(0)'};flex-shrink:0;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`;
-      const rAmtDisplay=rSettled
-        ?`<div style="display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:var(--t2);white-space:nowrap;min-width:110px;justify-content:flex-end;">✓ 已結清${rChevron}</div>`
-        :`<div style="display:flex;align-items:center;font-size:18px;font-weight:800;color:var(--primary);white-space:nowrap;min-width:110px;justify-content:flex-end;">${fmtS(rRemain)}${rChevron}</div>`;
-      const rDetail=rExp?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--t2);">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <span>原始欠款</span><span style="color:var(--t1);font-weight:600;">${fmtS(r.origAmt)}</span>
-        </div>
-        ${r.origMatched.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-          <span>${p.date||''}${p.note?` · ${p.note}`:''}${p.date||p.note?' - ':' '}${mName(r.to)}轉帳</span>
-          <span style="color:var(--t1);font-weight:600;">${fmtCur(Math.round(p.amt),p.cur||t.baseCurrency)}</span>
-        </div>`).join('')}
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding-top:4px;">
-          <span style="color:#F97316;font-weight:600;">${mName(r.to)} - 超額匯款</span><span style="color:#F97316;font-weight:600;">${fmtS(r.amt)}</span>
-        </div>
-        ${rMatched.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-          <span>${p.date||''}${p.note?` · ${p.note}`:''}</span>
-          <span style="color:#22c55e;font-weight:600;">−${fmtCur(Math.round(p.amt),p.cur||t.baseCurrency)}</span>
-        </div>`).join('')}
-        <div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);font-weight:700;margin-bottom:8px;">
-          <span style="color:var(--t1);">${rSettled?'已全數結清':'剩餘'}</span>
-          <span style="color:${rSettled?'#22c55e':'var(--primary)'};">${rSettled?'—':fmtS(rRemain)}</span>
-        </div>
-        ${rSettled?'':`<button onclick="event.stopPropagation();App.openAddPayRecord('${r.from}','${r.to}',${Math.round(r.amt)},${Math.round(r.origAmt)})" style="width:100%;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 記錄付款</button>`}
-      </div>`:'';
-      return `<div class="card" style="padding:14px 16px;margin-bottom:10px;${rSettled?'opacity:0.75;':''}border:1.5px solid #FED7AA;">
-        <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="App.toggleDebtExpand(${rdi})">
-          <div class="avatar" style="${avStyle(t,r.from)}">${avText(mName(r.from))}</div>
-          <div class="flex-1 min-w-0" style="position:relative;height:24px;">
-            <div style="position:absolute;left:50%;transform:translateX(-50%);top:0;line-height:24px;color:var(--t2);font-size:15px;pointer-events:none;z-index:1;">→</div>
-            <div style="position:absolute;top:0;left:0;right:50%;padding-right:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(r.from)}</div>
-            <div style="position:absolute;top:0;left:50%;right:0;padding-left:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(r.to)}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-            <div class="avatar" style="${avStyle(t,r.to)}">${avText(mName(r.to))}</div>
-            ${rAmtDisplay}
-          </div>
-        </div>
-        ${rDetail}
-      </div>`;
-    }).join('');
-    // 超額匯款 reversal 卡片未結清也要納入 unsettledMembers
-    reversals.forEach(r=>{
-      const rPaidCheck=payRecs.filter(p=>p.from===r.from&&p.to===r.to).reduce((s,p)=>s+toBase(p.amt,p.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-      if(r.amt-rPaidCheck>0.5){unsettledMembers.add(r.from);unsettledMembers.add(r.to);}
-    });
-    // 找出孤兒付款紀錄（已付但 origTxs 及 reversals 均無對應方向的欄），顯示為歷史卡片
+    const reversalCards='';
+    // 找出孤兒付款紀錄（已付但 origTxs 及反向均無對應的欄），顯示為歷史卡片
     const origPairs=new Set(origTxs.map(ot=>`${ot.from}|${ot.to}`));
-    const reversalPairs=new Set(reversals.map(r=>`${r.from}|${r.to}`));
+    const reversalPairs=new Set([...origTxs.map(ot=>`${ot.to}|${ot.from}`),...reversals.map(r=>`${r.from}|${r.to}`)]);
     const orphanGroups={};
     payRecs.forEach(r=>{
       const key=`${r.from}|${r.to}`;
@@ -1826,14 +1783,10 @@ const App = {
         cls='ok';
         const hasUnsettledCard=origTxs.some(ot=>{
           if(ot.from!==m.id&&ot.to!==m.id) return false;
-          const _p=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to);
-          let _pb=_p.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-          if(fundMember&&ot.to===fundMember.id)(t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{_pb+=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);});
-          return ot.amt-_pb>0.5;
-        })||reversals.some(r=>{
-          if(r.from!==m.id&&r.to!==m.id) return false;
-          const _rp=payRecs.filter(p=>p.from===r.from&&p.to===r.to).reduce((s,p)=>s+toBase(p.amt,p.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-          return r.amt-_rp>0.5;
+          let _fwd=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+          if(fundMember&&ot.to===fundMember.id)(t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{_fwd+=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);});
+          const _bwd=(fundMember&&ot.to===fundMember.id)?0:payRecs.filter(r=>r.from===ot.to&&r.to===ot.from).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+          return Math.abs(ot.amt-_fwd+_bwd)>0.5;
         });
         lbl=(memberInExp&&!hasUnsettledCard)?'已平帳 ✓':'';
       }
@@ -2178,13 +2131,9 @@ const App = {
     const basePeerTxsM=minimizeTx({...peerBal});
     const unsettledMembersM=new Set();
     basePeerTxsM.forEach(ot=>{
-      const paid=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-      const remain=ot.amt-paid;
-      if(remain>0.5){unsettledMembersM.add(ot.from);unsettledMembersM.add(ot.to);}
-      else if(remain<-0.5){
-        const rPaid=payRecs.filter(r=>r.from===ot.to&&r.to===ot.from).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-        if((-remain)-rPaid>0.5){unsettledMembersM.add(ot.from);unsettledMembersM.add(ot.to);}
-      }
+      const _fwd=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+      const _bwd=payRecs.filter(r=>r.from===ot.to&&r.to===ot.from).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+      if(Math.abs(ot.amt-_fwd+_bwd)>0.5){unsettledMembersM.add(ot.from);unsettledMembersM.add(ot.to);}
     });
     payRecs.forEach(r=>{
       const a=toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
