@@ -2262,7 +2262,7 @@ const App = {
             onkeydown="if(event.key==='Enter')App.addMember()" oninput="App.previewMemberAvatar(this.value)">
           <button class="btn btn-accent" style="height:44px;padding:0 18px;" onclick="App.addMember()">新增</button>
         </div>
-      </div>`:`<button type="button" onclick="App._showAddMember=true;App.renderTab();" style="width:100%;margin-top:16px;font-size:13px;font-weight:600;color:var(--accent);background:none;border:1.5px solid var(--accent);border-radius:999px;padding:6px 16px;cursor:pointer;">＋ 新增成員</button>`;
+      </div>`:`<button type="button" onclick="App._showAddMember=true;App.renderTab();" style="width:100%;margin-top:16px;font-size:13px;font-weight:600;color:#fff;background:var(--primary);border:none;border-radius:999px;padding:8px 16px;cursor:pointer;">＋ 新增成員</button>`;
     const _su=this._shareUrl();
     const _sd=_su?_su.replace(/^https?:\/\//,''):'';
     const shareCard=_su?`<div class="card" style="padding:14px 16px;margin-top:24px;background:var(--surface);">
@@ -3520,6 +3520,7 @@ const App = {
 
   _buildExportHTML(t){
     const members=t.members||[];
+    const displayMembers=[...members.filter(m=>!m.isGroupFund),...members.filter(m=>m.isGroupFund)];
     const exps=Object.values(t.expenses||{}).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     const baseCur=t.baseCurrency||'TWD';
     const baseSym=(C[baseCur]||C.TWD).sym;
@@ -3531,7 +3532,7 @@ const App = {
     const numS=tdS+'text-align:right;';
     const blank=`<td style="${tdS}"></td>`;
     const fixedLeft=5;const fixedMid=3;
-    const totalCols=fixedLeft+allCurs.length+fixedMid+members.length;
+    const totalCols=fixedLeft+allCurs.length+fixedMid+displayMembers.length;
     const splitLabel=m=>({equal:'平均',custom:'自訂',proportion:'比例',self:'自購'}[m]||'平均');
     const mbl=i=>i===0?'border-left:2.5px solid #9CA3AF;':'';
     // TTL row styles — strong top border for clear separation
@@ -3552,7 +3553,7 @@ const App = {
       <th style="${thS}">日期</th><th style="${thS}">項目</th><th style="${thS}">明細</th><th style="${thS}">分攤方式</th><th style="${thS}">單位（人數）</th>
       ${allCurs.map(c=>`<th style="${thS}">${c}</th>`).join('')}
       <th style="${thS}">付款人</th><th style="${thS}">總金額(${baseCur})</th><th style="${thS}">單價(${baseCur})</th>
-      ${members.map((m,i)=>`<th style="${thS}${mbl(i)}">${m.name}</th>`).join('')}
+      ${displayMembers.map((m,i)=>`<th style="${thS}${mbl(i)}">${m.name}</th>`).join('')}
     </tr>`;
     // Separate accumulators: group vs personal
     const memberGroupShare={};const memberSelfPay={};const memberGroupPaid={};
@@ -3572,8 +3573,16 @@ const App = {
         if(c===expCur) return `<td style="${numS}${isPending?'color:#F97316;':''}">${isPending?'待補':Number(e.amount).toLocaleString()}</td>`;
         return blank;
       }).join('');
-      const memberCells=members.map(m=>{
-        const _mbl=mbl(members.indexOf(m));
+      const memberCells=displayMembers.map(m=>{
+        const _mbl=mbl(displayMembers.indexOf(m));
+        if(m.isGroupFund){
+          const isFundPayer=typeof e.paidBy==='string'?e.paidBy===m.id:!!(e.paidBy&&e.paidBy[m.id]>0);
+          if(!isFundPayer) return `<td style="${numS}${_mbl}color:#9CA3AF;">—</td>`;
+          if(isPending) return `<td style="${numS}${_mbl}color:#F97316;">待補</td>`;
+          const fundAmt=typeof e.paidBy==='object'?Math.round(toBase(e.paidBy[m.id]||0,expCur,t.rates,baseCur)):baseTotalNum;
+          if(isGroup) memberGroupShare[m.id]=(memberGroupShare[m.id]||0)+fundAmt;
+          return `<td style="${numS}${_mbl}">${fundAmt.toLocaleString()}</td>`;
+        }
         if(!ps.includes(m.id)) return `<td style="${numS}${_mbl}color:#9CA3AF;">—</td>`;
         if(isPending) return `<td style="${numS}${_mbl}color:#F97316;">待補</td>`;
         let sh;
@@ -3612,17 +3621,17 @@ const App = {
       <td style="${ttl1}"></td>
       <td style="${ttl1n}font-weight:700;">${Math.round(groupGrandTotal).toLocaleString()}</td>
       <td style="${ttl1}font-weight:700;text-align:center;">每人</td>
-      ${members.map((m,i)=>`<td style="${ttl1n}${mbl(i)}font-weight:700;">${(memberGroupShare[m.id]||0).toLocaleString()}</td>`).join('')}
+      ${displayMembers.map((m,i)=>`<td style="${ttl1n}${mbl(i)}font-weight:700;">${(memberGroupShare[m.id]||0).toLocaleString()}</td>`).join('')}
     </tr>
     <tr>
       ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
       <td style="${ttl2}text-align:center;color:#6B7280;">已付款</td>
-      ${members.map((m,i)=>`<td style="${ttl2n}${mbl(i)}">${(memberGroupPaid[m.id]||0).toLocaleString()}</td>`).join('')}
+      ${displayMembers.map((m,i)=>`<td style="${ttl2n}${mbl(i)}">${(memberGroupPaid[m.id]||0).toLocaleString()}</td>`).join('')}
     </tr>
     <tr>
       ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
       <td style="${ttl2}text-align:center;font-weight:700;color:#EF4444;">待付款</td>
-      ${members.map((m,i)=>{
+      ${displayMembers.map((m,i)=>{
         const owed=(memberGroupShare[m.id]||0)-(memberGroupPaid[m.id]||0);
         const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';
         return `<td style="${ttl2n}${mbl(i)}font-weight:700;color:${col};">${owed>0?owed.toLocaleString():owed<0?'('+(-owed).toLocaleString()+')':0}</td>`;
@@ -3646,7 +3655,7 @@ const App = {
         <td style="${pttl1}"></td>
         <td style="${pttl1n}font-weight:700;">${Math.round(personalGrandTotal).toLocaleString()}</td>
         <td style="${pttl1}font-weight:700;text-align:center;">自費</td>
-        ${members.map((m,i)=>`<td style="${pttl1n}${mbl(i)}font-weight:700;">${(memberSelfPay[m.id]||0).toLocaleString()}</td>`).join('')}
+        ${displayMembers.map((m,i)=>`<td style="${pttl1n}${mbl(i)}font-weight:700;">${(memberSelfPay[m.id]||0).toLocaleString()}</td>`).join('')}
       </tr>`;
       personalSection=sectionRow('個人支出明細','#F0FDF4','#166534','#86EFAC')+personalDataRows+personalTtlRow;
     }
