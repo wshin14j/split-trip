@@ -3562,7 +3562,9 @@ const App = {
       const expCur=e.currency||baseCur;
       const isPending=e.note==='金額待補';
       const ps=e.parts||members.map(m=>m.id);
-      const payer=typeof e.paidBy==='object'?'多人':(members.find(m=>m.id===e.paidBy)?.name||'?');
+      const payer=typeof e.paidBy==='object'
+        ? Object.entries(e.paidBy).filter(([,amt])=>amt>0).map(([pid,amt])=>`${members.find(m=>m.id===pid)?.name||'?'}(${Number(amt).toLocaleString()})`).join('<br>')
+        : (members.find(m=>m.id===e.paidBy)?.name||'?');
       const baseTotalNum=isPending?0:Math.round(toBase(e.amount,expCur,t.rates,baseCur));
       const unitPrice=ps.length>0?Math.round(baseTotalNum/ps.length):0;
       if(isGroup&&!isPending){
@@ -3596,7 +3598,7 @@ const App = {
         <td style="${tdS}">${e.date||'—'}</td>
         <td style="${tdS}">${e.category||'其他'}</td>
         <td style="${tdS}font-weight:600;">${e.name}</td>
-        <td style="${tdS}text-align:center;">${(e.splitMode==='proportion'&&e.proportions?`比例 ${members.map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:splitLabel(e.splitMode))}</td>
+        <td style="${tdS}text-align:center;">${(e.splitMode==='proportion'&&e.proportions?`比例 ${displayMembers.filter(m=>!m.isGroupFund).map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:splitLabel(e.splitMode))}</td>
         <td style="${tdS}text-align:center;">${ps.length}</td>
         ${curCells}
         <td style="${tdS}text-align:center;">${payer}</td>
@@ -3606,8 +3608,15 @@ const App = {
       </tr>`;
     }).join('');
     const sectionRow=(label,bg='#EEF2FF',color='#4338CA',bc='#C7D2FE')=>`<tr><td colspan="${totalCols}" style="padding:7px 10px;font-size:12px;font-weight:700;background:${bg};border:1px solid ${bc};color:${color};">${label}</td></tr>`;
-    const groupExps=exps.filter(e=>e.splitMode!=='self');
-    const personalExps=exps.filter(e=>e.splitMode==='self');
+    const regularMembers=members.filter(m=>!m.isGroupFund);
+    const isGroupExp=e=>{
+      if(e.splitMode==='self') return false;
+      const ps=e.parts;
+      if(!ps||ps.length===0) return true;
+      return regularMembers.every(m=>ps.includes(m.id));
+    };
+    const groupExps=exps.filter(e=>isGroupExp(e));
+    const personalExps=exps.filter(e=>!isGroupExp(e));
     const groupRows=buildRows(groupExps,true);
     // Group TTL
     const groupCurTotals=allCurs.map(c=>{
@@ -3650,14 +3659,14 @@ const App = {
       }).join('');
       const personalGrandTotal=personalExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0);
       const personalTtlRow=`<tr>
-        <td style="${pttl1}font-weight:700;">TTL</td><td style="${pttl1}font-weight:700;">個人自費</td><td style="${pttl1}"></td><td style="${pttl1}"></td><td style="${pttl1}"></td>
+        <td style="${pttl1}font-weight:700;">TTL</td><td style="${pttl1}font-weight:700;">非全員／個人自費</td><td style="${pttl1}"></td><td style="${pttl1}"></td><td style="${pttl1}"></td>
         ${personalCurTotals}
         <td style="${pttl1}"></td>
         <td style="${pttl1n}font-weight:700;">${Math.round(personalGrandTotal).toLocaleString()}</td>
         <td style="${pttl1}font-weight:700;text-align:center;">自費</td>
         ${displayMembers.map((m,i)=>`<td style="${pttl1n}${mbl(i)}font-weight:700;">${(memberSelfPay[m.id]||0).toLocaleString()}</td>`).join('')}
       </tr>`;
-      personalSection=sectionRow('個人支出明細','#F0FDF4','#166534','#86EFAC')+personalDataRows+personalTtlRow;
+      personalSection=sectionRow('非全員／個人支出明細','#F0FDF4','#166534','#86EFAC')+personalDataRows+personalTtlRow;
     }
     // Combined total
     const cttl=`padding:6px 9px;font-size:11px;background:#FEF9C3;border:1px solid #FDE68A;border-top:2px solid #F59E0B;white-space:nowrap;vertical-align:middle;`;
@@ -3753,7 +3762,9 @@ const App = {
         const expCur=e.currency||baseCur;
         const isPending=e.note==='金額待補';
         const ps=e.parts||members.map(m=>m.id);
-        const payer=typeof e.paidBy==='object'?'多人':(members.find(m=>m.id===e.paidBy)?.name||'?');
+        const payer=typeof e.paidBy==='object'
+          ? Object.entries(e.paidBy).filter(([,amt])=>amt>0).map(([pid,amt])=>`${members.find(m=>m.id===pid)?.name||'?'}(${Number(amt).toLocaleString()})`).join(' + ')
+          : (members.find(m=>m.id===e.paidBy)?.name||'?');
         const baseTotalNum=isPending?0:Math.round(toBase(e.amount,expCur,t.rates,baseCur));
         const unitPrice=ps.length>0?Math.round(baseTotalNum/ps.length):0;
         if(!isPending){
@@ -3771,7 +3782,7 @@ const App = {
           memberShare[m.id]+=shBase;
           return shBase;
         });
-        const row=[e.date||'',e.category||'其他',e.name,(e.splitMode==='proportion'&&e.proportions?`比例 ${members.map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:splitLabel(e.splitMode)),ps.length,...curCells,payer,isPending?'待補':baseTotalNum,isPending?'':unitPrice,...memberCells];
+        const row=[e.date||'',e.category||'其他',e.name,(e.splitMode==='proportion'&&e.proportions?`比例 ${regularMembersCsv.map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:splitLabel(e.splitMode)),ps.length,...curCells,payer,isPending?'待補':baseTotalNum,isPending?'':unitPrice,...memberCells];
         csv+=row.map(esc).join(',')+'\n';
       });
     };
@@ -3780,9 +3791,16 @@ const App = {
       csv+=[label,...empties(totalCols-1)].map(esc).join(',')+'\n';
     };
 
-    // Group expenses
-    const groupExps=exps.filter(e=>e.splitMode!=='self');
-    const personalExps=exps.filter(e=>e.splitMode==='self');
+    // Group expenses — 全員分攤才算群組
+    const regularMembersCsv=members.filter(m=>!m.isGroupFund);
+    const isGroupExpCsv=e=>{
+      if(e.splitMode==='self') return false;
+      const ps=e.parts;
+      if(!ps||ps.length===0) return true;
+      return regularMembersCsv.every(m=>ps.includes(m.id));
+    };
+    const groupExps=exps.filter(e=>isGroupExpCsv(e));
+    const personalExps=exps.filter(e=>!isGroupExpCsv(e));
     sectionRow('群組支出明細');
     buildRows(groupExps);
 
