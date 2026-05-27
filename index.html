@@ -3722,8 +3722,21 @@ const App = {
       <td style="${cttl}font-weight:700;text-align:center;">個人</td>
       ${members.map((m,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${((memberGroupShare[m.id]||0)+(memberSelfPay[m.id]||0)).toLocaleString()}</td>`).join('')}
     </tr>`;
-    // Settlement (renamed)
-    const bal=calcBal(t);const txs=minimizeTx(bal);
+    // Settlement — 對齊主 app 計算邏輯（expenses + payRecords + fundDeposits）
+    const bal=calcBal(t);
+    const _payRecs=t.payRecords||[];
+    const adjBal={...bal};
+    _payRecs.forEach(r=>{
+      const a=toBase(r.amt,r.cur||baseCur,t.rates,baseCur);
+      if(adjBal[r.from]!==undefined) adjBal[r.from]+=a;
+      if(adjBal[r.to]!==undefined) adjBal[r.to]-=a;
+    });
+    const adjBalFull={...adjBal};
+    fundDeposits.forEach(d=>{
+      const a=toBase(d.amt,d.cur||baseCur,t.rates,baseCur);
+      if(adjBalFull[d.fromMemberId]!==undefined) adjBalFull[d.fromMemberId]+=a;
+    });
+    const txs=minimizeTx(adjBalFull);
     const settleHTML=`
       <div style="font-size:13px;font-weight:700;margin:24px 0 8px;">群組結算-債務關係</div>
       ${txs.length===0?`<div style="font-size:13px;color:#22c55e;padding:8px 0;">🎉 大家都平帳了！</div>`:`
