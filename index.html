@@ -1071,7 +1071,7 @@ const App = {
       if(this.tab==='expenses') this.renderExpenses(t,c);
       else if(this.tab==='settlement') this.renderSettlement(t,c);
       else this.renderMembers(t,c);
-      if(c) c.insertAdjacentHTML('beforeend','<div style="display:flex;align-items:center;padding:16px 0 20px;pointer-events:none;"><div style="flex:1;height:1px;background:#E6E8EC;"></div><div style="width:8px;height:8px;background:#C4C7CE;transform:rotate(45deg);flex-shrink:0;margin:0 8px;"></div><span style="font-size:12px;font-weight:500;letter-spacing:.02em;color:#A0A4AD;font-family:Inter,sans-serif;white-space:nowrap;">Roam together · Split easier</span><div style="width:8px;height:8px;background:#C4C7CE;transform:rotate(45deg);flex-shrink:0;margin:0 8px;"></div><div style="flex:1;height:1px;background:#E6E8EC;"></div></div>');
+      if(c) c.insertAdjacentHTML('beforeend','<div style="text-align:center;padding:20px 0 28px;pointer-events:none;"><span style="font-size:12px;font-weight:500;letter-spacing:.05em;color:#C4C7CE;font-family:Inter,sans-serif;">Roam together · Split easier</span></div>');
     }catch(e){
       if(c) c.innerHTML=`<div style="padding:20px;color:red;font-size:12px;">渲染錯誤：${e.message}</div>`;
     }
