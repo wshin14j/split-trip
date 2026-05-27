@@ -1479,19 +1479,16 @@ const App = {
     const rateRows=usedExpCurs.map(c=>{
       const rate=t.rates[c]||DEF[c]||1;
       const baseSym=(C[t.baseCurrency]||C.TWD).sym;
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);">
-        <span style="font-size:12px;color:var(--t2);">1 ${c} → ${t.baseCurrency}</span>
-        <span style="font-size:12px;font-weight:600;color:var(--t1);">${baseSym}${rate}</span>
-      </div>`;
-    }).join('');
-    const curSelect=`<div class="card" style="padding:14px 16px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:8px;${usedExpCurs.length>0?'margin-bottom:12px;':''}">
+      return `1 ${c}→${baseSym}${rate}`;
+    }).join(' · ');
+    const curSelect=`<div class="card" style="padding:12px 16px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:13px;color:var(--t2);flex-shrink:0;">結算幣別</span>
         <select class="input" style="height:36px;font-size:13px;flex:1;" onchange="App._settleCur=this.value;App.renderTab();">
           ${allCurs.map(cur=>`<option value="${cur}"${dispCur===cur?' selected':''}>${cur} ${(C[cur]||{}).sym||''}</option>`).join('')}
         </select>
       </div>
-      ${usedExpCurs.length>0?`${rateRows}<div style="margin-top:8px;text-align:right;"><button type="button" onclick="App.go('rates')" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;">修改匯率 →</button></div>`:''}
+      ${usedExpCurs.length>0?`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;"><span style="font-size:11px;color:var(--t3);">${rateRows}</span><button type="button" onclick="App.go('rates')" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;flex-shrink:0;margin-left:12px;">修改匯率 →</button></div>`:''}
     </div>`;
 
     // ── FUND CARD ──────────────────────────────────
