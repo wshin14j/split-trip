@@ -2252,7 +2252,7 @@ const App = {
             onkeydown="if(event.key==='Enter')App.addMember()" oninput="App.previewMemberAvatar(this.value)">
           <button class="btn btn-accent" style="height:44px;padding:0 18px;" onclick="App.addMember()">新增</button>
         </div>
-      </div>`:`<button type="button" onclick="App._showAddMember=true;App.renderTab();" class="btn btn-ghost btn-full" style="margin-top:16px;">＋ 新增成員</button>`;
+      </div>`:`<button type="button" onclick="App._showAddMember=true;App.renderTab();" style="width:100%;margin-top:16px;font-size:13px;font-weight:600;color:var(--accent);background:none;border:1.5px solid var(--accent);border-radius:999px;padding:6px 16px;cursor:pointer;">＋ 新增成員</button>`;
     const _su=this._shareUrl();
     const _sd=_su?_su.replace(/^https?:\/\//,''):'';
     const shareCard=_su?`<div class="card" style="padding:14px 16px;margin-top:24px;background:var(--surface);">
