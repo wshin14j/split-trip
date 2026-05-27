@@ -1071,7 +1071,7 @@ const App = {
       if(this.tab==='expenses') this.renderExpenses(t,c);
       else if(this.tab==='settlement') this.renderSettlement(t,c);
       else this.renderMembers(t,c);
-      if(c) c.insertAdjacentHTML('beforeend','<div style="display:flex;align-items:center;padding:20px 0 28px;pointer-events:none;font-size:12px;font-weight:500;letter-spacing:.05em;color:#C4C7CE;font-family:Inter,sans-serif;"><span style="flex:1;text-align:right;">Roam together</span><span style="padding:0 6px;">·</span><span style="flex:1;text-align:left;">Split easier</span></div>');
+      if(c) c.insertAdjacentHTML('beforeend','<div style="display:flex;align-items:center;padding:20px 0 28px;pointer-events:none;gap:10px;"><span style="flex:1;height:1px;background:#E4E6EA;"></span><span style="font-size:12px;font-weight:500;letter-spacing:.05em;color:#C4C7CE;font-family:Inter,sans-serif;white-space:nowrap;">Roam together · Split easier</span><span style="flex:1;height:1px;background:#E4E6EA;"></span></div>');
     }catch(e){
       if(c) c.innerHTML=`<div style="padding:20px;color:red;font-size:12px;">渲染錯誤：${e.message}</div>`;
     }
@@ -1888,8 +1888,6 @@ const App = {
         const tp=outPay[m.id]||0;
         const pdGroup=paidGroup[m.id]||0;
         const pdPartial=paidPartial[m.id]||0;
-        const netPaid=pdGroup+pdPartial+tp;
-        const netShare=psp+ppsp;
         const peerAdj=adjPeerBal[m.id]||0;
         const collectLine=!hasPeerExps?''
           :peerAdj<-0.5
@@ -1903,6 +1901,8 @@ const App = {
         const fsp=groupFundSpent[m.id]||0;
         const psp=groupPeerSpent[m.id]||0;
         const ppsp=partialPeerSpent[m.id]||0;
+        const netPaid=pdGroup+pdPartial+tp;
+        const netShare=psp+ppsp;
         const personalSp=selfSpent[m.id]||0;
         const expandedRows=isExp?`
           <div style="margin-top:4px;">
