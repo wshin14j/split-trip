@@ -1048,6 +1048,9 @@ const App = {
         if(Math.abs(st-_lastScrollTop)>80&&(Object.values(App._expandedDebt).some(Boolean)||App._fundCardExpanded)){
           App._expandedDebt={};App._editingDebt={};App._fundCardExpanded=false;App.renderTab();
         }
+        if(Math.abs(st-_lastScrollTop)>80&&Object.values(App._expandedExp).some(Boolean)){
+          App._expandedExp={};App.renderTab();
+        }
         _lastScrollTop=st;
       };
       _sc.addEventListener('scroll',_sc._filterCollapseHandler,{passive:true});
