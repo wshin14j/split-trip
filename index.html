@@ -3692,7 +3692,8 @@ const App = {
           const fundAmt=typeof e.paidBy==='object'?Math.round(toBase(e.paidBy[m.id]||0,expCur,t.rates,baseCur)):baseTotalNum;
           if(isGroup) memberGroupShare[m.id]=(memberGroupShare[m.id]||0)+fundAmt;
           const _twdLine=fundLocalCur!==baseCur?`<br><span style="font-size:10px;color:#9CA3AF;">${baseSym}${fundAmt.toLocaleString()}</span>`:'';
-          return `<td style="${numS}${_mbl}white-space:normal;">${fmtFundNum(fundAmt)}${_twdLine}</td>`;
+          const _fundDisp=expCur===fundLocalCur?(typeof e.paidBy==='object'?(e.paidBy[m.id]||0):e.amount).toLocaleString(undefined,{maximumFractionDigits:3}):fmtFundNum(fundAmt);
+          return `<td style="${numS}${_mbl}white-space:normal;">${_fundDisp}${_twdLine}</td>`;
         }
         if(!ps.includes(m.id)) return `<td style="${numS}${_mbl}color:#9CA3AF;">—</td>`;
         if(isPending) return `<td style="${numS}${_mbl}color:#F97316;">待補</td>`;
@@ -3754,6 +3755,15 @@ const App = {
     </tr>
     <tr>
       ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
+      <td style="${ttl2}text-align:center;font-weight:700;color:#EF4444;">待付款</td>
+      ${displayMembers.map((m,i)=>{
+        const owed=(memberGroupShare[m.id]||0)-(memberGroupPaid[m.id]||0);
+        const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';
+        return `<td style="${ttl2n}${mbl(i)}font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;
+      }).join('')}
+    </tr>
+    <tr>
+      ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
       <td style="${ttl2}text-align:center;color:#6B7280;">已付公費</td>
       ${displayMembers.map((m,i)=>{
         if(m.isGroupFund) return `<td style="${ttl2n}${mbl(i)}color:#6B7280;white-space:normal;">${fmtFundLocal(totalFundDeposit)}</td>`;
@@ -3761,15 +3771,6 @@ const App = {
         const depLocal=memberFundDepositLocal[m.id]||0;
         const localLine=(fundLocalCur!==baseCur&&dep>0)?`${parseFloat(depLocal.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})}<br>`:''
         return `<td style="${ttl2n}${mbl(i)}white-space:normal;">${dep>0?localLine+dep.toLocaleString():'—'}</td>`;
-      }).join('')}
-    </tr>
-    <tr>
-      ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
-      <td style="${ttl2}text-align:center;font-weight:700;color:#EF4444;">待付款</td>
-      ${displayMembers.map((m,i)=>{
-        const owed=(memberGroupShare[m.id]||0)-(memberGroupPaid[m.id]||0);
-        const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';
-        return `<td style="${ttl2n}${mbl(i)}font-weight:700;color:${col};">${owed>0?owed.toLocaleString():owed<0?'('+(-owed).toLocaleString()+')':0}</td>`;
       }).join('')}
     </tr>`;
     // Personal section
