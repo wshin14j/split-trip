@@ -3873,7 +3873,7 @@ const App = {
     </tr>`;
     const owedRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;font-weight:700;color:#EF4444;">待付款</td>
-      ${displayMembers.map((m,i)=>{const proxyNet=(memberProxyPaid[m.id]||0)-(memberProxyReceived[m.id]||0);const owed=(memberGroupShare[m.id]||0)-(memberGroupPaid[m.id]||0)-(memberFundDeposit[m.id]||0)-proxyNet;const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
+      ${displayMembers.map((m,i)=>{const proxyNet=(memberProxyPaid[m.id]||0)-(memberProxyReceived[m.id]||0);const sp2=(!m.isGroupFund&&fundMember)?2*surplusPerMember:0;const owed=(memberGroupShare[m.id]||0)+sp2-(memberGroupPaid[m.id]||0)-(memberFundDeposit[m.id]||0)-proxyNet;const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
     </tr>`;
     const combinedSection=sectionRow('整趟旅程完整花費（群組＋個人）','#FEF9C3','#92400E','#FDE68A')+`<tr>
       <td style="${cttl}font-weight:700;">合計</td><td style="${cttl}font-weight:700;">全部費用</td><td style="${cttl}"></td><td style="${cttl}"></td><td style="${cttl}"></td>
