@@ -1973,7 +1973,7 @@ const App = {
       return `<div style="height:20px;"></div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <div class="sm semibold muted" style="flex:1;">成員花費與墊付總覽</div>
-          <span style="font-size:12px;color:var(--t2);">含自購</span>
+          <span style="font-size:12px;color:var(--t2);">含自購費用</span>
           ${toggle}
         </div>
         <div class="card" style="padding:4px 16px;">
@@ -2009,7 +2009,7 @@ const App = {
     const payRecordCard=`
       <div style="display:flex;align-items:center;margin-bottom:8px;">
         <span class="sm semibold muted" style="flex:1;">轉帳結清紀錄</span>
-        ${_prHidden>0?`<button type="button" onclick="App._payRecExpanded=!App._payRecExpanded;App.renderTab();" style="font-size:12px;color:var(--t2);background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:3px;">${_prExp?'收合':'更早 '+_prHidden+' 筆'}<svg width="10" height="10" viewBox="0 0 10 10" style="transform:${_prExp?'rotate(180deg)':'rotate(0deg)'};transition:transform .2s;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>`:''}
+        ${_prHidden>0?`<button type="button" onclick="App._payRecExpanded=!App._payRecExpanded;App.renderTab();" style="font-size:12px;color:var(--t2);background:none;border:none;cursor:pointer;padding:0;display:flex;align-items:center;gap:3px;">${_prExp?'收合':'全部明細'}<svg width="10" height="10" viewBox="0 0 10 10" style="transform:${_prExp?'rotate(180deg)':'rotate(0deg)'};transition:transform .2s;"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></button>`:''}
       </div>
       <div class="card" style="padding:16px;margin-bottom:20px;">
         ${payRecords.length===0
