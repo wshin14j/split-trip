@@ -3657,9 +3657,9 @@ const App = {
       ${displayMembers.map((m,i)=>`<th style="${thS}${mbl(i)}">${m.isGroupFund&&fundLocalCur!==baseCur?`${m.name}（${fundLocalCur}）`:m.name}</th>`).join('')}
     </tr>`;
     // Separate accumulators: group vs personal
-    const memberGroupShare={};const memberSelfPay={};const memberGroupPaid={};const memberFundDeposit={};
+    const memberGroupShare={};const memberGroupShareNF={};const memberSelfPay={};const memberGroupPaid={};const memberFundDeposit={};
     const memberFundDepositLocal={};
-    members.forEach(m=>{memberGroupShare[m.id]=0;memberSelfPay[m.id]=0;memberGroupPaid[m.id]=0;memberFundDeposit[m.id]=0;memberFundDepositLocal[m.id]=0;});
+    members.forEach(m=>{memberGroupShare[m.id]=0;memberGroupShareNF[m.id]=0;memberSelfPay[m.id]=0;memberGroupPaid[m.id]=0;memberFundDeposit[m.id]=0;memberFundDepositLocal[m.id]=0;});
     fundDeposits.forEach(d=>{
       if(d.fromMemberId&&memberFundDeposit[d.fromMemberId]!==undefined){
         const baseAmt=Math.round(toBase(d.amt,d.cur||baseCur,t.rates,baseCur));
@@ -3703,7 +3703,11 @@ const App = {
         if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts) sh=e.customAmounts[m.id]||0;
         else sh=e.amount/ps.length;
         const shBase=Math.round(toBase(sh,expCur,t.rates,baseCur));
-        if(isGroup) memberGroupShare[m.id]+=shBase; else memberSelfPay[m.id]+=shBase;
+        if(isGroup){
+          memberGroupShare[m.id]+=shBase;
+          const isFP=fundMember&&typeof e.paidBy==='string'&&e.paidBy===fundMember.id;
+          if(!isFP) memberGroupShareNF[m.id]+=shBase;
+        } else memberSelfPay[m.id]+=shBase;
         return `<td style="${numS}${_mbl}">${shBase.toLocaleString()}</td>`;
       }).join('');
       return `<tr>
@@ -3895,7 +3899,7 @@ const App = {
       <td style="${cttl}"></td>
       <td style="${cttln}font-weight:700;border-left:2.5px solid #9CA3AF;">${Math.round(combinedGrandTotal).toLocaleString()}</td>
       <td style="${cttl}font-weight:700;text-align:center;">個人</td>
-      ${members.map((m,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${((memberGroupShare[m.id]||0)+(memberSelfPay[m.id]||0)).toLocaleString()}</td>`).join('')}
+      ${displayMembers.map((m,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${((memberFundDeposit[m.id]||0)+(memberGroupShareNF[m.id]||0)+(memberProxyReceived[m.id]||0)+(_selfOnlyShare[m.id]||0)).toLocaleString()}</td>`).join('')}
     </tr>${fundDepRow}${paidOtherRow}${_proxyRowC}${selfPayRow}${owedRow}`;
     // Settlement — 對齊主 app 計算邏輯（expenses + payRecords + fundDeposits）
     const bal=calcBal(t);
