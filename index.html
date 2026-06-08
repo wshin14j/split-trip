@@ -3727,12 +3727,38 @@ const App = {
     const groupExps=exps.filter(e=>isGroupExp(e));
     const personalExps=exps.filter(e=>!isGroupExp(e));
     const groupRows=buildRows(groupExps,true);
+    // Fund surplus row
+    const _fundId=fundMember?.id;
+    const fundSpentBase=_fundId?Math.round(groupExps.filter(e=>e.note!=='金額待補').filter(e=>typeof e.paidBy==='string'?e.paidBy===_fundId:!!(e.paidBy&&e.paidBy[_fundId]>0)).reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0)):0;
+    const fundSurplus=Math.round(totalFundDeposit-fundSpentBase);
+    const regCount=regularMembers.length||1;
+    const surplusPerMember=fundSurplus>0.5?Math.round(fundSurplus/regCount):0;
+    let surplusRow='';
+    if(fundSurplus>0.5&&fundMember){
+      regularMembers.forEach(m=>{memberGroupShare[m.id]=(memberGroupShare[m.id]||0)-surplusPerMember;});
+      const _rS='color:#EF4444;';
+      const _surplusCurCells=allCurs.map(c=>{
+        if(c===fundLocalCur){const n=parseFloat((fundSurplus/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});return `<td style="${numS}${_rS}">（${n}）</td>`;}
+        return blank;
+      }).join('');
+      surplusRow=`<tr>
+        <td style="${tdS}"></td><td style="${tdS}font-size:10px;color:#9CA3AF;">公費</td>
+        <td style="${tdS}font-style:italic;color:#6B7280;">公費溢出</td>
+        <td style="${tdS}"></td><td style="${numS}">${regCount}</td>
+        ${_surplusCurCells}
+        <td style="${tdS}color:#6B7280;">公費</td>
+        <td style="${numS}${_rS}">（${fundSurplus.toLocaleString()}）</td>
+        <td style="${numS}${_rS}">（${surplusPerMember.toLocaleString()}）</td>
+        ${displayMembers.map((m,i)=>m.isGroupFund?`<td style="${numS}${mbl(i)}"></td>`:`<td style="${numS}${mbl(i)}${_rS}">（${surplusPerMember.toLocaleString()}）</td>`).join('')}
+      </tr>`;
+    }
     // Group TTL
+    const _surplusLocalAmt=fundSurplus>0.5?fundSurplus/fundLocalRate:0;
     const groupCurTotals=allCurs.map(c=>{
-      const s=groupExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);
-      return s>0?`<td style="${ttl1n}font-weight:700;">${Math.round(s).toLocaleString()}</td>`:tblank1;
+      const s=groupExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0)-(c===fundLocalCur?_surplusLocalAmt:0);
+      return Math.abs(s)>0.5?`<td style="${ttl1n}font-weight:700;">${Math.round(s).toLocaleString()}</td>`:tblank1;
     }).join('');
-    const groupGrandTotal=groupExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0);
+    const groupGrandTotal=groupExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0)-fundSurplus;
     const groupTtlRows=`<tr>
       <td style="${ttl1}font-weight:700;">TTL</td><td style="${ttl1}font-weight:700;">共同支出花費</td><td style="${ttl1}"></td><td style="${ttl1}"></td><td style="${ttl1}"></td>
       ${groupCurTotals}
@@ -3750,25 +3776,25 @@ const App = {
     </tr>
     <tr>
       ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
-      <td style="${ttl2}text-align:center;color:#6B7280;">已付公費</td>
+      <td style="${ttl2}text-align:center;color:#6B7280;">已付公費${fundLocalCur!==baseCur&&totalFundDeposit>0?`<br><span style="font-size:9px;">(共${fmtFundNum(totalFundDeposit)} ${fundLocalCur})</span>`:''}</td>
       ${displayMembers.map((m,i)=>{
         if(m.isGroupFund) return `<td style="${ttl2n}${mbl(i)}color:#6B7280;white-space:normal;">${fmtFundLocal(totalFundDeposit)}</td>`;
         const dep=memberFundDeposit[m.id]||0;
         const depLocal=memberFundDepositLocal[m.id]||0;
-        const localLine=(fundLocalCur!==baseCur&&dep>0)?`${parseFloat(depLocal.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})}<span style="font-size:9px;color:#9CA3AF;margin-left:2px;">${fundLocalCur}</span><br>`:''
+        const localLine=(fundLocalCur!==baseCur&&dep>0)?`<span style="font-size:10px;color:#9CA3AF;">${fundLocalCur} ${parseFloat(depLocal.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})}</span><br>`:''
         return `<td style="${ttl2n}${mbl(i)}white-space:normal;">${dep>0?localLine+dep.toLocaleString():'—'}</td>`;
       }).join('')}
     </tr>
     <tr>
       ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
-      <td style="${ttl2}text-align:center;color:#6B7280;">已付款</td>
+      <td style="${ttl2}text-align:center;color:#6B7280;">已支付其他</td>
       ${displayMembers.map((m,i)=>`<td style="${ttl2n}${mbl(i)}">${(memberGroupPaid[m.id]||0).toLocaleString()}</td>`).join('')}
     </tr>
     <tr>
       ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
       <td style="${ttl2}text-align:center;font-weight:700;color:#EF4444;">待付款</td>
       ${displayMembers.map((m,i)=>{
-        const owed=(memberGroupShare[m.id]||0)-(memberGroupPaid[m.id]||0);
+        const owed=(memberGroupShare[m.id]||0)-(memberGroupPaid[m.id]||0)-(memberFundDeposit[m.id]||0);
         const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';
         return `<td style="${ttl2n}${mbl(i)}font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;
       }).join('')}
@@ -3842,7 +3868,7 @@ const App = {
     return `
       <div style="font-size:13px;font-weight:700;margin-bottom:8px;">支出明細</div>
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-        <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
+        <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${surplusRow}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
       </div>
       ${settleHTML}`;
   },
