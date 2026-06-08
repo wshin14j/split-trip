@@ -1082,9 +1082,8 @@ const App = {
 
   _isGroupExp(e,t){
     if(e.splitMode==='self') return false;
-    const nfc=(t.members||[]).filter(m=>!m.isGroupFund).length;
-    const parts=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);
-    return parts.length>=nfc;
+    const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);
+    return ps.length>=2;
   },
   setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterSelfMode=null;this.renderTab();},
   setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);if(this._filterCat)this._filterPending=false;this.renderTab();},
@@ -1211,12 +1210,18 @@ const App = {
     }
     if(fc) allExps=allExps.filter(e=>normCat(e.category||'其他')===fc);
     if(this._filterPayMethod) allExps=allExps.filter(e=>e.payMethod===this._filterPayMethod);
-    if(fsm==='self') allExps=allExps.filter(e=>e.splitMode==='self');
-    else if(fsm==='nonself') allExps=allExps.filter(e=>e.splitMode!=='self');
+    if(fsm==='self') allExps=allExps.filter(e=>{const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);return e.splitMode==='self'||(ps.length===1&&ps[0]===(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0]));});
+    else if(fsm==='proxy') allExps=allExps.filter(e=>{const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);return e.splitMode!=='self'&&ps.length===1&&ps[0]!==(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0]);});
     const total=allExps.reduce((sum,e)=>{
       const amt=e.note==='金額待補'?0:(fm&&typeof e.paidBy==='object'&&e.paidBy!==null?(e.paidBy[fm]||0):e.amount);
       return sum+toBase(amt,e.currency,t.rates,t.baseCurrency);
     },0);
+    const _rIds=(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);
+    const fullGroupOnlyTotal=Object.values(t.expenses||{}).filter(e=>{
+      if(e.splitMode==='self') return false;
+      const ps=e.parts||_rIds;
+      return _rIds.length>0&&_rIds.every(id=>ps.includes(id))&&e.note!=='金額待補';
+    }).reduce((s,e)=>s+toBase(e.amount,e.currency,t.rates,t.baseCurrency),0);
     // Funnel icon (computed early for use in tabs row)
     const hasAnyExpsEarly=Object.values(t.expenses||{}).some(e=>isGroup?this._isGroupExp(e,t):!this._isGroupExp(e,t));
     const isFiltered2Early=fc||fp||!!fm||!!fpm||!!fsm;
@@ -1249,12 +1254,12 @@ const App = {
           ${fc?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fc}</span>`:''}
           ${fpm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fpm}</span>`:''}
           ${fp?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">待補金額</span>`:''}
-          ${fsm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fsm==='self'?'自購':'非自購'}</span>`:''}
+          ${fsm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fsm==='self'?'自購':'代購'}</span>`:''}
           <span style="font-size:13px;color:var(--t2);">已支出</span>
           ${pendingBadge}
         </div>
         ${fp?`<div style="font-size:26px;font-weight:800;color:#DC2626;">${pendingCount}筆待補</div>`:`<div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>`}
-        ${!fp&&isGroup?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">每人平均 ${bSym} ${Math.round(total/regularCount).toLocaleString()}</span></div>`:''}
+        ${!fp&&isGroup&&fullGroupOnlyTotal>0?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">全員均攤 ${bSym} ${Math.round(fullGroupOnlyTotal/regularCount).toLocaleString()}</span></div>`:''}
       </div>`;
     } else {
       const baseCur=t.baseCurrency||'TWD';
@@ -1264,11 +1269,11 @@ const App = {
           ${fc?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fc}</span>`:''}
           ${fpm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fpm}</span>`:''}
           ${fp?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">待補金額</span>`:''}
-          ${fsm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fsm==='self'?'自購':'非自購'}</span>`:''}
+          ${fsm?`<span style="font-size:13px;color:var(--t2);">·</span><span style="font-size:14px;font-weight:700;color:var(--accent);">${fsm==='self'?'自購':'代購'}</span>`:''}
           ${pendingBadge}
         </div>
         ${fp?`<div style="font-size:26px;font-weight:800;color:#DC2626;">${pendingCount}筆待補</div>`:`<div style="font-size:26px;font-weight:800;">${bSym} ${Math.round(total).toLocaleString()}</div>`}
-        ${!fp&&isGroup?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">每人平均 ${bSym} ${Math.round(total/regularCount).toLocaleString()}</span></div>`:''}
+        ${!fp&&isGroup&&fullGroupOnlyTotal>0?`<div style="margin-top:4px;"><span style="font-size:12px;color:var(--t2);">全員均攤 ${bSym} ${Math.round(fullGroupOnlyTotal/regularCount).toLocaleString()}</span></div>`:''}
       </div>`;
     }
     const filterMembers=isGroup?[...t.members].sort((a,b)=>(b.isGroupFund?1:0)-(a.isGroupFund?1:0)):t.members.filter(m=>!m.isGroupFund);
@@ -1289,7 +1294,7 @@ const App = {
     if(hasPendingF) funcArrF.push(`<button type="button" onclick="if(!App._filterPending){App._filterPending=true;App._filterPayMethod=null;App._filterSelfMode=null;App._filterMember=null;App._filterCat=null;}else{App._filterPending=false;}App.renderTab();" style="${pendStyF}">待補金額</button>`);
     if(!isGroup){
       funcArrF.push(`<button type="button" onclick="App.setFilterSelfMode('self')" style="${fChipSty(fsm==='self')}">自購</button>`);
-      funcArrF.push(`<button type="button" onclick="App.setFilterSelfMode('nonself')" style="${fChipSty(fsm==='nonself')}">非自購</button>`);
+      funcArrF.push(`<button type="button" onclick="App.setFilterSelfMode('proxy')" style="${fChipSty(fsm==='proxy')}">代購</button>`);
     }
     const funcChipsHTML=(hasCashF||hasCardF||hasPendingF||!isGroup)?scrollRow('功能',funcArrF.join('')):'';
     const filterRows=fex?(catChipsHTML+funcChipsHTML):'';
@@ -1346,8 +1351,8 @@ const App = {
     if(fp) exps=exps.filter(([,e])=>e.note==='金額待補');
     else if(fc) exps=exps.filter(([,e])=>normCat(e.category||'其他')===fc);
     if(fpm) exps=exps.filter(([,e])=>e.payMethod===fpm);
-    if(fsm==='self') exps=exps.filter(([,e])=>e.splitMode==='self');
-    else if(fsm==='nonself') exps=exps.filter(([,e])=>e.splitMode!=='self');
+    if(fsm==='self') exps=exps.filter(([,e])=>{const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);return e.splitMode==='self'||(ps.length===1&&ps[0]===(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0]));});
+    else if(fsm==='proxy') exps=exps.filter(([,e])=>{const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);return e.splitMode!=='self'&&ps.length===1&&ps[0]!==(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0]);});
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     let lastDate='';
@@ -1362,7 +1367,9 @@ const App = {
       const ps=e.parts||t.members.map(m=>m.id);
       const nonFundCount=t.members.filter(m=>!m.isGroupFund).length;
       let partsLabel;
+      const _payerIdCard=typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0];
       if(e.splitMode==='self') partsLabel='自購';
+      else if(ps.length===1&&ps[0]!==_payerIdCard) partsLabel='代購';
       else if(ps.length>=nonFundCount) partsLabel='全員';
       else if(ps.length<=3) partsLabel=ps.map(mName).join('、');
       else partsLabel=ps.slice(0,2).map(mName).join('、')+` +${ps.length-2}`;
@@ -1379,7 +1386,9 @@ const App = {
           :(t.members.find(m=>m.id===e.paidBy)?.name||'?');
         const splitLabelFull=e.splitMode==='self'?'自購':e.splitMode==='custom'?'自訂金額':e.splitMode==='proportion'?'按比例':'平均分攤';
         let partsLabelDetail;
-        if(e.splitMode==='self'||ps.length===1) partsLabelDetail='自購';
+        if(e.splitMode==='self') partsLabelDetail='自購';
+        else if(ps.length===1&&ps[0]!==(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0])) partsLabelDetail='代購';
+        else if(ps.length===1) partsLabelDetail='自購';
         else if(ps.length>=nonFundCount) partsLabelDetail='全員';
         else partsLabelDetail=`${ps.length}位`;
         const partRows=ps.map(pid=>{
@@ -1804,8 +1813,8 @@ const App = {
       if(!hasExps) return '';
       const spent={}, paid={}, paidGroup={}, paidPartial={};
       const inclPersonal=this._summaryIncludePersonal;
-      const selfSpent={}, groupFundSpent={}, groupPeerSpent={}, partialPeerSpent={};
-      t.members.forEach(m=>{spent[m.id]=0;paid[m.id]=0;paidGroup[m.id]=0;paidPartial[m.id]=0;selfSpent[m.id]=0;groupFundSpent[m.id]=0;groupPeerSpent[m.id]=0;partialPeerSpent[m.id]=0;});
+      const selfSpent={}, groupFundSpent={}, groupPeerSpent={}, partialPeerSpent={}, proxySpent={};
+      t.members.forEach(m=>{spent[m.id]=0;paid[m.id]=0;paidGroup[m.id]=0;paidPartial[m.id]=0;selfSpent[m.id]=0;groupFundSpent[m.id]=0;groupPeerSpent[m.id]=0;partialPeerSpent[m.id]=0;proxySpent[m.id]=0;});
       const regularIds=t.members.filter(m=>!m.isGroupFund).map(m=>m.id);
       Object.values(t.expenses||{}).forEach(e=>{
         const isSelf=e.splitMode==='self';
@@ -1819,6 +1828,8 @@ const App = {
           const ps=e.parts||t.members.map(m=>m.id);
           const isFundPaid=fundMember&&typeof e.paidBy==='string'&&e.paidBy===fundMember.id;
           const isFullGroup=!isFundPaid&&regularIds.every(id=>ps.includes(id));
+          const _payerIdSum=typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0];
+          const isProxy=!isFundPaid&&!isFullGroup&&ps.length===1&&ps[0]!==_payerIdSum;
           // paid
           if(typeof e.paidBy==='object'&&e.paidBy!==null){
             Object.entries(e.paidBy).forEach(([id,v])=>{
@@ -1837,6 +1848,7 @@ const App = {
               if(spent[p]!==undefined) spent[p]+=sh;
               if(isFundPaid){if(groupFundSpent[p]!==undefined)groupFundSpent[p]+=sh;}
               else if(isFullGroup){if(groupPeerSpent[p]!==undefined)groupPeerSpent[p]+=sh;}
+              else if(isProxy){if(proxySpent[p]!==undefined)proxySpent[p]+=sh;}
               else{if(partialPeerSpent[p]!==undefined)partialPeerSpent[p]+=sh;}
             });
           } else {
@@ -1845,6 +1857,7 @@ const App = {
               if(spent[p]!==undefined) spent[p]+=sh;
               if(isFundPaid){if(groupFundSpent[p]!==undefined)groupFundSpent[p]+=sh;}
               else if(isFullGroup){if(groupPeerSpent[p]!==undefined)groupPeerSpent[p]+=sh;}
+              else if(isProxy){if(proxySpent[p]!==undefined)proxySpent[p]+=sh;}
               else{if(partialPeerSpent[p]!==undefined)partialPeerSpent[p]+=sh;}
             });
           }
@@ -1901,16 +1914,16 @@ const App = {
         const fsp=groupFundSpent[m.id]||0;
         const psp=groupPeerSpent[m.id]||0;
         const ppsp=partialPeerSpent[m.id]||0;
+        const proxySp=proxySpent[m.id]||0;
         const netPaid=pdGroup+pdPartial+tp;
-        const netShare=psp+ppsp;
+        const netShare=psp+ppsp+proxySp;
         const personalSp=selfSpent[m.id]||0;
         const expandedRows=isExp?`
           <div style="margin-top:4px;">
-          ${fundMember
-            ?`${psp>0.5?`<div style="${rStyle}"><span>群組花費－一般支出</span><span>${fmtS(psp)}</span></div>`:''}
-               ${fsp>0.5?`<div style="${rStyle}"><span>群組花費－公費支出</span><span>${fmtS(fsp)}</span></div>`:''}`
-            :`<div style="${rStyle}"><span>群組花費</span><span>${fmtS(psp)}</span></div>`}
-          ${inclPersonal&&ppsp>0.5?`<div style="${rStyle}"><span>個人花費－部分成員</span><span>${fmtS(ppsp)}</span></div>`:''}
+          ${psp>0.5?`<div style="${rStyle}"><span>群組花費－全員</span><span>${fmtS(psp)}</span></div>`:''}
+          ${ppsp>0.5?`<div style="${rStyle}"><span>群組花費－部分</span><span>${fmtS(ppsp)}</span></div>`:''}
+          ${fundMember&&fsp>0.5?`<div style="${rStyle}"><span>群組花費－公費</span><span>${fmtS(fsp)}</span></div>`:''}
+          ${proxySp>0.5?`<div style="${rStyle}"><span>個人花費－代購</span><span>${fmtS(proxySp)}</span></div>`:''}
           ${inclPersonal&&personalSp>0.5?`<div style="${rStyle}"><span>個人花費－自購</span><span>${fmtS(personalSp)}</span></div>`:''}
           ${fp>0.5?`${div}<div style="${rStyle}"><span>已付公費</span><span>${fmtS(fp)}</span></div>`:''}
           ${div}${pd>0.5?`<div style="font-size:12px;color:var(--t2);text-align:left;">已付支出（不含自購）</div>`:''}${pdGroup>0.5&&pdPartial>0.5?`<div style="font-size:11px;color:var(--t3);display:flex;justify-content:space-between;gap:12px;padding-left:8px;"><span>└ 全員分攤</span><span>${fmtS(pdGroup)}</span></div><div style="font-size:11px;color:var(--t3);display:flex;justify-content:space-between;gap:12px;padding-left:8px;"><span>└ 部分分攤</span><span>${fmtS(pdPartial)}</span></div>`:''}${pdGroup>0.5&&pdPartial<=0.5?`<div style="font-size:11px;color:var(--t3);display:flex;justify-content:space-between;gap:12px;padding-left:8px;"><span>└ 全員分攤</span><span>${fmtS(pdGroup)}</span></div>`:''}${pdPartial>0.5&&pdGroup<=0.5?`<div style="font-size:11px;color:var(--t3);display:flex;justify-content:space-between;gap:12px;padding-left:8px;"><span>└ 部分分攤</span><span>${fmtS(pdPartial)}</span></div>`:''}${tp>0.5?`<div style="${rStyle}"><span>轉帳支出</span><span>${fmtS(tp)}</span></div>`:''}
@@ -1932,21 +1945,20 @@ const App = {
       return `<div style="height:20px;"></div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <div class="sm semibold muted" style="flex:1;">成員花費與墊付總覽</div>
-          <span style="font-size:12px;color:var(--t2);">含個人支出</span>
+          <span style="font-size:12px;color:var(--t2);">含自購</span>
           ${toggle}
         </div>
         <div class="card" style="padding:4px 16px;">
           ${rows}
           <div style="display:flex;align-items:center;gap:10px;padding:12px 0;padding-bottom:4px;">
-            <div style="font-size:13px;color:var(--t2);flex:1;">${inclPersonal?'全部合計':'群組合計'}</div>
+            <div style="font-size:13px;color:var(--t2);flex:1;">${inclPersonal?'含自購合計':'合計'}</div>
             <div style="font-size:16px;font-weight:800;">${fmtS(groupTotal)}</div>
           </div>
         </div>
-        ${fundMember?`<div style="font-size:11px;color:var(--t2);margin-top:6px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 全部合計 及 應付／應收 均不含公款存入金額</div>`:''}
-        ${fundMember
-          ?`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 群組花費－一般支出：全員分攤、非公款支付的項目</div>`
-          :`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 群組花費：全員分攤的項目，非全員分攤則歸入「個人花費－部分成員」</div>`}
-        ${inclPersonal?`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 個人花費－部分成員：非全員分攤，已納入應付／應收計算</div>`:''}`
+        ${fundMember?`<div style="font-size:11px;color:var(--t2);margin-top:6px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 合計 及 應付／應收 均不含公款存入金額</div>`:''}
+        <div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 群組花費：2 人以上分攤的項目，已納入應付／應收計算</div>
+        <div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 個人花費－代購：由他人代付，已納入應付／應收計算</div>
+        ${inclPersonal?`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 個人花費－自購：個人自費，不影響他人結算</div>`:''}`
 
     })();
 
@@ -2720,8 +2732,8 @@ const App = {
     if(!parts.length){box.innerHTML='';return;}
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     if(parts.length===1){
-      if(parts[0]===_payerId){box.innerHTML=`<div style="background:#FFF7ED;border-radius:12px;padding:10px 14px;font-size:13px;color:#F97316;font-weight:600;">⚠️ 只有 1 人分攤，等同自購 — 僅記錄支出，不計入分帳</div>`;return;}
-      else{box.innerHTML=`<div style="background:#FFF7ED;border-radius:12px;padding:10px 14px;font-size:13px;color:#F97316;font-weight:600;">⚠️ ${mName(_payerId)} 代付，${mName(parts[0])} 須還款給 ${mName(_payerId)}</div>`;return;}
+      if(parts[0]===_payerId){box.innerHTML=`<div style="background:#FFF7ED;border-radius:12px;padding:10px 14px;font-size:13px;color:#F97316;font-weight:600;">⚠️ 只有自己分攤 — 歸為個人支出，不影響他人結算</div>`;return;}
+      else{box.innerHTML=`<div style="background:#EEF0FF;border-radius:12px;padding:10px 14px;font-size:13px;color:var(--accent);font-weight:600;">代購 — ${mName(parts[0])} 須還款 ${mName(_payerId)}，已納入結算</div>`;return;}
     }
     if(this.splitMode!=='proportion'&&(!amt||isNaN(amt))){box.innerHTML='';return;}
     if(this.splitMode==='equal'){
@@ -3630,9 +3642,8 @@ const App = {
     const regularMembers=members.filter(m=>!m.isGroupFund);
     const isGroupExp=e=>{
       if(e.splitMode==='self') return false;
-      const ps=e.parts;
-      if(!ps||ps.length===0) return true;
-      return regularMembers.every(m=>ps.includes(m.id));
+      const ps=e.parts||regularMembers.map(m=>m.id);
+      return ps.length>=2;
     };
     const groupExps=exps.filter(e=>isGroupExp(e));
     const personalExps=exps.filter(e=>!isGroupExp(e));
@@ -3845,9 +3856,8 @@ const App = {
     const regularMembersCsv=members.filter(m=>!m.isGroupFund);
     const isGroupExpCsv=e=>{
       if(e.splitMode==='self') return false;
-      const ps=e.parts;
-      if(!ps||ps.length===0) return true;
-      return regularMembersCsv.every(m=>ps.includes(m.id));
+      const ps=e.parts||regularMembersCsv.map(m=>m.id);
+      return ps.length>=2;
     };
     const groupExps=exps.filter(e=>isGroupExpCsv(e));
     const personalExps=exps.filter(e=>!isGroupExpCsv(e));
