@@ -786,7 +786,7 @@ const C = {
 };
 const DEF = {TWD:1,JPY:0.22,USD:32.5,EUR:35.0,GBP:41.0,KRW:0.024,VND:0.0013,THB:0.97,IDR:0.002};
 const CAT_COLORS = {'餐飲':'#F97316','住宿':'#8B5CF6','交通':'#3B82F6','玩樂':'#EC4899','購物':'#10B981','其他':'#6B7280'};
-function curSym(code){return C[code]?.sym||'';}
+function curSym(code){return C[code]?.sym||(code?code+' ':'');}
 function fmtCur(amt,code){const s=curSym(code);const n=parseFloat(Number(amt).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});return s?`${s}${n}`:`${n} ${code||''}`;}
 function curFlag(code){
   if(C[code]?.flag) return C[code].flag;
@@ -2806,7 +2806,7 @@ const App = {
     const rawAmt=document.getElementById('in-exp-amt')?.value.replace(/,/g,'')||'';
     const amt=parseFloat(rawAmt);
     const cur=document.getElementById('in-exp-cur')?.value||'TWD';
-    const sym=(C[cur]||C.TWD).sym;
+    const sym=C[cur]?.sym||(cur+' ');
     if(!parts.length){box.innerHTML='';return;}
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     if(parts.length===1){
@@ -2922,7 +2922,7 @@ const App = {
     const box=document.getElementById('payer-multi');
     if(!box) return;
     const cur=document.getElementById('in-exp-cur')?.value||'TWD';
-    const sym=(C[cur]||C.TWD).sym;
+    const sym=C[cur]?.sym||(cur+' ');
     box.innerHTML=`<div style="background:var(--surface);border-radius:12px;padding:12px;border:1px solid var(--border);">`+
       t.members.map(m=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
         <span style="font-size:13px;font-weight:600;width:52px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.name.slice(0,5)}</span>
@@ -2939,7 +2939,7 @@ const App = {
     if(!t) return;
     const rawAmt=parseFloat(document.getElementById('in-exp-amt')?.value.replace(/,/g,'')||'0')||0;
     const cur=document.getElementById('in-exp-cur')?.value||'TWD';
-    const sym=(C[cur]||C.TWD).sym;
+    const sym=C[cur]?.sym||(cur+' ');
     let total=0;
     t.members.forEach(m=>{
       const v=parseFloat(document.getElementById(`mp-${m.id}`)?.value.replace(/,/g,'')||'0')||0;
@@ -2976,7 +2976,7 @@ const App = {
     const rawAmt=document.getElementById('in-exp-amt')?.value.replace(/,/g,'')||'0';
     const amt=parseFloat(rawAmt)||0;
     const cur=document.getElementById('in-exp-cur')?.value||'TWD';
-    const sym=(C[cur]||C.TWD).sym;
+    const sym=C[cur]?.sym||(cur+' ');
     let total=0;
     const result={};
     for(const pid of parts){
@@ -3023,7 +3023,7 @@ const App = {
     const rawAmt=document.getElementById('in-exp-amt')?.value.replace(/,/g,'')||'0';
     const amt=parseFloat(rawAmt)||0;
     const cur=document.getElementById('in-exp-cur')?.value||'TWD';
-    const sym=(C[cur]||C.TWD).sym;
+    const sym=C[cur]?.sym||(cur+' ');
     const t=loadTrip(this.tripId);
     const bSym=t?(C[t.baseCurrency]||C.TWD).sym:'NT$';
     const showTWD=t&&cur!==t.baseCurrency;
@@ -3240,7 +3240,7 @@ const App = {
     if(!t){this.go('trip');return;}
     const e=t.expenses[this.expId];
     if(!e){this.go('trip');return;}
-    const sym=(C[e.currency]||C.TWD).sym;
+    const sym=C[e.currency]?.sym||((e.currency||'')+' ');
     const payer=typeof e.paidBy==='object'&&e.paidBy!==null?null:t.members.find(m=>m.id===e.paidBy);
     const payerLabel=typeof e.paidBy==='object'&&e.paidBy!==null
       ?Object.entries(e.paidBy).map(([id,amt])=>{const m=t.members.find(m=>m.id===id);return `${m?.name||'?'} ${sym}${fmtNum(amt)}`;}).join('、')
