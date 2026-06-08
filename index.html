@@ -363,6 +363,7 @@ select.input{
   <div id="trip-filter-outer" style="display:none;flex-shrink:0;padding:8px 20px;background:var(--bg);border-bottom:1px solid var(--border);"></div>
   <div class="scroll pb-fab" id="trip-content"></div>
   <button class="fab" id="fab" onclick="App.showAddExpense()">+</button>
+  <div id="back-to-summary-bar" style="display:none;position:fixed;bottom:108px;left:max(20px,calc((100vw - 390px)/2 + 16px));right:max(20px,calc((100vw - 390px)/2 + 16px));z-index:998;"><button type="button" onclick="App.backToMemberSummary()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px 16px;background:var(--primary);color:#fff;border:none;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(91,108,255,.4);">← <span id="back-to-summary-label">返回花費總覽</span></button></div>
   <div id="footer-slogan">
     <div style="flex:1;height:1px;background:#E6E8EC;"></div>
     <div style="width:8px;height:8px;background:#C4C7CE;transform:rotate(45deg);flex-shrink:0;margin:0 8px;"></div>
@@ -1066,6 +1067,8 @@ const App = {
     const fo=document.getElementById('trip-filter-outer');
     if(so) so.style.display='none';
     if(fo) fo.style.display='none';
+    const _barEl=document.getElementById('back-to-summary-bar');
+    if(_barEl&&this.tab!=='expenses') _barEl.style.display='none';
     try{
       if(this.tab==='expenses') this.renderExpenses(t,c);
       else if(this.tab==='settlement') this.renderSettlement(t,c);
@@ -1382,9 +1385,12 @@ const App = {
     let lastDate='';
     const _jom=this._jumpOriginMember;
     const _jomName=_jom?(t.members.find(m=>m.id===_jom)?.name||''):'';
-    const backBtn=_jom?`<div style="margin-bottom:12px;"><button type="button" onclick="App.backToMemberSummary()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--accent);background:#EEF2FF;border:none;border-radius:999px;padding:5px 12px;cursor:pointer;font-weight:600;">← 返回${_jomName}的花費總覽</button></div>`:'';
-    if(!allExps.length){c.innerHTML=backBtn+`<div class="empty"><div class="empty-title">目前尚無支出記錄</div><div class="empty-sub">點右下角 + 新增第一筆</div></div><div style="padding:20px 0 80px;"></div>`;return;}
-    c.innerHTML=backBtn+(exps.length?exps.map(([id,e])=>{
+    const _bar=document.getElementById('back-to-summary-bar');
+    const _lbl=document.getElementById('back-to-summary-label');
+    if(_bar){_bar.style.display=_jom?'block':'none';}
+    if(_lbl&&_jomName) _lbl.textContent=`返回${_jomName}的花費總覽`;
+    if(!allExps.length){c.innerHTML=`<div class="empty"><div class="empty-title">目前尚無支出記錄</div><div class="empty-sub">點右下角 + 新增第一筆</div></div><div style="padding:20px 0 80px;"></div>`;return;}
+    c.innerHTML=(exps.length?exps.map(([id,e])=>{
       const payer=typeof e.paidBy==='object'&&e.paidBy!==null?null:t.members.find(m=>m.id===e.paidBy);
       const payerName=typeof e.paidBy==='object'&&e.paidBy!==null?(()=>{const ns=Object.keys(e.paidBy).map(id=>t.members.find(m=>m.id===id)?.name||'?');return ns.length<=3?ns.join('、'):'多人';})():((payer?.name||'?').slice(0,2));
       const sym=curSym(e.currency);
