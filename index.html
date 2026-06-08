@@ -3829,10 +3829,10 @@ const App = {
     if(personalExps.length){
       personalSection+=sectionRow('個人支出明細','#F0FDF4','#166534','#86EFAC');
       if(proxyOnlyExps.length){
-        personalSection+=sectionRow('個人支出－他人墊付（影響結算）','#F7FEF9','#166534','#86EFAC')+buildRows(proxyOnlyExps,false)+_buildPersonalTtl(proxyOnlyExps,'他人墊付小計');
+        personalSection+=sectionRow('個人支出－他人墊付','#F7FEF9','#166534','#86EFAC')+buildRows(proxyOnlyExps,false)+_buildPersonalTtl(proxyOnlyExps,'他人墊付小計');
       }
       if(selfOnlyExps.length){
-        personalSection+=sectionRow('個人支出－自購（純紀錄）','#F7FEF9','#166534','#86EFAC')+buildRows(selfOnlyExps,false)+_buildPersonalTtl(selfOnlyExps,'自購小計');
+        personalSection+=sectionRow('個人支出－自購','#F7FEF9','#166534','#86EFAC')+buildRows(selfOnlyExps,false)+_buildPersonalTtl(selfOnlyExps,'自購小計');
       }
     }
     // Combined total
