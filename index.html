@@ -1166,7 +1166,9 @@ const App = {
     if(titleEl) titleEl.textContent=isPersonal?'個人支出分析':'群組支出分析';
     const body=document.getElementById('m-breakdown-body');
     if(!body) return;
-    body.innerHTML=html;
+    const _hasFilter=!!(this._filterMember||this._filterCat||this._filterPending||this._filterPayMethod||this._filterSelfMode);
+    const filterNotice=_hasFilter?`<div style="font-size:11px;color:var(--t2);background:var(--surface);border-radius:8px;padding:7px 10px;margin-bottom:14px;">＊ 顯示全部支出，不受目前篩選影響</div>`:'';
+    body.innerHTML=filterNotice+html;
     this.openModal('m-breakdown');
   },
   toggleMyShare(){
