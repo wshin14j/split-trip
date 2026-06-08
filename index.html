@@ -3774,6 +3774,20 @@ const App = {
       if(memberProxyReceived[ps[0]]!==undefined) memberProxyReceived[ps[0]]+=amt;
     });
     const hasProxy=members.some(m=>memberProxyPaid[m.id]>0||memberProxyReceived[m.id]>0);
+    // 待付款：與結算頁 peerBal 相同邏輯（排除公款帳支付的費用）
+    const peerBalDetail={};
+    regularMembers.forEach(m=>{peerBalDetail[m.id]=0;});
+    exps.forEach(e=>{
+      const isFundPaid=fundMember&&typeof e.paidBy==='string'&&e.paidBy===fundMember.id;
+      if(isFundPaid) return;
+      const tot=toBase(e.note==='金額待補'?0:e.amount,e.currency||baseCur,t.rates,baseCur);
+      if(typeof e.paidBy==='object'&&e.paidBy) Object.entries(e.paidBy).forEach(([id,v])=>{if(peerBalDetail[id]!==undefined)peerBalDetail[id]+=toBase(v,e.currency||baseCur,t.rates,baseCur);});
+      else if(peerBalDetail[e.paidBy]!==undefined) peerBalDetail[e.paidBy]+=tot;
+      const ps=(e.parts||regularMembers.map(m=>m.id)).filter(id=>peerBalDetail[id]!==undefined);
+      if(!ps.length) return;
+      if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts) ps.forEach(p=>{if(peerBalDetail[p]!==undefined)peerBalDetail[p]-=toBase(e.customAmounts[p]||0,e.currency||baseCur,t.rates,baseCur);});
+      else{const sh=tot/ps.length;ps.forEach(p=>{if(peerBalDetail[p]!==undefined)peerBalDetail[p]-=sh;});}
+    });
     const proxyRow=hasProxy?`<tr>
       ${Array(fixedLeft+allCurs.length+2).fill(tblank2).join('')}
       <td style="${ttl2}text-align:center;color:#6B7280;">代付淨額</td>
@@ -3873,7 +3887,7 @@ const App = {
     </tr>`;
     const owedRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;font-weight:700;color:#EF4444;">待付款</td>
-      ${displayMembers.map((m,i)=>{const proxyNet=(memberProxyPaid[m.id]||0)-(memberProxyReceived[m.id]||0);const sp2=(!m.isGroupFund&&fundMember)?2*surplusPerMember:0;const owed=(memberGroupShare[m.id]||0)+sp2-(memberGroupPaid[m.id]||0)-(memberFundDeposit[m.id]||0)-proxyNet;const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
+      ${displayMembers.map((m,i)=>{const owed=m.isGroupFund?0:Math.round(-(peerBalDetail[m.id]||0));const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
     </tr>`;
     const combinedSection=sectionRow('整趟旅程完整花費（群組＋個人）','#FEF9C3','#92400E','#FDE68A')+`<tr>
       <td style="${cttl}font-weight:700;">合計</td><td style="${cttl}font-weight:700;">全部費用</td><td style="${cttl}"></td><td style="${cttl}"></td><td style="${cttl}"></td>
