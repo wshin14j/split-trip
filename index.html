@@ -1382,7 +1382,7 @@ const App = {
     let lastDate='';
     const _jom=this._jumpOriginMember;
     const _jomName=_jom?(t.members.find(m=>m.id===_jom)?.name||''):'';
-    const backBtn=_jom?`<div style="margin-bottom:12px;"><button type="button" onclick="App.backToMemberSummary()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--accent);background:#EEF2FF;border:none;border-radius:999px;padding:5px 12px;cursor:pointer;font-weight:600;">← 返回${_jomName}的總覽</button></div>`:'';
+    const backBtn=_jom?`<div style="margin-bottom:12px;"><button type="button" onclick="App.backToMemberSummary()" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--accent);background:#EEF2FF;border:none;border-radius:999px;padding:5px 12px;cursor:pointer;font-weight:600;">← 返回${_jomName}的花費總覽</button></div>`:'';
     if(!allExps.length){c.innerHTML=backBtn+`<div class="empty"><div class="empty-title">目前尚無支出記錄</div><div class="empty-sub">點右下角 + 新增第一筆</div></div><div style="padding:20px 0 80px;"></div>`;return;}
     c.innerHTML=backBtn+(exps.length?exps.map(([id,e])=>{
       const payer=typeof e.paidBy==='object'&&e.paidBy!==null?null:t.members.find(m=>m.id===e.paidBy);
@@ -3979,84 +3979,6 @@ const App = {
     a.href=url;a.download=fileName;a.click();
     URL.revokeObjectURL(url);
     this.showToast('CSV 已下載');
-  },
-
-  exportSettlementPDF_REMOVED(){
-    const t=loadTrip(this.tripId);
-    if(!t) return;
-    const baseCur=t.baseCurrency||'TWD';
-    const baseSym=(C[baseCur]||C.TWD).sym;
-    const members=t.members||[];
-    const mName=id=>{const m=members.find(m=>m.id===id);return m?.name||id;};
-    const avColor=id=>{const m=members.find(m=>m.id===id);return m?.color||'#6366F1';};
-    const bal=calcBal(t);
-    const origTxs=minimizeTx(bal);
-    const payRecs=t.payRecords||[];
-    const fmtAmt=amt=>`${baseSym}${Math.round(amt).toLocaleString()}`;
-    const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
-    const dateStr=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;
-
-    const cards=origTxs.length===0
-      ?`<div style="text-align:center;padding:40px 20px;color:#6B7280;font-size:16px;">🎉 大家都平帳了！不需要轉帳</div>`
-      :origTxs.map(ot=>{
-        const matched=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to);
-        const paidBase=matched.reduce((s,r)=>s+toBase(r.amt,r.cur||baseCur,t.rates,baseCur),0);
-        const remainBase=ot.amt-paidBase;
-        const isSettled=remainBase<=0.5;
-        const statusColor=isSettled?'#22c55e':'#F97316';
-        const statusText=isSettled?'✓ 已全數結清':(matched.length>0?`剩餘 ${fmtAmt(remainBase)}`:'尚未付款');
-        const payRows=matched.map(r=>{
-          const rSym=(C[r.cur||baseCur]||C.TWD).sym;
-          const parts=[];
-          if(r.date) parts.push(`<span style="color:#6B7280;">${r.date}</span>`);
-          if(r.note) parts.push(`<span style="background:#F3F4F6;padding:1px 7px;border-radius:999px;font-size:11px;">${r.note}</span>`);
-          if(r.remark) parts.push(`<span style="color:#6B7280;font-size:11px;">${r.remark}</span>`);
-          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F3F4F6;">
-            <div style="display:flex;align-items:center;gap:6px;">${parts.join('')||'<span style="color:#9CA3AF;">付款記錄</span>'}</div>
-            <div style="color:#22c55e;font-weight:600;white-space:nowrap;">−${rSym}${Math.round(r.amt).toLocaleString()}</div>
-          </div>`;
-        }).join('');
-        return `<div style="border:1px solid #E5E7EB;border-radius:14px;margin-bottom:14px;overflow:hidden;">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#F9FAFB;">
-            <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;">
-              <span style="background:${avColor(ot.from)};color:#fff;border-radius:50%;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;">${mName(ot.from).charAt(0)}</span>
-              ${mName(ot.from)}
-              <span style="color:#9CA3AF;font-weight:400;">→</span>
-              <span style="background:${avColor(ot.to)};color:#fff;border-radius:50%;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;">${mName(ot.to).charAt(0)}</span>
-              ${mName(ot.to)}
-            </div>
-            <div style="color:${statusColor};font-weight:700;font-size:13px;white-space:nowrap;">${statusText}</div>
-          </div>
-          <div style="padding:10px 16px;">
-            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #E5E7EB;color:#6B7280;font-size:13px;">
-              <span>原始欠款</span><span style="font-weight:600;color:#111;">${fmtAmt(ot.amt)}</span>
-            </div>
-            ${payRows}
-            ${!isSettled&&matched.length>0?`<div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:700;font-size:14px;"><span>剩餘</span><span style="color:#F97316;">${fmtAmt(remainBase)}</span></div>`:''}
-          </div>
-        </div>`;
-      }).join('');
-
-    const html=`<!DOCTYPE html><html><head><meta charset="utf-8">
-      <title>${t.name} 轉帳結清明細</title>
-      <style>
-        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;padding:28px 24px;color:#111;max-width:600px;margin:0 auto;}
-        h1{font-size:20px;font-weight:800;color:#6366F1;margin:0 0 4px;}
-        .sub{font-size:13px;color:#6B7280;margin:0 0 24px;}
-        @media print{.no-print{display:none;}}
-      </style>
-    </head><body>
-      <h1>${t.name}　轉帳結清明細</h1>
-      <p class="sub">產生時間：${dateStr}</p>
-      ${cards}
-      <br>
-      <button class="no-print" onclick="window.print()" style="width:100%;padding:12px;background:#6366F1;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">列印／存成 PDF</button>
-    </body></html>`;
-
-    this.closeModal('m-trip-menu');
-    const win=window.open('','_blank');
-    win.document.write(html);
-    win.document.close();
   },
 
   openSettlementText(){
