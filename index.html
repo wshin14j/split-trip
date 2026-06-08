@@ -959,7 +959,7 @@ function avText(name){ return (name||'?').slice(0,2); }
 const App = {
   screen:'landing', tripId:null, expId:null,
   tab:'expenses', editId:null, splitMode:'equal', pending:null, _payerMode:'single',
-  _myMemberId:null, _showMyShare:false, _showBreakdown:false, _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false, _showRatePanel:false,
+  _myMemberId:null, _showMyShare:false, _showBreakdown:false, _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterPartsFor:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false, _showRatePanel:false,
 
   go(s){
     document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -1085,11 +1085,12 @@ const App = {
     const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);
     return ps.length>=2;
   },
-  setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterSelfMode=null;this.renderTab();},
-  setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);if(this._filterCat)this._filterPending=false;this.renderTab();},
-  setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this.renderTab();},
-  setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterPending=false;this._filterSelfMode=null;this.renderTab();},
-  setFilterSelfMode(m){this._filterSelfMode=this._filterSelfMode===m?null:m;this._filterPayMethod=null;this._filterPending=false;this.renderTab();},
+  setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterSelfMode=null;this._filterPartsFor=null;this.renderTab();},
+  setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);if(this._filterCat)this._filterPending=false;this._filterPartsFor=null;this.renderTab();},
+  setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this._filterPartsFor=null;this.renderTab();},
+  setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterPending=false;this._filterSelfMode=null;this._filterPartsFor=null;this.renderTab();},
+  setFilterSelfMode(m){this._filterSelfMode=this._filterSelfMode===m?null:m;this._filterPayMethod=null;this._filterPending=false;this._filterPartsFor=null;this.renderTab();},
+  filterProxyFor(memberId){this._summaryView='personal';this._filterSelfMode='proxy';this._filterPartsFor=memberId;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this.tab='expenses';this.renderTab();},
   toggleFilter(){this._filterExpanded=!this._filterExpanded;this.renderTab();},
   openBreakdownModal(){
     const t=loadTrip(this.tripId); if(!t) return;
@@ -1215,6 +1216,7 @@ const App = {
     if(fsm==='self') allExps=allExps.filter(e=>{const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);return e.splitMode==='self'||(ps.length===1&&ps[0]===(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0]));});
     else if(fsm==='proxy') allExps=allExps.filter(e=>{const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);return e.splitMode!=='self'&&e.splitMode!=='extproxy'&&ps.length===1&&ps[0]!==(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0]);});
     else if(fsm==='extproxy') allExps=allExps.filter(e=>e.splitMode==='extproxy');
+    if(this._filterPartsFor) allExps=allExps.filter(e=>(e.parts||[]).length===1&&(e.parts||[])[0]===this._filterPartsFor);
     const total=allExps.reduce((sum,e)=>{
       const amt=e.note==='金額待補'?0:(fm&&typeof e.paidBy==='object'&&e.paidBy!==null?(e.paidBy[fm]||0):e.amount);
       return sum+toBase(amt,e.currency,t.rates,t.baseCurrency);
@@ -1358,6 +1360,8 @@ const App = {
     if(fsm==='self') exps=exps.filter(([,e])=>{const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);return e.splitMode==='self'||(ps.length===1&&ps[0]===(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0]));});
     else if(fsm==='proxy') exps=exps.filter(([,e])=>{const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);return e.splitMode!=='self'&&e.splitMode!=='extproxy'&&ps.length===1&&ps[0]!==(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0]);});
     else if(fsm==='extproxy') exps=exps.filter(([,e])=>e.splitMode==='extproxy');
+    const _fpf=this._filterPartsFor;
+    if(_fpf) exps=exps.filter(([,e])=>(e.parts||[]).length===1&&(e.parts||[])[0]===_fpf);
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     let lastDate='';
@@ -1937,7 +1941,7 @@ const App = {
           ${psp>0.5?`<div style="${rStyle}"><span>群組花費－全員</span><span>${fmtS(psp)}</span></div>`:''}
           ${ppsp>0.5?`<div style="${rStyle}"><span>群組花費－部分</span><span>${fmtS(ppsp)}</span></div>`:''}
           ${fundMember&&fsp>0.5?`<div style="${rStyle}"><span>群組花費－公費</span><span>${fmtS(fsp)}</span></div>`:''}
-          ${proxySp>0.5?`<div style="${rStyle}"><span>個人花費－他人墊付</span><span>${fmtS(proxySp)}</span></div>`:''}
+          ${proxySp>0.5?`<div style="${rStyle};cursor:pointer;color:var(--accent);" onclick="event.stopPropagation();App.filterProxyFor('${m.id}')"><span>個人花費－他人墊付 <span style="font-size:10px;">▶</span></span><span>${fmtS(proxySp)}</span></div>`:''}
           ${inclPersonal&&extProxySp>0.5?`<div style="${rStyle}"><span>個人花費－代購（外部成員）</span><span>${fmtS(extProxySp)}</span></div>`:''}
           ${inclPersonal&&personalSp>0.5?`<div style="${rStyle}"><span>個人花費－自購</span><span>${fmtS(personalSp)}</span></div>`:''}
           ${fp>0.5?`${div}<div style="${rStyle}"><span>已付公費</span><span>${fmtS(fp)}</span></div>`:''}
