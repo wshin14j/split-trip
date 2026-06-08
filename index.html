@@ -3854,7 +3854,7 @@ const App = {
     </tr>`;
     const _proxyRowC=hasProxy?`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支付他人墊付</td>
-      ${displayMembers.map((m,i)=>{const net=(memberProxyPaid[m.id]||0)-(memberProxyReceived[m.id]||0);const col=net>0?'#22c55e':net<0?'#EF4444':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}color:${col};">${net>0?'+'+net.toLocaleString():net<0?`−${(-net).toLocaleString()}`:0}</td>`;}).join('')}
+      ${displayMembers.map((m,i)=>{const v=memberProxyPaid[m.id]||0;return `<td style="${_cttl2n}${mbl(i)}color:#6B7280;">${v>0?v.toLocaleString():'—'}</td>`;}).join('')}
     </tr>`:'';
     const selfPayRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支出自購</td>
