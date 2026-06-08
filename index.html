@@ -3953,12 +3953,16 @@ const App = {
         <span style="font-size:16px;font-weight:800;color:#6366F1;">${baseSym} ${analysisTotal.toLocaleString()}</span>
       </div>
       <div style="display:flex;gap:16px;align-items:flex-start;">
-        ${donutSVG}
+        <div style="flex-shrink:0;">
+          ${donutSVG}
+          <div style="margin-top:10px;">
+            <div style="font-size:12px;color:#6B7280;margin-bottom:6px;">成員已支出%</div>
+            <div style="height:10px;border-radius:999px;overflow:hidden;display:flex;margin-bottom:8px;">${barSegs}</div>
+            ${memberPayRows}
+          </div>
+        </div>
         <div style="flex:1;min-width:0;padding-top:4px;">
           ${catRows}
-          <div style="font-size:12px;color:#6B7280;margin-top:12px;margin-bottom:6px;">成員已支出%</div>
-          <div style="height:10px;border-radius:999px;overflow:hidden;display:flex;margin-bottom:8px;">${barSegs}</div>
-          ${memberPayRows}
         </div>
       </div>
     </div>`;
