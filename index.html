@@ -1091,6 +1091,15 @@ const App = {
   setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterPending=false;this._filterSelfMode=null;this._filterPartsFor=null;this.renderTab();},
   setFilterSelfMode(m){this._filterSelfMode=this._filterSelfMode===m?null:m;this._filterPayMethod=null;this._filterPending=false;this._filterPartsFor=null;this.renderTab();},
   filterProxyFor(memberId){this._summaryView='personal';this._filterSelfMode='proxy';this._filterPartsFor=memberId;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this.tab='expenses';this.renderTab();},
+  jumpToCategory(memberId,cat,fundId){
+    this._filterCat=null;this._filterPending=false;this._filterPayMethod=null;this._filterPartsFor=null;this._filterMember=null;this._filterSelfMode=null;
+    if(cat==='fullgroup'){this._summaryView='group';}
+    else if(cat==='partialgroup'){this._summaryView='group';this._filterPartsFor=memberId;}
+    else if(cat==='fundgroup'){this._summaryView='group';this._filterMember=fundId||null;}
+    else if(cat==='extproxy'){this._summaryView='personal';this._filterSelfMode='extproxy';this._filterMember=memberId;}
+    else if(cat==='self'){this._summaryView='personal';this._filterSelfMode='self';this._filterMember=memberId;}
+    this.tab='expenses';this.renderTab();
+  },
   toggleFilter(){this._filterExpanded=!this._filterExpanded;this.renderTab();},
   openBreakdownModal(){
     const t=loadTrip(this.tripId); if(!t) return;
@@ -1216,7 +1225,7 @@ const App = {
     if(fsm==='self') allExps=allExps.filter(e=>{const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);return e.splitMode==='self'||(ps.length===1&&ps[0]===(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0]));});
     else if(fsm==='proxy') allExps=allExps.filter(e=>{const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);return e.splitMode!=='self'&&e.splitMode!=='extproxy'&&ps.length===1&&ps[0]!==(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0]);});
     else if(fsm==='extproxy') allExps=allExps.filter(e=>e.splitMode==='extproxy');
-    if(this._filterPartsFor) allExps=allExps.filter(e=>(e.parts||[]).length===1&&(e.parts||[])[0]===this._filterPartsFor);
+    if(this._filterPartsFor){const _fpf=this._filterPartsFor;allExps=allExps.filter(e=>e.parts?(e.parts.includes(_fpf)):(t.members||[]).filter(m=>!m.isGroupFund).some(m=>m.id===_fpf));}
     const total=allExps.reduce((sum,e)=>{
       const amt=e.note==='金額待補'?0:(fm&&typeof e.paidBy==='object'&&e.paidBy!==null?(e.paidBy[fm]||0):e.amount);
       return sum+toBase(amt,e.currency,t.rates,t.baseCurrency);
@@ -1361,7 +1370,7 @@ const App = {
     else if(fsm==='proxy') exps=exps.filter(([,e])=>{const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);return e.splitMode!=='self'&&e.splitMode!=='extproxy'&&ps.length===1&&ps[0]!==(typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0]);});
     else if(fsm==='extproxy') exps=exps.filter(([,e])=>e.splitMode==='extproxy');
     const _fpf=this._filterPartsFor;
-    if(_fpf) exps=exps.filter(([,e])=>(e.parts||[]).length===1&&(e.parts||[])[0]===_fpf);
+    if(_fpf) exps=exps.filter(([,e])=>e.parts?(e.parts.includes(_fpf)):(t.members||[]).filter(m=>!m.isGroupFund).some(m=>m.id===_fpf));
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     let lastDate='';
@@ -1938,12 +1947,12 @@ const App = {
         const personalSp=selfSpent[m.id]||0;
         const expandedRows=isExp?`
           <div style="margin-top:4px;">
-          ${psp>0.5?`<div style="${rStyle}"><span>群組花費－全員</span><span>${fmtS(psp)}</span></div>`:''}
-          ${ppsp>0.5?`<div style="${rStyle}"><span>群組花費－部分</span><span>${fmtS(ppsp)}</span></div>`:''}
-          ${fundMember&&fsp>0.5?`<div style="${rStyle}"><span>群組花費－公費</span><span>${fmtS(fsp)}</span></div>`:''}
-          ${proxySp>0.5?`<div style="${rStyle};cursor:pointer;color:var(--accent);" onclick="event.stopPropagation();App.filterProxyFor('${m.id}')"><span>個人花費－他人墊付 <span style="font-size:10px;">▶</span></span><span>${fmtS(proxySp)}</span></div>`:''}
-          ${inclPersonal&&extProxySp>0.5?`<div style="${rStyle}"><span>個人花費－代購（外部成員）</span><span>${fmtS(extProxySp)}</span></div>`:''}
-          ${inclPersonal&&personalSp>0.5?`<div style="${rStyle}"><span>個人花費－自購</span><span>${fmtS(personalSp)}</span></div>`:''}
+          ${psp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','fullgroup')"><span>群組花費－全員</span><span>${fmtS(psp)}</span></div>`:''}
+          ${ppsp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','partialgroup')"><span>群組花費－部分</span><span>${fmtS(ppsp)}</span></div>`:''}
+          ${fundMember&&fsp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','fundgroup','${fundMember.id}')"><span>群組花費－公費</span><span>${fmtS(fsp)}</span></div>`:''}
+          ${proxySp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.filterProxyFor('${m.id}')"><span>個人花費－他人墊付</span><span>${fmtS(proxySp)}</span></div>`:''}
+          ${inclPersonal&&extProxySp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','extproxy')"><span>個人花費－代購（外部成員）</span><span>${fmtS(extProxySp)}</span></div>`:''}
+          ${inclPersonal&&personalSp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','self')"><span>個人花費－自購</span><span>${fmtS(personalSp)}</span></div>`:''}
           ${fp>0.5?`${div}<div style="${rStyle}"><span>已付公費</span><span>${fmtS(fp)}</span></div>`:''}
           ${div}${pd>0.5?`<div style="font-size:12px;color:var(--t2);text-align:left;">已付支出（不含自購）</div>`:''}${pdGroup>0.5?`<div style="font-size:11px;color:var(--t3);display:flex;justify-content:space-between;gap:12px;padding-left:8px;"><span>└ 全員分攤</span><span>${fmtS(pdGroup)}</span></div>`:''}${pdPartial>0.5?`<div style="font-size:11px;color:var(--t3);display:flex;justify-content:space-between;gap:12px;padding-left:8px;"><span>└ 部分分攤</span><span>${fmtS(pdPartial)}</span></div>`:''}${pdProxy>0.5?`<div style="font-size:11px;color:var(--t3);display:flex;justify-content:space-between;gap:12px;padding-left:8px;"><span>└ 代付</span><span>${fmtS(pdProxy)}</span></div>`:''}${tp>0.5?`<div style="${rStyle}"><span>轉帳支出</span><span>${fmtS(tp)}</span></div>`:''}
           ${hasPeerExps?`<div style="border-top:1px solid var(--border);margin:6px 0 2px;"></div><div style="font-size:11px;color:var(--t3);margin-bottom:3px;">同伴結算（不含自購）</div><div style="font-size:11px;color:var(--t2);text-align:right;">已付 ${fmtS(netPaid)} − 分攤 ${fmtS(netShare)}<br>= <span style="font-weight:600;color:${peerAdj>0.5?'#22c55e':peerAdj<-0.5?'#EF4444':'var(--t2)'}">${peerAdj>0.5?'應收 '+fmtS(peerAdj):peerAdj<-0.5?'應付 '+fmtS(-peerAdj):'已平帳'}</span></div>`:''}
