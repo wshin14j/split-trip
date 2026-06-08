@@ -1937,7 +1937,7 @@ const App = {
           ${psp>0.5?`<div style="${rStyle}"><span>群組花費－全員</span><span>${fmtS(psp)}</span></div>`:''}
           ${ppsp>0.5?`<div style="${rStyle}"><span>群組花費－部分</span><span>${fmtS(ppsp)}</span></div>`:''}
           ${fundMember&&fsp>0.5?`<div style="${rStyle}"><span>群組花費－公費</span><span>${fmtS(fsp)}</span></div>`:''}
-          ${proxySp>0.5?`<div style="${rStyle}"><span>個人花費－代付</span><span>${fmtS(proxySp)}</span></div>`:''}
+          ${proxySp>0.5?`<div style="${rStyle}"><span>個人花費－他人墊付</span><span>${fmtS(proxySp)}</span></div>`:''}
           ${inclPersonal&&extProxySp>0.5?`<div style="${rStyle}"><span>個人花費－代購（外部成員）</span><span>${fmtS(extProxySp)}</span></div>`:''}
           ${inclPersonal&&personalSp>0.5?`<div style="${rStyle}"><span>個人花費－自購</span><span>${fmtS(personalSp)}</span></div>`:''}
           ${fp>0.5?`${div}<div style="${rStyle}"><span>已付公費</span><span>${fmtS(fp)}</span></div>`:''}
@@ -1972,7 +1972,7 @@ const App = {
         </div>
         ${fundMember?`<div style="font-size:11px;color:var(--t2);margin-top:6px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 合計 及 應付／應收 均不含公款存入金額</div>`:''}
         <div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 群組花費：2 人以上分攤的項目，已納入應付／應收計算</div>
-        <div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 個人花費－代付：由他人代墊，已納入應付／應收計算</div>
+        <div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 個人花費－他人墊付：由他人代墊，需還款，已納入應付／應收計算</div>
         ${inclPersonal?`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 個人花費－代購（外部成員）：採購給非旅伴，僅記錄不影響結算</div>`:''}
         ${inclPersonal?`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 個人花費－自購：個人自費，不影響他人結算</div>`:''}`
 
