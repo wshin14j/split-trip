@@ -3799,26 +3799,29 @@ const App = {
       }).join('')}
     </tr>`;
     // Personal section
+    const _isProxy=e=>{
+      if(e.splitMode==='self'||e.splitMode==='extproxy') return false;
+      const ps=e.parts||regularMembers.map(m=>m.id);
+      if(ps.length!==1) return false;
+      const pid=typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0];
+      return ps[0]!==pid;
+    };
+    const proxyOnlyExps=personalExps.filter(e=>_isProxy(e));
+    const selfOnlyExps=personalExps.filter(e=>!_isProxy(e));
+    const pttl1=`padding:6px 9px;font-size:11px;background:#DCFCE7;border:1px solid #86EFAC;border-top:2px solid #22c55e;white-space:nowrap;vertical-align:middle;`;
+    const pttl1n=pttl1+'text-align:right;';
+    const ptblank=`<td style="${pttl1}"></td>`;
+    const _buildPersonalTtl=(list,label)=>{
+      const curTtl=allCurs.map(c=>{const s=list.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);return s>0?`<td style="${pttl1n}font-weight:700;">${Math.round(s).toLocaleString()}</td>`:ptblank;}).join('');
+      const tot=Math.round(list.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0));
+      return `<tr><td style="${pttl1}font-weight:700;">TTL</td><td style="${pttl1}font-weight:700;">${label}</td><td style="${pttl1}"></td><td style="${pttl1}"></td><td style="${pttl1}"></td>${curTtl}<td style="${pttl1}"></td><td style="${pttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;">${tot.toLocaleString()}</td><td style="${pttl1}"></td>${displayMembers.map((m,i)=>`<td style="${pttl1n}${mbl(i)}font-weight:700;">${(memberSelfPay[m.id]||0).toLocaleString()}</td>`).join('')}</tr>`;
+    };
     let personalSection='';
-    if(personalExps.length){
-      const personalDataRows=buildRows(personalExps,false);
-      const pttl1=`padding:6px 9px;font-size:11px;background:#DCFCE7;border:1px solid #86EFAC;border-top:2px solid #22c55e;white-space:nowrap;vertical-align:middle;`;
-      const pttl1n=pttl1+'text-align:right;';
-      const ptblank=`<td style="${pttl1}"></td>`;
-      const personalCurTotals=allCurs.map(c=>{
-        const s=personalExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);
-        return s>0?`<td style="${pttl1n}font-weight:700;">${Math.round(s).toLocaleString()}</td>`:ptblank;
-      }).join('');
-      const personalGrandTotal=personalExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0);
-      const personalTtlRow=`<tr>
-        <td style="${pttl1}font-weight:700;">TTL</td><td style="${pttl1}font-weight:700;">非全員／個人自費</td><td style="${pttl1}"></td><td style="${pttl1}"></td><td style="${pttl1}"></td>
-        ${personalCurTotals}
-        <td style="${pttl1}"></td>
-        <td style="${pttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;">${Math.round(personalGrandTotal).toLocaleString()}</td>
-        <td style="${pttl1}font-weight:700;text-align:center;">自費</td>
-        ${displayMembers.map((m,i)=>`<td style="${pttl1n}${mbl(i)}font-weight:700;">${(memberSelfPay[m.id]||0).toLocaleString()}</td>`).join('')}
-      </tr>`;
-      personalSection=sectionRow('非全員／個人支出明細','#F0FDF4','#166534','#86EFAC')+personalDataRows+personalTtlRow;
+    if(proxyOnlyExps.length){
+      personalSection+=sectionRow('個人支出－代付（影響結算）','#F0FDF4','#166534','#86EFAC')+buildRows(proxyOnlyExps,false)+_buildPersonalTtl(proxyOnlyExps,'代付小計');
+    }
+    if(selfOnlyExps.length){
+      personalSection+=sectionRow('個人支出－自費（純紀錄）','#F0FDF4','#166534','#86EFAC')+buildRows(selfOnlyExps,false)+_buildPersonalTtl(selfOnlyExps,'自費小計');
     }
     // Combined total
     const cttl=`padding:6px 9px;font-size:11px;background:#FEF9C3;border:1px solid #FDE68A;border-top:2px solid #F59E0B;white-space:nowrap;vertical-align:middle;`;
