@@ -3912,7 +3912,7 @@ const App = {
         }
         const curCells=allCurs.map(c=>c===expCur?(isPending?'待補':e.amount):'');
         const memberCells=members.map(m=>{
-          if(!ps.includes(m.id)) return '';
+          if(m.isGroupFund||!ps.includes(m.id)) return '';
           if(isPending) return '待補';
           let sh;
           if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts) sh=e.customAmounts[m.id]||0;
