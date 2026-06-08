@@ -3814,7 +3814,16 @@ const App = {
     const _buildPersonalTtl=(list,label)=>{
       const curTtl=allCurs.map(c=>{const s=list.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);return s>0?`<td style="${pttl1n}font-weight:700;">${Math.round(s).toLocaleString()}</td>`:ptblank;}).join('');
       const tot=Math.round(list.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0));
-      return `<tr><td style="${pttl1}font-weight:700;">TTL</td><td style="${pttl1}font-weight:700;">${label}</td><td style="${pttl1}"></td><td style="${pttl1}"></td><td style="${pttl1}"></td>${curTtl}<td style="${pttl1}"></td><td style="${pttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;">${tot.toLocaleString()}</td><td style="${pttl1}"></td>${displayMembers.map((m,i)=>`<td style="${pttl1n}${mbl(i)}font-weight:700;">${(memberSelfPay[m.id]||0).toLocaleString()}</td>`).join('')}</tr>`;
+      const mShare={};members.forEach(m=>{mShare[m.id]=0;});
+      list.filter(e=>e.note!=='金額待補').forEach(e=>{
+        const ps=e.parts||regularMembers.map(m=>m.id);
+        const expCur=e.currency||baseCur;
+        ps.forEach(pid=>{
+          let sh=(e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts?e.customAmounts[pid]||0:e.amount/ps.length;
+          if(mShare[pid]!==undefined) mShare[pid]+=Math.round(toBase(sh,expCur,t.rates,baseCur));
+        });
+      });
+      return `<tr><td style="${pttl1}font-weight:700;">TTL</td><td style="${pttl1}font-weight:700;">${label}</td><td style="${pttl1}"></td><td style="${pttl1}"></td><td style="${pttl1}"></td>${curTtl}<td style="${pttl1}"></td><td style="${pttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;">${tot.toLocaleString()}</td><td style="${pttl1}"></td>${displayMembers.map((m,i)=>`<td style="${pttl1n}${mbl(i)}font-weight:700;">${(mShare[m.id]||0)>0?(mShare[m.id]||0).toLocaleString():'—'}</td>`).join('')}</tr>`;
     };
     let personalSection='';
     if(personalExps.length){
