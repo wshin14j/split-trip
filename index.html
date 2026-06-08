@@ -2604,8 +2604,8 @@ const App = {
     });
     document.getElementById('in-exp-parts').innerHTML=
       t.members.filter(m=>!m.isGroupFund).map(m=>`<button class="chip chip-lg on" id="cp-${m.id}" onclick="App.togglePart('${m.id}')">${m.name}</button>`).join('')+
-      `<button class="chip chip-lg" id="cp-extproxy" onclick="App.toggleExtProxy()">代購（外部成員）</button>`+
-      `<button class="chip chip-lg" id="cp-none" onclick="App.toggleSelfPurchase()">自購</button>`;
+      `<button class="chip chip-lg" id="cp-none" onclick="App.toggleSelfPurchase()">自購</button>`+
+      `<button class="chip chip-lg" id="cp-extproxy" onclick="App.toggleExtProxy()">代購（外部成員）</button>`;
     document.getElementById('sp-eq').className='btn btn-toggle on flex-1 btn-sm';
     document.getElementById('sp-pr').className='btn btn-toggle flex-1 btn-sm';
     document.getElementById('sp-cu').className='btn btn-toggle flex-1 btn-sm';
