@@ -1108,7 +1108,7 @@ const App = {
     this._jumpOriginMember=null;this._filterCat=null;this._filterPending=false;this._filterPayMethod=null;this._filterPartsFor=null;this._filterMember=null;this._filterSelfMode=null;
     if(mid) this._expandedMemberSummary[mid]=true;
     this.renderTab();
-    if(mid) setTimeout(()=>{const el=document.getElementById('msrow-'+mid);if(el) el.scrollIntoView({behavior:'smooth',block:'center'});},80);
+    if(mid) setTimeout(()=>{const el=document.getElementById('msrow-'+mid);if(el){const rect=el.getBoundingClientRect();const top=window.pageYOffset+rect.top-80;window.scrollTo({top,behavior:'smooth'});}},200);
   },
   toggleFilter(){this._filterExpanded=!this._filterExpanded;this.renderTab();},
   openBreakdownModal(){
