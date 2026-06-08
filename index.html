@@ -3865,9 +3865,11 @@ const App = {
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支付他人墊付</td>
       ${displayMembers.map((m,i)=>{const v=memberProxyPaid[m.id]||0;return `<td style="${_cttl2n}${mbl(i)}color:#6B7280;">${v>0?v.toLocaleString():'—'}</td>`;}).join('')}
     </tr>`:'';
+    const _selfOnlyShare={};members.forEach(m=>{_selfOnlyShare[m.id]=0;});
+    selfOnlyExps.filter(e=>e.note!=='金額待補').forEach(e=>{const ps=e.parts||regularMembers.map(m=>m.id);const expCur=e.currency||baseCur;ps.forEach(pid=>{let sh=(e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts?e.customAmounts[pid]||0:e.amount/ps.length;if(_selfOnlyShare[pid]!==undefined)_selfOnlyShare[pid]+=Math.round(toBase(sh,expCur,t.rates,baseCur));});});
     const selfPayRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支出自購</td>
-      ${displayMembers.map((m,i)=>`<td style="${_cttl2n}${mbl(i)}color:#6B7280;">${(memberSelfPay[m.id]||0)>0?(memberSelfPay[m.id]||0).toLocaleString():'—'}</td>`).join('')}
+      ${displayMembers.map((m,i)=>`<td style="${_cttl2n}${mbl(i)}color:#6B7280;">${(_selfOnlyShare[m.id]||0)>0?(_selfOnlyShare[m.id]||0).toLocaleString():'—'}</td>`).join('')}
     </tr>`;
     const owedRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;font-weight:700;color:#EF4444;">待付款</td>
