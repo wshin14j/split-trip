@@ -3820,7 +3820,7 @@ const App = {
     if(personalExps.length){
       personalSection+=sectionRow('個人支出明細','#F0FDF4','#166534','#86EFAC');
       if(proxyOnlyExps.length){
-        personalSection+=sectionRow('個人支出－代付（影響結算）','#F7FEF9','#166534','#86EFAC')+buildRows(proxyOnlyExps,false)+_buildPersonalTtl(proxyOnlyExps,'代付小計');
+        personalSection+=sectionRow('個人支出－他人墊付（影響結算）','#F7FEF9','#166534','#86EFAC')+buildRows(proxyOnlyExps,false)+_buildPersonalTtl(proxyOnlyExps,'他人墊付小計');
       }
       if(selfOnlyExps.length){
         personalSection+=sectionRow('個人支出－自費（純紀錄）','#F7FEF9','#166534','#86EFAC')+buildRows(selfOnlyExps,false)+_buildPersonalTtl(selfOnlyExps,'自費小計');
@@ -3849,13 +3849,17 @@ const App = {
       }).join('')}
     </tr>`;
     const paidOtherRow=`<tr>${_cblankArr}
-      <td style="${_cttl2}text-align:center;color:#6B7280;">已支付其他</td>
+      <td style="${_cttl2}text-align:center;color:#6B7280;">已支付群組</td>
       ${displayMembers.map((m,i)=>`<td style="${_cttl2n}${mbl(i)}">${(memberGroupPaid[m.id]||0).toLocaleString()}</td>`).join('')}
     </tr>`;
     const _proxyRowC=hasProxy?`<tr>${_cblankArr}
-      <td style="${_cttl2}text-align:center;color:#6B7280;">代付淨額</td>
+      <td style="${_cttl2}text-align:center;color:#6B7280;">已支付他人墊付</td>
       ${displayMembers.map((m,i)=>{const net=(memberProxyPaid[m.id]||0)-(memberProxyReceived[m.id]||0);const col=net>0?'#22c55e':net<0?'#EF4444':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}color:${col};">${net>0?'+'+net.toLocaleString():net<0?`−${(-net).toLocaleString()}`:0}</td>`;}).join('')}
     </tr>`:'';
+    const selfPayRow=`<tr>${_cblankArr}
+      <td style="${_cttl2}text-align:center;color:#6B7280;">已支出自購</td>
+      ${displayMembers.map((m,i)=>`<td style="${_cttl2n}${mbl(i)}color:#6B7280;">${(memberSelfPay[m.id]||0)>0?(memberSelfPay[m.id]||0).toLocaleString():'—'}</td>`).join('')}
+    </tr>`;
     const owedRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;font-weight:700;color:#EF4444;">待付款</td>
       ${displayMembers.map((m,i)=>{const proxyNet=(memberProxyPaid[m.id]||0)-(memberProxyReceived[m.id]||0);const owed=(memberGroupShare[m.id]||0)-(memberGroupPaid[m.id]||0)-(memberFundDeposit[m.id]||0)-proxyNet;const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
@@ -3867,7 +3871,7 @@ const App = {
       <td style="${cttln}font-weight:700;border-left:2.5px solid #9CA3AF;">${Math.round(combinedGrandTotal).toLocaleString()}</td>
       <td style="${cttl}font-weight:700;text-align:center;">個人</td>
       ${members.map((m,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${((memberGroupShare[m.id]||0)+(memberSelfPay[m.id]||0)).toLocaleString()}</td>`).join('')}
-    </tr>${fundDepRow}${paidOtherRow}${_proxyRowC}${owedRow}`;
+    </tr>${fundDepRow}${paidOtherRow}${_proxyRowC}${selfPayRow}${owedRow}`;
     // Settlement — 對齊主 app 計算邏輯（expenses + payRecords + fundDeposits）
     const bal=calcBal(t);
     const _payRecs=t.payRecords||[];
@@ -3923,13 +3927,15 @@ const App = {
         <span style="font-size:12px;color:#6B7280;">總支出</span>
         <span style="font-size:16px;font-weight:800;color:#6366F1;">${baseSym} ${analysisTotal.toLocaleString()}</span>
       </div>
-      <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:14px;">
+      <div style="display:flex;gap:16px;align-items:flex-start;">
         ${donutSVG}
-        <div style="flex:1;min-width:0;padding-top:4px;">${catRows}</div>
+        <div style="flex:1;min-width:0;padding-top:4px;">
+          ${catRows}
+          <div style="font-size:12px;color:#6B7280;margin-top:12px;margin-bottom:6px;">成員已支出%</div>
+          <div style="height:10px;border-radius:999px;overflow:hidden;display:flex;margin-bottom:8px;">${barSegs}</div>
+          ${memberPayRows}
+        </div>
       </div>
-      <div style="font-size:12px;color:#6B7280;margin-bottom:6px;">成員已支出%</div>
-      <div style="height:10px;border-radius:999px;overflow:hidden;display:flex;margin-bottom:8px;">${barSegs}</div>
-      ${memberPayRows}
     </div>`;
     return `
       <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
