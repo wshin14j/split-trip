@@ -3703,11 +3703,7 @@ const App = {
         if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts) sh=e.customAmounts[m.id]||0;
         else sh=e.amount/ps.length;
         const shBase=Math.round(toBase(sh,expCur,t.rates,baseCur));
-        if(isGroup){
-          memberGroupShare[m.id]+=shBase;
-          const isFP=fundMember&&typeof e.paidBy==='string'&&e.paidBy===fundMember.id;
-          if(!isFP) memberGroupShareNF[m.id]+=shBase;
-        } else memberSelfPay[m.id]+=shBase;
+        if(isGroup) memberGroupShare[m.id]+=shBase; else memberSelfPay[m.id]+=shBase;
         return `<td style="${numS}${_mbl}">${shBase.toLocaleString()}</td>`;
       }).join('');
       return `<tr>
@@ -3733,6 +3729,19 @@ const App = {
     const groupExps=exps.filter(e=>isGroupExp(e));
     const personalExps=exps.filter(e=>!isGroupExp(e));
     const groupRows=buildRows(groupExps,true);
+    // 用與 peerBal 相同的人頭邏輯計算 memberGroupShareNF（非公費群組費用中每人的份額）
+    regularMembers.forEach(m=>{memberGroupShareNF[m.id]=0;});
+    groupExps.filter(e=>e.note!=='金額待補').forEach(e=>{
+      const isFP=fundMember&&typeof e.paidBy==='string'&&e.paidBy===fundMember.id;
+      if(isFP) return;
+      const tot=toBase(e.amount,e.currency||baseCur,t.rates,baseCur);
+      const nfPs=(e.parts||regularMembers.map(m=>m.id)).filter(id=>memberGroupShareNF[id]!==undefined);
+      if(!nfPs.length) return;
+      if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts){
+        nfPs.forEach(p=>{memberGroupShareNF[p]+=toBase(e.customAmounts[p]||0,e.currency||baseCur,t.rates,baseCur);});
+      } else {const sh=tot/nfPs.length;nfPs.forEach(p=>{memberGroupShareNF[p]+=sh;});}
+    });
+    regularMembers.forEach(m=>{memberGroupShareNF[m.id]=Math.round(memberGroupShareNF[m.id]);});
     // Fund surplus row
     const _fundId=fundMember?.id;
     const fundSpentBase=_fundId?Math.round(groupExps.filter(e=>e.note!=='金額待補').filter(e=>typeof e.paidBy==='string'?e.paidBy===_fundId:!!(e.paidBy&&e.paidBy[_fundId]>0)).reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0)):0;
