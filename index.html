@@ -4032,7 +4032,8 @@ const App = {
     const baseSym=(C[baseCur]||C.TWD).sym;
     const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
     const mName=id=>{const m=members.find(m=>m.id===id);return m?.name||id;};
-    const fundLocalCurCsv=t.fundLocalCurrency||baseCur;
+    const _fDepCursCsv=(t.fundDeposits||[]).map(d=>d.cur||baseCur).filter(c=>c!==baseCur);
+    const fundLocalCurCsv=_fDepCursCsv.length>0?_fDepCursCsv.sort((a,b)=>_fDepCursCsv.filter(c=>c===b).length-_fDepCursCsv.filter(c=>c===a).length)[0]:baseCur;
     const otherCurs=[...new Set(exps.map(e=>e.currency||baseCur))].filter(c=>c&&c!==baseCur);
     const allCurs=[baseCur,...otherCurs];
     const regularMembersCsv=members.filter(m=>!m.isGroupFund);
@@ -4183,17 +4184,55 @@ const App = {
     // 群組支出 TTL（僅合計行，不含 detail rows）
     const groupCurTotals=allCurs.map(c=>{
       const s=groupExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);
-      return s>0?Math.round(s):'';
+      const extra=c===fundLocalCurCsv&&fundSurplusCsv>0.5?fundSurplusCsv/fundLocalRateCsv:0;
+      return (s+extra)>0.5?Math.round(s+extra):'';
     });
     const groupGrandTotal=groupExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0)+fundSurplusCsv;
     const memberGroupOnlyShareCsv={};members.forEach(m=>{memberGroupOnlyShareCsv[m.id]=memberShare[m.id]||0;});
+    // 公費餘額 row（與 PDF 一致）
+    if(fundSurplusCsv>0.5){
+      const _sLocalAmt=fundSurplusCsv/fundLocalRateCsv;
+      const surplusCurCsv=allCurs.map(c=>c===fundLocalCurCsv?parseFloat(_sLocalAmt.toFixed(3)):'');
+      const surplusRowCsv=['','','公費餘額',...surplusCurCsv,'公款帳','',regularMembersCsv.length,Math.round(fundSurplusCsv),Math.round(surplusPerMemberCsv),...regularMembersCsv.map(()=>Math.round(surplusPerMemberCsv)),...(hasFund?['','']:[])];
+      csv+=surplusRowCsv.map(esc).join(',')+'\n';
+    }
     const groupTtlRow=['TTL','群組支出','',...groupCurTotals,'',...empties(2),Math.round(groupGrandTotal),'每人',...regularMembersCsv.map(m=>memberGroupOnlyShareCsv[m.id]+surplusPerMemberCsv),...(hasFund?['','']:[])];
     csv+=groupTtlRow.map(esc).join(',')+'\n';
 
-    // Personal expenses（先輸出，再建 combined TTL，因為 memberShare 會更新）
+    // Personal expenses — 分為「他人墊付」與「自購」兩區（與 PDF 一致）
+    const buildPersonalTtlCsv=(list,label)=>{
+      const curTtls=allCurs.map(c=>{const s=list.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);return s>0?Math.round(s):'';});
+      const tot=Math.round(list.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0));
+      const loc={};regularMembersCsv.forEach(m=>{loc[m.id]=0;});
+      list.filter(e=>e.note!=='金額待補').forEach(e=>{
+        const ps=e.parts||regularMembersCsv.map(m=>m.id);const expCur=e.currency||baseCur;
+        ps.forEach(pid=>{if(loc[pid]!==undefined){let sh=(e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts?e.customAmounts[pid]||0:e.amount/ps.length;loc[pid]+=Math.round(toBase(sh,expCur,t.rates,baseCur));}});
+      });
+      csv+=['TTL',label,'',...curTtls,'',...empties(2),tot,'',...regularMembersCsv.map(m=>(loc[m.id]||0)>0?(loc[m.id]||0):'—'),...(hasFund?['','']:[])].map(esc).join(',')+'\n';
+    };
     if(personalExps.length){
       sectionRow('個人支出明細');
-      buildRows(personalExps); // 更新 memberShare 為群組＋個人合計
+      const proxyExpsCsv=personalExps.filter(e=>_isProxyCsv(e));
+      const selfExpsCsv=personalExps.filter(e=>!_isProxyCsv(e));
+      if(proxyExpsCsv.length){
+        sectionRow('個人支出－他人墊付');
+        buildRows(proxyExpsCsv);
+        buildPersonalTtlCsv(proxyExpsCsv,'他人墊付小計');
+      }
+      if(selfExpsCsv.length){
+        sectionRow('個人支出－自購');
+        buildRows(selfExpsCsv);
+        buildPersonalTtlCsv(selfExpsCsv,'自購小計');
+      }
+      // 代付淨額（與 PDF proxyRow 一致）
+      if(proxyExpsCsv.length>0){
+        const memberProxyReceivedCsv={};regularMembersCsv.forEach(m=>{memberProxyReceivedCsv[m.id]=0;});
+        proxyExpsCsv.filter(e=>e.note!=='金額待補').forEach(e=>{
+          const ps=e.parts||[];const expCur=e.currency||baseCur;const tot=Math.round(toBase(e.amount,expCur,t.rates,baseCur));
+          ps.forEach(pid=>{if(memberProxyReceivedCsv[pid]!==undefined)memberProxyReceivedCsv[pid]+=tot;});
+        });
+        csv+=[...empties(fixedLeft+allCurs.length+fixedMid-1),'代付淨額',...regularMembersCsv.map(m=>{const net=(memberProxyPaidCsv[m.id]||0)-(memberProxyReceivedCsv[m.id]||0);return net!==0?net:0;}),...(hasFund?['','']:[])].map(esc).join(',')+'\n';
+      }
     }
 
     // 整趟旅程完整花費（群組＋個人）— 與 PDF 一致
