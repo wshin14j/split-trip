@@ -3900,9 +3900,7 @@ const App = {
     const _cttl2=`padding:6px 9px;font-size:11px;background:#FEF9C3;border:1px solid #FDE68A;white-space:nowrap;vertical-align:middle;`;
     const _cttl2n=_cttl2+'text-align:right;';
     const _cblank2=`<td style="${_cttl2}"></td>`;
-    const _payBlank2=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;"></td>`;
-    const _totBlank2=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;"></td>`;
-    const _cblankArr=[...Array(fixedLeft+allCurs.length).fill(_cblank2),_payBlank2,...Array(fixedMid-3).fill(_cblank2),_totBlank2].join('');
+    const _cblankArr=[...Array(fixedLeft+allCurs.length+fixedMid-1).fill(_cblank2)].join('');
     const fundDepRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已存入公費</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{
@@ -3938,13 +3936,9 @@ const App = {
     const _txLine=_sortedTxs.length===0?'🎉 大家都平帳了！':_sortedTxs.map(tx=>`${mName(tx.from)} → ${mName(tx.to)}：${baseSym}${Math.round(tx.amt).toLocaleString()}`).join('<br>');
     // 待付款行：粗上線、底線清除（讓金額行與轉帳行視覺合一）
     const _obH=`<td style="${_cttl2}border-top:2px solid #F59E0B;border-bottom:none;"></td>`;
-    const _opbH=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;border-top:2px solid #F59E0B;border-bottom:none;"></td>`;
-    const _otbH=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;border-top:2px solid #F59E0B;border-bottom:none;"></td>`;
-    const _cbarrH=[...Array(fixedLeft+allCurs.length).fill(_obH),_opbH,...Array(fixedMid-3).fill(_obH),_otbH].join('');
+    const _cbarrH=[...Array(fixedLeft+allCurs.length+fixedMid-1).fill(_obH)].join('');
     const _obN=`<td style="${_cttl2}border-top:none;"></td>`;
-    const _opbN=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;border-top:none;"></td>`;
-    const _otbN=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;border-top:none;"></td>`;
-    const _cbarrN=[...Array(fixedLeft+allCurs.length).fill(_obN),_opbN,...Array(fixedMid-3).fill(_obN),_otbN].join('');
+    const _cbarrN=[...Array(fixedLeft+allCurs.length+fixedMid-1).fill(_obN)].join('');
     const owedRow=`<tr>${_cbarrH}
       <td style="${_cttl2}border-top:2px solid #F59E0B;border-bottom:none;text-align:center;font-weight:700;color:#92400E;" rowspan="2">待付款</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const owed=Math.round(-(peerBalDetail[m.id]||0));const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}border-top:2px solid #F59E0B;border-bottom:none;font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
