@@ -3780,7 +3780,7 @@ const App = {
         <td style="${numSL}">${fundSurplus.toLocaleString()}</td>
         <td style="${numS}">${surplusPerMember.toLocaleString()}</td>
         ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${numS}${mbl(i)}">${surplusPerMember.toLocaleString()}</td>`).join('')}
-        ${hasFundPdf?`<td style="${tdS}${mbl(fundDisplayIdx)}font-weight:600;color:#22c55e;">剩餘退款 ${parseFloat((fundSurplus/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}</td><td style="${numS}color:#22c55e;">${fundSurplus.toLocaleString()}</td>`:''}
+        ${hasFundPdf?`<td style="${numS}${mbl(fundDisplayIdx)}font-weight:600;color:#22c55e;">剩餘退款 ${parseFloat((fundSurplus/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}</td><td style="${numS}color:#22c55e;">${fundSurplus.toLocaleString()}</td>`:''}
       </tr>`;
     }
     // Group TTL
