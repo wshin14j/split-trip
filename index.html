@@ -3838,7 +3838,7 @@ const App = {
       ${_regMPdf.map((m,i)=>`<td style="${ttl1n}${mbl(i)}font-weight:700;"${_grpRs}>${((memberGroupShare[m.id]||0)+surplusPerMember).toLocaleString()}</td>`).join('')}
       ${hasFundPdf?`<td style="${ttl1n}${mbl(fundDisplayIdx)}font-weight:700;">已花 ${fmtFundLocal(memberGroupShare[fundMember.id]||0)}</td><td style="${ttl1n}font-weight:700;color:#6B7280;">${Math.round(memberGroupShare[fundMember.id]||0).toLocaleString()}</td>`:''}
     </tr>${hasFundPdf?`<tr>
-      <td style="${ttl1n}${mbl(fundDisplayIdx)}color:#6B7280;font-weight:600;">初始 ${fmtLocal(totalFundDepositLocal)} ${fundLocalCur}</td>
+      <td style="${ttl1n}${mbl(fundDisplayIdx)}color:#6B7280;font-weight:600;">公費存入 ${fmtLocal(totalFundDepositLocal)} ${fundLocalCur}</td>
       <td style="${ttl1n}color:#6B7280;">${Math.round(totalFundDeposit).toLocaleString()}</td>
     </tr>${_regMPdf.map(m=>{const depLocal=memberFundDepositLocal[m.id]||0;const depBase=Math.round(memberFundDeposit[m.id]||0);const omrTxt=fundLocalCur!==baseCur&&depLocal>0?`└ ${m.name}：${parseFloat(depLocal.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}`:`└ ${m.name}：${depBase.toLocaleString()} ${baseCur}`;return `<tr><td style="${ttl1n}${mbl(fundDisplayIdx)}color:#6B7280;font-size:10px;border-top:1px solid #C7D2FE;">${omrTxt}</td><td style="${ttl1n}color:#6B7280;font-size:10px;border-top:1px solid #C7D2FE;">${depBase>0?depBase.toLocaleString():'—'}</td></tr>`;}).join('')}`:''}`;
     // Personal section
