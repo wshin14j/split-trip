@@ -3710,7 +3710,7 @@ const App = {
         <td style="${tdS}">${e.date||'—'}</td>
         <td style="${tdS}">${e.category||'其他'}</td>
         <td style="${tdS}font-weight:600;">${e.name}</td>
-        <td style="${tdS}text-align:center;">${(e.splitMode==='proportion'&&e.proportions?`比例 ${displayMembers.filter(m=>!m.isGroupFund).map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:e.splitMode==='custom'?`<span style="background:#FEF3C7;color:#D97706;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;">自訂</span>`:splitLabel(e.splitMode))}</td>
+        <td style="${tdS}text-align:center;">${(e.splitMode==='proportion'&&e.proportions?`比例 ${displayMembers.filter(m=>!m.isGroupFund).map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:e.splitMode==='custom'?`<span style="color:#F97316;font-weight:700;">自訂</span>`:splitLabel(e.splitMode))}</td>
         <td style="${tdS}text-align:center;">${ps.length}</td>
         ${curCells}
         <td style="${tdS}text-align:center;">${payer}</td>
