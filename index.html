@@ -3901,7 +3901,8 @@ const App = {
     const _cttl2n=_cttl2+'text-align:right;';
     const _cblank2=`<td style="${_cttl2}"></td>`;
     const _payBlank2=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;"></td>`;
-    const _cblankArr=[...Array(fixedLeft+allCurs.length).fill(_cblank2),_payBlank2,...Array(fixedMid-2).fill(_cblank2)].join('');
+    const _totBlank2=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;"></td>`;
+    const _cblankArr=[...Array(fixedLeft+allCurs.length).fill(_cblank2),_payBlank2,...Array(fixedMid-3).fill(_cblank2),_totBlank2].join('');
     const fundDepRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已存入公費</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{
@@ -3919,27 +3920,36 @@ const App = {
     </tr>`;
     const _proxyRowC=hasProxy?`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支付他人墊付</td>
-      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const v=memberProxyPaid[m.id]||0;return `<td style="${_cttl2n}${mbl(i)}color:#6B7280;">${v>0?v.toLocaleString():'—'}</td>`;}).join('')}
+      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const v=memberProxyPaid[m.id]||0;return `<td style="${_cttl2n}${mbl(i)}${v>0?'':'color:#6B7280;'}">${v>0?v.toLocaleString():'—'}</td>`;}).join('')}
       ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}color:#6B7280;">—</td><td style="${_cttl2n}color:#6B7280;">—</td>`:''}
     </tr>`:'';
     const _selfOnlyShare={};members.forEach(m=>{_selfOnlyShare[m.id]=0;});
     selfOnlyExps.filter(e=>e.note!=='金額待補').forEach(e=>{const ps=e.parts||regularMembers.map(m=>m.id);const expCur=e.currency||baseCur;ps.forEach(pid=>{let sh=(e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts?e.customAmounts[pid]||0:e.amount/ps.length;if(_selfOnlyShare[pid]!==undefined)_selfOnlyShare[pid]+=Math.round(toBase(sh,expCur,t.rates,baseCur));});});
     const selfPayRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支出自購</td>
-      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${_cttl2n}${mbl(i)}color:#6B7280;">${(_selfOnlyShare[m.id]||0)>0?(_selfOnlyShare[m.id]||0).toLocaleString():'—'}</td>`).join('')}
+      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const _sv=_selfOnlyShare[m.id]||0;return `<td style="${_cttl2n}${mbl(i)}${_sv>0?'':'color:#6B7280;'}">${_sv>0?_sv.toLocaleString():'—'}</td>`;}).join('')}
       ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}color:#6B7280;">—</td><td style="${_cttl2n}color:#6B7280;">—</td>`:''}
     </tr>`;
     const _peerBDRounded={};regularMembers.forEach(m=>{_peerBDRounded[m.id]=Math.round(peerBalDetail[m.id]||0);});
     const _settleTxs=minimizeTx(_peerBDRounded);
     const _nMem=_regMPdf.length;
-    const _txLine=_settleTxs.length===0?'🎉 大家都平帳了！':_settleTxs.map(tx=>`${mName(tx.from)} → ${mName(tx.to)}：${baseSym}${Math.round(tx.amt).toLocaleString()}`).join('　｜　');
-    const owedRow=`<tr>${_cblankArr}
-      <td style="${_cttl2}text-align:center;font-weight:700;color:#EF4444;" rowspan="2">待付款</td>
-      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const owed=Math.round(-(peerBalDetail[m.id]||0));const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
-      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}color:#6B7280;">—</td><td style="${_cttl2n}color:#6B7280;">—</td>`:''}
-    </tr><tr>${_cblankArr}
-      <td colspan="${_nMem}" style="${_cttl2}text-align:center;color:#92400E;font-weight:600;padding:6px 12px;white-space:normal;">${_txLine}</td>
-      ${hasFundPdf?`<td style="${_cttl2}"></td><td style="${_cttl2}"></td>`:''}
+    const _txLine=_settleTxs.length===0?'🎉 大家都平帳了！':_settleTxs.map(tx=>`${mName(tx.from)} → ${mName(tx.to)}：${baseSym}${Math.round(tx.amt).toLocaleString()}`).join('<br>');
+    // 待付款行：粗上線、底線清除（讓金額行與轉帳行視覺合一）
+    const _obH=`<td style="${_cttl2}border-top:2px solid #F59E0B;border-bottom:none;"></td>`;
+    const _opbH=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;border-top:2px solid #F59E0B;border-bottom:none;"></td>`;
+    const _otbH=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;border-top:2px solid #F59E0B;border-bottom:none;"></td>`;
+    const _cbarrH=[...Array(fixedLeft+allCurs.length).fill(_obH),_opbH,...Array(fixedMid-3).fill(_obH),_otbH].join('');
+    const _obN=`<td style="${_cttl2}border-top:none;"></td>`;
+    const _opbN=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;border-top:none;"></td>`;
+    const _otbN=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;border-top:none;"></td>`;
+    const _cbarrN=[...Array(fixedLeft+allCurs.length).fill(_obN),_opbN,...Array(fixedMid-3).fill(_obN),_otbN].join('');
+    const owedRow=`<tr>${_cbarrH}
+      <td style="${_cttl2}border-top:2px solid #F59E0B;border-bottom:none;text-align:center;font-weight:700;color:#EF4444;" rowspan="2">待付款</td>
+      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const owed=Math.round(-(peerBalDetail[m.id]||0));const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}border-top:2px solid #F59E0B;border-bottom:none;font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
+      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}border-top:2px solid #F59E0B;border-bottom:none;color:#6B7280;">—</td><td style="${_cttl2n}border-top:2px solid #F59E0B;border-bottom:none;color:#6B7280;">—</td>`:''}
+    </tr><tr>${_cbarrN}
+      <td colspan="${_nMem}" style="${_cttl2}border-top:none;border-left:2.5px solid #9CA3AF;text-align:center;color:#92400E;font-weight:600;padding:6px 12px;white-space:normal;">${_txLine}</td>
+      ${hasFundPdf?`<td style="${_cttl2}border-top:none;border-left:2.5px solid #9CA3AF;"></td><td style="${_cttl2}border-top:none;"></td>`:''}
     </tr>`;
     // LRM for combined section：確保成員欄加總 = 總金額（不含公費餘額）
     const _rawCombShares=_regMPdf.map(m=>(memberGroupShare[m.id]||0)+(memberSelfPay[m.id]||0));
