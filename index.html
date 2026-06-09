@@ -3760,7 +3760,7 @@ const App = {
     regularMembers.forEach(m=>{memberGroupShareNF[m.id]=Math.round(memberGroupShareNF[m.id]);});
     // Fund surplus row
     const _fundId=fundMember?.id;
-    const fundSpentBase=_fundId?Math.round(groupExps.filter(e=>e.note!=='金額待補').filter(e=>typeof e.paidBy==='string'?e.paidBy===_fundId:!!(e.paidBy&&e.paidBy[_fundId]>0)).reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0)):0;
+    const fundSpentBase=_fundId?Math.round(exps.filter(e=>e.note!=='金額待補').filter(e=>typeof e.paidBy==='string'?e.paidBy===_fundId:!!(e.paidBy&&e.paidBy[_fundId]>0)).reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0)):0;
     const fundSurplus=Math.round(totalFundDeposit-fundSpentBase);
     const regCount=regularMembers.length||1;
     const surplusPerMember=fundSurplus>0.5?Math.round(fundSurplus/regCount):0;
@@ -4121,6 +4121,7 @@ const App = {
     // 公款帳存款計算（與 HTML export 一致）
     const fundDepositsCsv=t.fundDeposits||[];
     const memberFundDepositCsv={};members.forEach(m=>{memberFundDepositCsv[m.id]=0;});
+    const memberFundDepositLocalCsv={};members.forEach(m=>{memberFundDepositLocalCsv[m.id]=0;});
     const fundLocalRateCsv=t.rates?.[fundLocalCurCsv]||1;
     let totalFundDepositLocalCsv=0;
     fundDepositsCsv.forEach(d=>{
@@ -4128,7 +4129,9 @@ const App = {
         const baseAmt=Math.round(toBase(d.amt,d.cur||baseCur,t.rates,baseCur));
         memberFundDepositCsv[d.fromMemberId]+=baseAmt;
         const isLocal=(d.cur||baseCur)===fundLocalCurCsv;
-        totalFundDepositLocalCsv+=isLocal?(d.amt||0):baseAmt/fundLocalRateCsv;
+        const localAmt=isLocal?(d.amt||0):baseAmt/fundLocalRateCsv;
+        totalFundDepositLocalCsv+=localAmt;
+        memberFundDepositLocalCsv[d.fromMemberId]+=localAmt;
       }
     });
     const totalFundDepositCsv=Object.values(memberFundDepositCsv).reduce((s,v)=>s+v,0);
@@ -4198,11 +4201,23 @@ const App = {
     if(fundSurplusCsv>0.5){
       const _sLocalAmt=fundSurplusCsv/fundLocalRateCsv;
       const surplusCurCsv=allCurs.map(c=>c===fundLocalCurCsv?parseFloat(_sLocalAmt.toFixed(3)):'');
-      const surplusRowCsv=['','','公費餘額',...surplusCurCsv,'公款帳','',regularMembersCsv.length,Math.round(fundSurplusCsv),Math.round(surplusPerMemberCsv),...regularMembersCsv.map(()=>Math.round(surplusPerMemberCsv)),...(hasFund?['','']:[])];
+      const _sLocalFmt=parseFloat(_sLocalAmt.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
+      const surplusRowCsv=['','','公費餘額',...surplusCurCsv,'公款帳','',regularMembersCsv.length,Math.round(fundSurplusCsv),Math.round(surplusPerMemberCsv),...regularMembersCsv.map(()=>Math.round(surplusPerMemberCsv)),...(hasFund?[`剩餘退款 ${_sLocalFmt} ${fundLocalCurCsv}`,Math.round(fundSurplusCsv)]:[])];
       csv+=surplusRowCsv.map(esc).join(',')+'\n';
     }
-    const groupTtlRow=['TTL','群組支出','',...groupCurTotals,'',...empties(2),Math.round(groupGrandTotal),'每人',...regularMembersCsv.map(m=>memberGroupOnlyShareCsv[m.id]+surplusPerMemberCsv),...(hasFund?['','']:[])];
+    const _fundSpentLocalCsv=fundSpentBaseCsv>0?parseFloat((fundSpentBaseCsv/fundLocalRateCsv).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3}):'0';
+    const groupTtlRow=['TTL','群組支出','',...groupCurTotals,'',...empties(2),Math.round(groupGrandTotal),'每人',...regularMembersCsv.map(m=>memberGroupOnlyShareCsv[m.id]+surplusPerMemberCsv),...(hasFund?[`實際支出 ${_fundSpentLocalCsv} ${fundLocalCurCsv}`,fundSpentBaseCsv]:[])];
     csv+=groupTtlRow.map(esc).join(',')+'\n';
+    if(hasFund&&fundMemberCsv){
+      const _depLocalFmt=parseFloat(totalFundDepositLocalCsv.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
+      csv+=[...empties(fixedLeft+allCurs.length+fixedMid+regularMembersCsv.length),`公費存入 ${_depLocalFmt} ${fundLocalCurCsv}`,Math.round(totalFundDepositCsv)].map(esc).join(',')+'\n';
+      regularMembersCsv.forEach(m=>{
+        const depBase=Math.round(memberFundDepositCsv[m.id]||0);
+        const depLocal=memberFundDepositLocalCsv[m.id]||0;
+        const omrTxt=fundLocalCurCsv!==baseCur&&depLocal>0?`└ ${m.name}：${parseFloat(depLocal.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCurCsv}`:`└ ${m.name}：${depBase} ${baseCur}`;
+        csv+=[...empties(fixedLeft+allCurs.length+fixedMid+regularMembersCsv.length),omrTxt,depBase>0?depBase:'—'].map(esc).join(',')+'\n';
+      });
+    }
 
     // Personal expenses — 分為「他人墊付」與「自購」兩區（與 PDF 一致）
     const buildPersonalTtlCsv=(list,label)=>{
