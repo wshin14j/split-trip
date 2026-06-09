@@ -3768,10 +3768,10 @@ const App = {
     // Group TTL
     const _surplusLocalAmt=fundSurplus>0.5?fundSurplus/fundLocalRate:0;
     const groupCurTotals=allCurs.map(c=>{
-      const s=groupExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0)-(c===fundLocalCur?_surplusLocalAmt:0);
+      const s=groupExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0)+(c===fundLocalCur?_surplusLocalAmt:0);
       return Math.abs(s)>0.5?`<td style="${ttl1n}font-weight:700;">${Math.round(s).toLocaleString()}</td>`:tblank1;
     }).join('');
-    const groupGrandTotal=groupExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0)-fundSurplus;
+    const groupGrandTotal=groupExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0)+fundSurplus;
     // 代付淨額
     const memberProxyPaid={};const memberProxyReceived={};
     members.forEach(m=>{memberProxyPaid[m.id]=0;memberProxyReceived[m.id]=0;});
@@ -3817,10 +3817,9 @@ const App = {
       ${displayMembers.map((m,i)=>{
         const v=memberGroupShare[m.id]||0;
         if(m.isGroupFund&&fundMember){
-          const bal=totalFundDeposit-v;
-          return `<td style="${ttl1n}${mbl(i)}font-weight:700;white-space:normal;">${fmtFundLocal(v)}<br><span style="font-size:10px;font-weight:400;color:#6B7280;">原始 ${fmtFundLocal(totalFundDeposit)}</span><br><span style="font-size:10px;font-weight:600;color:${bal>=0?'#22c55e':'#EF4444'};">剩餘 ${fmtFundLocal(bal)}</span></td>`;
+          return `<td style="${ttl1n}${mbl(i)}font-weight:700;white-space:normal;">${fmtFundLocal(totalFundDeposit)}<br><span style="font-size:10px;font-weight:400;color:#6B7280;">已花 ${fmtFundLocal(v)}</span><br><span style="font-size:10px;font-weight:600;color:#22c55e;">退款 ${fmtFundLocal(fundSurplus)}</span></td>`;
         }
-        return `<td style="${ttl1n}${mbl(i)}font-weight:700;">${v.toLocaleString()}</td>`;
+        return `<td style="${ttl1n}${mbl(i)}font-weight:700;">${(v+surplusPerMember).toLocaleString()}</td>`;
       }).join('')}
     </tr>`;
     // Personal section
@@ -3906,7 +3905,7 @@ const App = {
       <td style="${cttl}"></td>
       <td style="${cttln}font-weight:700;border-left:2.5px solid #9CA3AF;">${Math.round(combinedGrandTotal).toLocaleString()}</td>
       <td style="${cttl}font-weight:700;text-align:center;">總支出</td>
-      ${displayMembers.map((m,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${((memberGroupShare[m.id]||0)+(memberSelfPay[m.id]||0)).toLocaleString()}</td>`).join('')}
+      ${displayMembers.map((m,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${((memberGroupShare[m.id]||0)+(memberSelfPay[m.id]||0)+(m.isGroupFund?0:surplusPerMember)).toLocaleString()}</td>`).join('')}
     </tr>${fundDepRow}${paidOtherRow}${_proxyRowC}${selfPayRow}${owedRow}`;
     // Settlement — 對齊主 app 計算邏輯（expenses + payRecords + fundDeposits）
     const bal=calcBal(t);
