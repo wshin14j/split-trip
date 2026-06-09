@@ -3750,7 +3750,6 @@ const App = {
     const surplusPerMember=fundSurplus>0.5?Math.round(fundSurplus/regCount):0;
     let surplusRow='';
     if(fundSurplus>0.5&&fundMember){
-      regularMembers.forEach(m=>{memberGroupShare[m.id]=(memberGroupShare[m.id]||0)-surplusPerMember;});
       const _surplusCurCells=allCurs.map(c=>{
         if(c===fundLocalCur){const n=parseFloat((fundSurplus/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});return `<td style="${numS}">${n}</td>`;}
         return blank;
