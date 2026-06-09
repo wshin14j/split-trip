@@ -3836,7 +3836,7 @@ const App = {
       <td style="${ttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;"${_grpRs}>${Math.round(groupGrandTotal).toLocaleString()}</td>
       <td style="${ttl1}"${_grpRs}></td>
       ${_regMPdf.map((m,i)=>`<td style="${ttl1n}${mbl(i)}font-weight:700;"${_grpRs}>${((memberGroupShare[m.id]||0)+surplusPerMember).toLocaleString()}</td>`).join('')}
-      ${hasFundPdf?`<td style="${ttl1n}${mbl(fundDisplayIdx)}font-weight:700;">已花 ${fmtFundLocal(memberGroupShare[fundMember.id]||0)}</td><td style="${ttl1n}font-weight:700;color:#6B7280;">${Math.round(memberGroupShare[fundMember.id]||0).toLocaleString()}</td>`:''}
+      ${hasFundPdf?`<td style="${ttl1n}${mbl(fundDisplayIdx)}font-weight:700;">實際支出 ${fmtFundLocal(memberGroupShare[fundMember.id]||0)}</td><td style="${ttl1n}font-weight:700;color:#6B7280;">${Math.round(memberGroupShare[fundMember.id]||0).toLocaleString()}</td>`:''}
     </tr>${hasFundPdf?`<tr>
       <td style="${ttl1n}${mbl(fundDisplayIdx)}color:#6B7280;font-weight:600;">公費存入 ${fmtLocal(totalFundDepositLocal)} ${fundLocalCur}</td>
       <td style="${ttl1n}color:#6B7280;">${Math.round(totalFundDeposit).toLocaleString()}</td>
