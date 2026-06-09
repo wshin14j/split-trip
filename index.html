@@ -3721,7 +3721,7 @@ const App = {
           fundTWDCell=`<td style="${numS}color:#9CA3AF;font-size:10px;">${fundAmt.toLocaleString()}</td>`;
         }
       }
-      const _splitLbl=e.splitMode==='proportion'&&e.proportions?`比例 ${displayMembers.filter(m=>!m.isGroupFund).map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:e.splitMode==='custom'?`<span style="color:#F97316;font-weight:700;">自訂</span>`:splitLabel(e.splitMode);
+      const _splitLbl=e.splitMode==='proportion'&&e.proportions?`比例 ${displayMembers.filter(m=>!m.isGroupFund).map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:e.splitMode==='custom'?`<span style="color:#0891B2;font-weight:700;">自訂</span>`:splitLabel(e.splitMode);
       return `<tr>
         <td style="${tdS}">${e.date||'—'}</td>
         <td style="${tdS}">${e.category||'其他'}</td>
@@ -3914,19 +3914,19 @@ const App = {
     const paidOtherRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支付群組</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${_cttl2n}${mbl(i)}">${(memberGroupPaid[m.id]||0).toLocaleString()}</td>`).join('')}
-      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}color:#6B7280;">—</td><td style="${_cttl2n}color:#6B7280;">—</td>`:''}
+      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}"></td><td style="${_cttl2n}"></td>`:''}
     </tr>`;
     const _proxyRowC=hasProxy?`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支付他人墊付</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const v=memberProxyPaid[m.id]||0;return `<td style="${_cttl2n}${mbl(i)}${v>0?'':'color:#6B7280;'}">${v>0?v.toLocaleString():'—'}</td>`;}).join('')}
-      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}color:#6B7280;">—</td><td style="${_cttl2n}color:#6B7280;">—</td>`:''}
+      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}"></td><td style="${_cttl2n}"></td>`:''}
     </tr>`:'';
     const _selfOnlyShare={};members.forEach(m=>{_selfOnlyShare[m.id]=0;});
     selfOnlyExps.filter(e=>e.note!=='金額待補').forEach(e=>{const ps=e.parts||regularMembers.map(m=>m.id);const expCur=e.currency||baseCur;ps.forEach(pid=>{let sh=(e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts?e.customAmounts[pid]||0:e.amount/ps.length;if(_selfOnlyShare[pid]!==undefined)_selfOnlyShare[pid]+=Math.round(toBase(sh,expCur,t.rates,baseCur));});});
     const selfPayRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支出自購</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const _sv=_selfOnlyShare[m.id]||0;return `<td style="${_cttl2n}${mbl(i)}${_sv>0?'':'color:#6B7280;'}">${_sv>0?_sv.toLocaleString():'—'}</td>`;}).join('')}
-      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}color:#6B7280;">—</td><td style="${_cttl2n}color:#6B7280;">—</td>`:''}
+      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}"></td><td style="${_cttl2n}"></td>`:''}
     </tr>`;
     const _peerBDRounded={};regularMembers.forEach(m=>{_peerBDRounded[m.id]=Math.round(peerBalDetail[m.id]||0);});
     const _settleTxs=minimizeTx(_peerBDRounded);
@@ -3937,7 +3937,7 @@ const App = {
     const owedRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;font-weight:700;color:#92400E;" rowspan="2">待付款</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const owed=Math.round(-(peerBalDetail[m.id]||0));const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}border-top:2px solid #F59E0B;border-bottom:none;font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
-      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}color:#6B7280;">—</td><td style="${_cttl2n}color:#6B7280;">—</td>`:''}
+      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}"></td><td style="${_cttl2n}"></td>`:''}
     </tr><tr>${_cblankArr}
       <td colspan="${_nMem}" style="${_cttl2}border-top:none;border-left:2.5px solid #9CA3AF;text-align:center;color:#92400E;font-weight:600;padding:6px 12px;white-space:normal;">${_txLine}</td>
       ${hasFundPdf?`<td style="${_cttl2}border-top:none;border-left:2.5px solid #9CA3AF;"></td><td style="${_cttl2}border-top:none;"></td>`:''}
