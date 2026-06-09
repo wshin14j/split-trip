@@ -3703,9 +3703,9 @@ const App = {
         let sh;
         if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts) sh=e.customAmounts[m.id]||0;
         else sh=e.amount/ps.length;
-        const shBase=Math.round(toBase(sh,expCur,t.rates,baseCur));
+        const shBase=toBase(sh,expCur,t.rates,baseCur);
         if(isGroup) memberGroupShare[m.id]+=shBase; else memberSelfPay[m.id]+=shBase;
-        return `<td style="${numS}${_mbl}">${shBase.toLocaleString()}</td>`;
+        return `<td style="${numS}${_mbl}">${Math.round(shBase).toLocaleString()}</td>`;
       }).join('');
       let fundOMRCell='',fundTWDCell='';
       if(hasFundPdf){
@@ -3831,13 +3831,22 @@ const App = {
       }).join('')}
       ${hasFundPdf?`<td style="${ttl2n}${mbl(fundDisplayIdx)}color:#6B7280;">—</td><td style="${ttl2n}color:#6B7280;">—</td>`:''}
     </tr>`:'';
+    // 最大餘數法：確保成員欄整數加總 = 群組總金額整數（避免各別四捨五入累積誤差）
+    const _rawGrpShares=_regMPdf.map(m=>(memberGroupShare[m.id]||0)+(fundSurplusRaw>0.5?fundSurplusRaw/regCount:0));
+    const _rawGrpTotal=_rawGrpShares.reduce((s,v)=>s+v,0);
+    const _intGrpTotal=Math.round(_rawGrpTotal);
+    const _floorGrpShares=_rawGrpShares.map(v=>Math.floor(v));
+    const _fracGrpIdxs=_rawGrpShares.map((v,i)=>({i,f:v-Math.floor(v)})).sort((a,b)=>b.f-a.f);
+    const _grpRem=_intGrpTotal-_floorGrpShares.reduce((s,v)=>s+v,0);
+    for(let _ri=0;_ri<_grpRem;_ri++)_floorGrpShares[_fracGrpIdxs[_ri].i]++;
+    const _lrmGrpShares=_floorGrpShares;
     const groupTtlRows=`<tr>
       <td style="${ttl1}font-weight:700;"${_grpRs}>TTL</td><td style="${ttl1}font-weight:700;"${_grpRs}>群組支出</td><td style="${ttl1}"${_grpRs}></td>
       ${groupCurTotals}
       <td style="${ttl1}"${_grpRs}></td><td style="${ttl1}"${_grpRs}></td><td style="${ttl1}"${_grpRs}></td>
-      <td style="${ttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;"${_grpRs}>${_regMPdf.reduce((s,m)=>s+(memberGroupShare[m.id]||0)+surplusPerMember,0).toLocaleString()}</td>
+      <td style="${ttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;"${_grpRs}>${_intGrpTotal.toLocaleString()}</td>
       <td style="${ttl1}"${_grpRs}></td>
-      ${_regMPdf.map((m,i)=>`<td style="${ttl1n}${mbl(i)}font-weight:700;"${_grpRs}>${((memberGroupShare[m.id]||0)+surplusPerMember).toLocaleString()}</td>`).join('')}
+      ${_lrmGrpShares.map((sh,i)=>`<td style="${ttl1n}${mbl(i)}font-weight:700;"${_grpRs}>${sh.toLocaleString()}</td>`).join('')}
       ${hasFundPdf?`<td style="${ttl1n}${mbl(fundDisplayIdx)}font-weight:700;">實際支出 ${parseFloat((fundSpentBase/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}</td><td style="${ttl1n}font-weight:700;color:#6B7280;">${Math.round(fundSpentBase).toLocaleString()}</td>`:''}
     </tr>${hasFundPdf?`<tr>
       <td style="${ttl1n}${mbl(fundDisplayIdx)}color:#6B7280;font-weight:600;border-bottom:none;">公費存入 ${fmtLocal(totalFundDepositLocal)} ${fundLocalCur}</td>
@@ -3931,7 +3940,7 @@ const App = {
       <td style="${cttl}"></td><td style="${cttl}"></td><td style="${cttl}"></td>
       <td style="${cttln}font-weight:700;border-left:2.5px solid #9CA3AF;">${Math.round(combinedGrandTotal).toLocaleString()}</td>
       <td style="${cttl}font-weight:700;text-align:center;">總支出</td>
-      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${((memberGroupShare[m.id]||0)+(memberSelfPay[m.id]||0)+surplusPerMember).toLocaleString()}</td>`).join('')}
+      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${Math.round((memberGroupShare[m.id]||0)+(memberSelfPay[m.id]||0)+surplusPerMember).toLocaleString()}</td>`).join('')}
       ${hasFundPdf?`<td style="${cttln}${mbl(fundDisplayIdx)}font-weight:700;color:#6B7280;">${fmtLocal(totalFundDepositLocal)}</td><td style="${cttln}font-weight:700;color:#6B7280;">${Math.round(totalFundDeposit).toLocaleString()}</td>`:''}
     </tr>${fundDepRow}${paidOtherRow}${_proxyRowC}${selfPayRow}${owedRow}`;
     // Settlement — 對齊主 app 計算邏輯（expenses + payRecords + fundDeposits）
