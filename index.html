@@ -4115,13 +4115,6 @@ const App = {
 
     const fileName=`${t.name}_支出明細.csv`;
     const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-    if(navigator.share&&navigator.canShare){
-      const file=new File([blob],fileName,{type:'text/csv'});
-      if(navigator.canShare({files:[file]})){
-        navigator.share({files:[file],title:t.name}).catch(()=>{});
-        return;
-      }
-    }
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
     a.href=url;a.download=fileName;a.click();
