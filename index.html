@@ -4015,11 +4015,15 @@ const App = {
     const baseSym=(C[baseCur]||C.TWD).sym;
     const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
     const mName=id=>{const m=members.find(m=>m.id===id);return m?.name||id;};
+    const fundLocalCurCsv=t.fundLocalCurrency||baseCur;
     const otherCurs=[...new Set(exps.map(e=>e.currency||baseCur))].filter(c=>c&&c!==baseCur);
     const allCurs=[baseCur,...otherCurs];
-    const fixedLeft=5; // 日期,項目,明細,分攤方式,單位
-    const fixedMid=3;  // 付款人,總金額,單價
-    const totalCols=fixedLeft+allCurs.length+fixedMid+members.length;
+    const regularMembersCsv=members.filter(m=>!m.isGroupFund);
+    const hasFund=members.some(m=>m.isGroupFund);
+    const fixedLeft=3; // 日期,類別,項目明細
+    const fixedMid=5;  // 付款人,方式,單位人數,總金額,單價
+    const fundCols=hasFund?2:0; // 公款帳 OMR+TWD
+    const totalCols=fixedLeft+allCurs.length+fixedMid+regularMembersCsv.length+fundCols;
     const empties=n=>Array(n).fill('');
     const splitLabel=m=>({equal:'平均',custom:'自訂',proportion:'比例',self:'自購'}[m]||'平均');
 
@@ -4032,9 +4036,11 @@ const App = {
       csv+=row.map(esc).join(',')+'\n';
     });
 
-    // Header row
-    const header=['日期','項目','明細','分攤方式','單位（人數）',...allCurs,'付款人',`總金額(${baseCur})`,`單價(${baseCur})`,...members.map(m=>m.name)];
-    csv+=header.map(esc).join(',')+'\n';
+    // Header: two rows (群組標題 + 欄位名)
+    const header1=['','','','支出金額',...empties(allCurs.length-1),'','分攤','','','',...empties(regularMembersCsv.length),...(hasFund?['公款帳','']:[])];
+    const header2=['日期','類別','項目明細',...allCurs,'付款人','方式','單位人數',`總金額(${baseCur})`,`單價(${baseCur})`,...regularMembersCsv.map(m=>m.name),...(hasFund?[fundLocalCurCsv,baseCur]:[])];
+    csv+=header1.map(esc).join(',')+'\n';
+    csv+=header2.map(esc).join(',')+'\n';
 
     // Accumulators
     const memberShare={};const memberPaid={};
@@ -4055,8 +4061,8 @@ const App = {
           else if(typeof e.paidBy==='object'&&e.paidBy) Object.entries(e.paidBy).forEach(([pid,amt])=>{if(memberPaid[pid]!==undefined) memberPaid[pid]+=Math.round(toBase(amt,expCur,t.rates,baseCur));});
         }
         const curCells=allCurs.map(c=>c===expCur?(isPending?'待補':e.amount):'');
-        const memberCells=members.map(m=>{
-          if(m.isGroupFund||!ps.includes(m.id)) return '';
+        const regularMemberCells=regularMembersCsv.map(m=>{
+          if(!ps.includes(m.id)) return '';
           if(isPending) return '待補';
           let sh;
           if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts) sh=e.customAmounts[m.id]||0;
@@ -4065,7 +4071,8 @@ const App = {
           memberShare[m.id]+=shBase;
           return shBase;
         });
-        const row=[e.date||'',e.category||'其他',e.name,(e.splitMode==='proportion'&&e.proportions?`比例 ${regularMembersCsv.map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:splitLabel(e.splitMode)),ps.length,...curCells,payer,isPending?'待補':baseTotalNum,isPending?'':unitPrice,...memberCells];
+        const splitModeLabel=e.splitMode==='proportion'&&e.proportions?`比例 ${regularMembersCsv.map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:splitLabel(e.splitMode);
+        const row=[e.date||'',e.category||'其他',e.name,...curCells,payer,splitModeLabel,ps.length,isPending?'待補':baseTotalNum,isPending?'':unitPrice,...regularMemberCells,...(hasFund?['','']:[])];
         csv+=row.map(esc).join(',')+'\n';
       });
     };
@@ -4075,7 +4082,6 @@ const App = {
     };
 
     // Group expenses — 全員分攤才算群組
-    const regularMembersCsv=members.filter(m=>!m.isGroupFund);
     const isGroupExpCsv=e=>{
       if(e.splitMode==='self'||e.splitMode==='extproxy') return false;
       const ps=e.parts||regularMembersCsv.map(m=>m.id);
@@ -4092,9 +4098,15 @@ const App = {
     // 公款帳存款計算（與 HTML export 一致）
     const fundDepositsCsv=t.fundDeposits||[];
     const memberFundDepositCsv={};members.forEach(m=>{memberFundDepositCsv[m.id]=0;});
+    const fundLocalRateCsv=t.rates?.[fundLocalCurCsv]||1;
+    let totalFundDepositLocalCsv=0;
     fundDepositsCsv.forEach(d=>{
-      if(d.fromMemberId&&memberFundDepositCsv[d.fromMemberId]!==undefined)
-        memberFundDepositCsv[d.fromMemberId]+=Math.round(toBase(d.amt,d.cur||baseCur,t.rates,baseCur));
+      if(d.fromMemberId&&memberFundDepositCsv[d.fromMemberId]!==undefined){
+        const baseAmt=Math.round(toBase(d.amt,d.cur||baseCur,t.rates,baseCur));
+        memberFundDepositCsv[d.fromMemberId]+=baseAmt;
+        const isLocal=(d.cur||baseCur)===fundLocalCurCsv;
+        totalFundDepositLocalCsv+=isLocal?(d.amt||0):baseAmt/fundLocalRateCsv;
+      }
     });
     const totalFundDepositCsv=Object.values(memberFundDepositCsv).reduce((s,v)=>s+v,0);
     const fundSpentBaseCsv=fundMemberCsv?Math.round(memberPaid[fundMemberCsv.id]||0):0;
@@ -4158,10 +4170,7 @@ const App = {
     });
     const groupGrandTotal=groupExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0)+fundSurplusCsv;
     const memberGroupOnlyShareCsv={};members.forEach(m=>{memberGroupOnlyShareCsv[m.id]=memberShare[m.id]||0;});
-    const groupTtlRow=['TTL','群組支出','','',...empties(1),...groupCurTotals,'',Math.round(groupGrandTotal),'每人',...members.map(m=>{
-      if(m.isGroupFund) return fundSpentBaseCsv||0;
-      return memberGroupOnlyShareCsv[m.id]+surplusPerMemberCsv;
-    })];
+    const groupTtlRow=['TTL','群組支出','',...groupCurTotals,'',...empties(2),Math.round(groupGrandTotal),'每人',...regularMembersCsv.map(m=>memberGroupOnlyShareCsv[m.id]+surplusPerMemberCsv),...(hasFund?['','']:[])];
     csv+=groupTtlRow.map(esc).join(',')+'\n';
 
     // Personal expenses（先輸出，再建 combined TTL，因為 memberShare 會更新）
@@ -4177,23 +4186,12 @@ const App = {
     });
     const combinedGrandTotal=exps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0)+fundSurplusCsv;
     sectionRow('整趟旅程完整花費（群組＋個人）');
-    const ttlRow1=['合計','全部費用','','',...empties(1),...combinedCurTotals,'',Math.round(combinedGrandTotal),'總支出',...members.map(m=>{
-      if(m.isGroupFund) return fundSpentBaseCsv||0;
-      return (memberShare[m.id]||0)+surplusPerMemberCsv;
-    })];
-    const ttlRow1b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已付公費',...members.map(m=>{
-      if(m.isGroupFund) return totalFundDepositCsv>0?totalFundDepositCsv:'—';
-      const dep=memberFundDepositCsv[m.id]||0;
-      return dep>0?dep:'—';
-    })];
-    const ttlRow2=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付群組',...members.map(m=>memberGroupPaidCsv[m.id]||0)];
-    const ttlRow2b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付他人墊付',...members.map(m=>{const v=memberProxyPaidCsv[m.id]||0;return v>0?v:'—';})];
-    const ttlRow2c=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支出自購',...members.map(m=>{const v=_selfOnlyShareCsv[m.id]||0;return v>0?v:'—';})];
-    const ttlRow3=[...empties(fixedLeft+allCurs.length+fixedMid-1),'待付款',...members.map(m=>{
-      if(m.isGroupFund) return '';
-      const owed=Math.round(-(peerBalDetailCsv[m.id]||0));
-      return owed!==0?owed:0;
-    })];
+    const ttlRow1=['合計','全部費用','',...combinedCurTotals,'',...empties(2),Math.round(combinedGrandTotal),'總支出',...regularMembersCsv.map(m=>(memberShare[m.id]||0)+surplusPerMemberCsv),...(hasFund?['','']:[])];
+    const ttlRow1b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已付公費',...regularMembersCsv.map(m=>{const dep=memberFundDepositCsv[m.id]||0;return dep>0?dep:'—';}),...(hasFund?[parseFloat(totalFundDepositLocalCsv.toFixed(3)),totalFundDepositCsv>0?totalFundDepositCsv:'—']:[])];
+    const ttlRow2=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付群組',...regularMembersCsv.map(m=>memberGroupPaidCsv[m.id]||0),...(hasFund?['','']:[])];
+    const ttlRow2b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付他人墊付',...regularMembersCsv.map(m=>{const v=memberProxyPaidCsv[m.id]||0;return v>0?v:'—';}),...(hasFund?['','']:[])];
+    const ttlRow2c=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支出自購',...regularMembersCsv.map(m=>{const v=_selfOnlyShareCsv[m.id]||0;return v>0?v:'—';}),...(hasFund?['','']:[])];
+    const ttlRow3=[...empties(fixedLeft+allCurs.length+fixedMid-1),'待付款',...regularMembersCsv.map(m=>{const owed=Math.round(-(peerBalDetailCsv[m.id]||0));return owed!==0?owed:0;}),...(hasFund?['','']:[])];
     csv+=ttlRow1.map(esc).join(',')+'\n';
     csv+=ttlRow1b.map(esc).join(',')+'\n';
     csv+=ttlRow2.map(esc).join(',')+'\n';
