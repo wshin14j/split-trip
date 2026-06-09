@@ -3658,10 +3658,11 @@ const App = {
       <th style="${thS}" colspan="2">分攤</th>
       <th style="${thSL}" rowspan="2">總金額(${baseCur})</th><th style="${thS}" rowspan="2">單價(${baseCur})</th>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<th style="${thS}${mbl(i)}" rowspan="2">${m.name}</th>`).join('')}
-      ${hasFundPdf?`<th style="${thS}${mbl(fundDisplayIdx)}" rowspan="2">實際支出<br>(${fundLocalCur})</th><th style="${thS}" rowspan="2">對照金額<br>(${baseCur})</th>`:''}
+      ${hasFundPdf?`<th style="${thS}${mbl(fundDisplayIdx)}" colspan="2">公款帳</th>`:''}
     </tr><tr>
       ${allCurs.map(c=>`<th style="${thS}">${c}</th>`).join('')}
       <th style="${thS}">方式</th><th style="${thS}">單位人數</th>
+      ${hasFundPdf?`<th style="${thS}">實際支出<br>(${fundLocalCur})</th><th style="${thS}">對照金額<br>(${baseCur})</th>`:''}
     </tr>`;
     // Separate accumulators: group vs personal
     const memberGroupShare={};const memberGroupShareNF={};const memberSelfPay={};const memberGroupPaid={};const memberFundDeposit={};
@@ -3779,7 +3780,7 @@ const App = {
         <td style="${numSL}">${fundSurplus.toLocaleString()}</td>
         <td style="${numS}">${surplusPerMember.toLocaleString()}</td>
         ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${numS}${mbl(i)}">${surplusPerMember.toLocaleString()}</td>`).join('')}
-        ${hasFundPdf?`<td style="${tdS}${mbl(fundDisplayIdx)}text-align:center;color:#9CA3AF;">公款帳</td><td style="${tdS}color:#9CA3AF;"></td>`:''}
+        ${hasFundPdf?`<td style="${tdS}${mbl(fundDisplayIdx)}font-weight:600;color:#22c55e;">剩餘退款 ${parseFloat((fundSurplus/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}</td><td style="${numS}color:#22c55e;">${fundSurplus.toLocaleString()}</td>`:''}
       </tr>`;
     }
     // Group TTL
@@ -3833,7 +3834,7 @@ const App = {
       <td style="${ttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;">${Math.round(groupGrandTotal).toLocaleString()}</td>
       <td style="${ttl1}"></td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${ttl1n}${mbl(i)}font-weight:700;">${((memberGroupShare[m.id]||0)+surplusPerMember).toLocaleString()}</td>`).join('')}
-      ${hasFundPdf?`<td style="${ttl1n}${mbl(fundDisplayIdx)}font-weight:700;white-space:normal;">${fmtLocal(totalFundDepositLocal)} ${fundLocalCur}<br><span style="font-size:10px;font-weight:400;color:#6B7280;">已花 ${fmtFundLocal(memberGroupShare[fundMember.id]||0)}</span><br><span style="font-size:10px;font-weight:600;color:#22c55e;">退款 ${fmtFundLocal(fundSurplus)}</span></td><td style="${ttl1n}font-weight:700;color:#6B7280;font-size:10px;">${Math.round(memberGroupShare[fundMember.id]||0).toLocaleString()}</td>`:''}
+      ${hasFundPdf?`<td style="${ttl1n}${mbl(fundDisplayIdx)}font-weight:700;">已花 ${fmtFundLocal(memberGroupShare[fundMember.id]||0)}</td><td style="${ttl1n}font-weight:700;color:#6B7280;">${Math.round(memberGroupShare[fundMember.id]||0).toLocaleString()}</td>`:''}
     </tr>`;
     // Personal section
     const _isProxy=e=>{
@@ -4054,7 +4055,7 @@ const App = {
     });
 
     // Header: two rows (群組標題 + 欄位名)
-    const header1=['','','','支出金額',...empties(allCurs.length-1),'','分攤','','','',...empties(regularMembersCsv.length),...(hasFund?['','']:[])];
+    const header1=['','','','支出金額',...empties(allCurs.length-1),'','分攤','','','',...empties(regularMembersCsv.length),...(hasFund?['公款帳','']:[])];
     const header2=['日期','類別','項目明細',...allCurs,'付款人','方式','單位人數',`總金額(${baseCur})`,`單價(${baseCur})`,...regularMembersCsv.map(m=>m.name),...(hasFund?[`實際支出(${fundLocalCurCsv})`,`對照金額(${baseCur})`]:[])];
     csv+=header1.map(esc).join(',')+'\n';
     csv+=header2.map(esc).join(',')+'\n';
