@@ -3836,6 +3836,12 @@ const App = {
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${ttl1n}${mbl(i)}font-weight:700;">${((memberGroupShare[m.id]||0)+surplusPerMember).toLocaleString()}</td>`).join('')}
       ${hasFundPdf?`<td style="${ttl1n}${mbl(fundDisplayIdx)}font-weight:700;">已花 ${fmtFundLocal(memberGroupShare[fundMember.id]||0)}</td><td style="${ttl1n}font-weight:700;color:#6B7280;">${Math.round(memberGroupShare[fundMember.id]||0).toLocaleString()}</td>`:''}
     </tr>`;
+    const groupFundDepRow=hasFundPdf?`<tr>
+      ${Array(fixedLeft+allCurs.length+fixedMid).fill(tblank1).join('')}
+      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const dep=Math.round(memberFundDeposit[m.id]||0);return `<td style="${ttl1n}${mbl(i)}font-size:10px;color:#6B7280;">${dep>0?dep.toLocaleString():'—'}</td>`;}).join('')}
+      <td style="${ttl1n}${mbl(fundDisplayIdx)}color:#6B7280;">初始 ${fmtLocal(totalFundDepositLocal)} ${fundLocalCur}</td>
+      <td style="${ttl1n}color:#6B7280;">${Math.round(totalFundDeposit).toLocaleString()}</td>
+    </tr>`:'';
     // Personal section
     const _isProxy=e=>{
       if(e.splitMode==='self'||e.splitMode==='extproxy') return false;
@@ -4002,7 +4008,7 @@ const App = {
         <div style="font-size:11px;color:#9CA3AF;">＊ 原始計算結果，不含轉帳還款紀錄</div>
       </div>
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-        <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${surplusRow}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
+        <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${surplusRow}${groupTtlRows}${groupFundDepRow}${personalSection}${combinedSection}</tbody></table>
       </div>
       ${analysisHTML}`;
   },
