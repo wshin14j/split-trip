@@ -3675,7 +3675,7 @@ const App = {
         memberFundDepositLocal[d.fromMemberId]+=(d.cur||baseCur)===fundLocalCur?(d.amt||0):baseAmt/fundLocalRate;
       }
     });
-    const totalFundDepositRaw=Object.values(memberFundDeposit).reduce((s,v)=>s+v,0);
+    const totalFundDepositRaw=fundDeposits.reduce((s,d)=>s+toBase(d.amt,d.cur||baseCur,t.rates,baseCur),0);
     const totalFundDeposit=Math.round(totalFundDepositRaw);
     const totalFundDepositLocal=Object.values(memberFundDepositLocal).reduce((s,v)=>s+v,0);
     const fmtLocal=v=>parseFloat(v.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
@@ -3761,7 +3761,7 @@ const App = {
     regularMembers.forEach(m=>{memberGroupShareNF[m.id]=Math.round(memberGroupShareNF[m.id]);});
     // Fund surplus row
     const _fundId=fundMember?.id;
-    const fundSpentBase=_fundId?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'&&e.paidBy===_fundId).reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency||baseCur,t.rates,baseCur),0):0;
+    const fundSpentBase=_fundId?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===_fundId:!!(e.paidBy?.[_fundId]>0)).reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,baseCur),0):0;
     const fundSurplusRaw=totalFundDepositRaw-fundSpentBase;
     const fundSurplus=Math.round(fundSurplusRaw);
     const regCount=regularMembers.length||1;
