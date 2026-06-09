@@ -4084,6 +4084,22 @@ const App = {
     sectionRow('群組支出明細');
     buildRows(groupExps);
 
+    // 計算 memberShareNF（非公費支出份額，與 peerBal 邏輯一致）
+    const fundMemberCsv=members.find(m=>m.isGroupFund);
+    const memberShareNF={};
+    regularMembersCsv.forEach(m=>{memberShareNF[m.id]=0;});
+    groupExps.filter(e=>e.note!=='金額待補').forEach(e=>{
+      const isFP=fundMemberCsv&&typeof e.paidBy==='string'&&e.paidBy===fundMemberCsv.id;
+      if(isFP) return;
+      const tot=Math.round(toBase(e.amount,e.currency||baseCur,t.rates,baseCur));
+      const nfPs=(e.parts||regularMembersCsv.map(m=>m.id)).filter(id=>memberShareNF[id]!==undefined);
+      if(!nfPs.length) return;
+      if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts){
+        nfPs.forEach(p=>{memberShareNF[p]+=Math.round(toBase(e.customAmounts[p]||0,e.currency||baseCur,t.rates,baseCur));});
+      } else {const sh=tot/nfPs.length;nfPs.forEach(p=>{memberShareNF[p]+=sh;});}
+    });
+    regularMembersCsv.forEach(m=>{memberShareNF[m.id]=Math.round(memberShareNF[m.id]);});
+
     // TTL rows
     const curTotals=allCurs.map(c=>{
       const s=groupExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);
@@ -4091,12 +4107,19 @@ const App = {
     });
     const grandTotal=groupExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0);
     const ttlRow1=['TTL','群組支出','','',...empties(1),...curTotals,'',Math.round(grandTotal),'每人',...members.map(m=>memberShare[m.id]||0)];
+    const ttlRow1b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已付公費',...members.map(m=>{
+      if(m.isGroupFund) return '公款帳';
+      const dep=Math.round((memberShare[m.id]||0)-(memberShareNF[m.id]||0));
+      return dep>0?dep:'—';
+    })];
     const ttlRow2=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已付款',...members.map(m=>memberPaid[m.id]||0)];
     const ttlRow3=[...empties(fixedLeft+allCurs.length+fixedMid-1),'待付款',...members.map(m=>{
-      const owed=(memberShare[m.id]||0)-(memberPaid[m.id]||0);
-      return owed>0?owed:owed<0?`(${-owed})`:0;
+      if(m.isGroupFund) return '';
+      const owed=Math.round((memberShareNF[m.id]||0)-(memberPaid[m.id]||0));
+      return owed!==0?owed:0;
     })];
     csv+=ttlRow1.map(esc).join(',')+'\n';
+    csv+=ttlRow1b.map(esc).join(',')+'\n';
     csv+=ttlRow2.map(esc).join(',')+'\n';
     csv+=ttlRow3.map(esc).join(',')+'\n';
 
