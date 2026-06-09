@@ -3664,10 +3664,12 @@ const App = {
       if(d.fromMemberId&&memberFundDeposit[d.fromMemberId]!==undefined){
         const baseAmt=Math.round(toBase(d.amt,d.cur||baseCur,t.rates,baseCur));
         memberFundDeposit[d.fromMemberId]+=baseAmt;
-        memberFundDepositLocal[d.fromMemberId]+=baseAmt/fundLocalRate;
+        memberFundDepositLocal[d.fromMemberId]+=(d.cur||baseCur)===fundLocalCur?(d.amt||0):baseAmt/fundLocalRate;
       }
     });
     const totalFundDeposit=Object.values(memberFundDeposit).reduce((s,v)=>s+v,0);
+    const totalFundDepositLocal=Object.values(memberFundDepositLocal).reduce((s,v)=>s+v,0);
+    const fmtLocal=v=>parseFloat(v.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
     const buildRows=(list,isGroup=true)=>list.map(e=>{
       const expCur=e.currency||baseCur;
       const isPending=e.note==='金額待補';
@@ -3817,7 +3819,7 @@ const App = {
       ${displayMembers.map((m,i)=>{
         const v=memberGroupShare[m.id]||0;
         if(m.isGroupFund&&fundMember){
-          return `<td style="${ttl1n}${mbl(i)}font-weight:700;white-space:normal;">${fmtFundLocal(totalFundDeposit)}<br><span style="font-size:10px;font-weight:400;color:#6B7280;">已花 ${fmtFundLocal(v)}</span><br><span style="font-size:10px;font-weight:600;color:#22c55e;">退款 ${fmtFundLocal(fundSurplus)}</span></td>`;
+          return `<td style="${ttl1n}${mbl(i)}font-weight:700;white-space:normal;">${fmtLocal(totalFundDepositLocal)} ${fundLocalCur}<br><span style="font-size:10px;font-weight:400;color:#6B7280;">已花 ${fmtFundLocal(v)}</span><br><span style="font-size:10px;font-weight:600;color:#22c55e;">退款 ${fmtFundLocal(fundSurplus)}</span></td>`;
         }
         return `<td style="${ttl1n}${mbl(i)}font-weight:700;">${(v+surplusPerMember).toLocaleString()}</td>`;
       }).join('')}
@@ -3873,12 +3875,12 @@ const App = {
     const _cblank2=`<td style="${_cttl2}"></td>`;
     const _cblankArr=Array(fixedLeft+allCurs.length+2).fill(_cblank2).join('');
     const fundDepRow=`<tr>${_cblankArr}
-      <td style="${_cttl2}text-align:center;color:#6B7280;">已付公費${fundLocalCur!==baseCur&&totalFundDeposit>0?`<br><span style="font-size:9px;">(共${fmtFundNum(totalFundDeposit)} ${fundLocalCur})</span>`:''}</td>
+      <td style="${_cttl2}text-align:center;color:#6B7280;">已付公費${fundLocalCur!==baseCur&&totalFundDepositLocal>0?`<br><span style="font-size:9px;">(共${fmtLocal(totalFundDepositLocal)} ${fundLocalCur})</span>`:''}</td>
       ${displayMembers.map((m,i)=>{
-        if(m.isGroupFund) return `<td style="${_cttl2n}${mbl(i)}color:#6B7280;white-space:normal;">${fmtFundLocal(totalFundDeposit)}</td>`;
+        if(m.isGroupFund) return `<td style="${_cttl2n}${mbl(i)}color:#6B7280;white-space:normal;">${fmtLocal(totalFundDepositLocal)} ${fundLocalCur}</td>`;
         const dep=Math.round(memberFundDeposit[m.id]||0);
         const depLocal=memberFundDepositLocal[m.id]||0;
-        const _omrLine=fundLocalCur!==baseCur&&depLocal>0?`<span style="display:block;font-size:9px;color:#9CA3AF;">${parseFloat(depLocal.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}</span>`:'';
+        const _omrLine=fundLocalCur!==baseCur&&depLocal>0?`<span style="display:block;font-size:9px;color:#9CA3AF;">${fmtLocal(depLocal)} ${fundLocalCur}</span>`:'';
         return `<td style="${_cttl2n}${mbl(i)}white-space:normal;">${dep>0?_omrLine+dep.toLocaleString():'—'}</td>`;
       }).join('')}
     </tr>`;
