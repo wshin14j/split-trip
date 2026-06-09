@@ -3770,9 +3770,9 @@ const App = {
         if(c===fundLocalCur){const n=parseFloat((fundSurplus/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});return `<td style="${numS}">${n}</td>`;}
         return blank;
       }).join('');
-      surplusRow=`<tr>
+      surplusRow=`<tr style="font-style:italic;">
         <td style="${tdS}"></td><td style="${tdS}"></td>
-        <td style="${tdS}font-style:italic;color:#6B7280;">公費餘額</td>
+        <td style="${tdS}color:#6B7280;">公費餘額</td>
         ${_surplusCurCells}
         <td style="${tdS}text-align:center;color:#6B7280;">公款帳</td>
         <td style="${tdS}"></td>
