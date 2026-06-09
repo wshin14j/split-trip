@@ -4089,6 +4089,17 @@ const App = {
     // 計算 memberShareNF 與 peerBalDetailCsv（與 HTML export 邏輯一致）
     const fundMemberCsv=members.find(m=>m.isGroupFund);
     const memberGroupPaidCsv={};members.forEach(m=>{memberGroupPaidCsv[m.id]=memberPaid[m.id]||0;});
+    // 公款帳存款計算（與 HTML export 一致）
+    const fundDepositsCsv=t.fundDeposits||[];
+    const memberFundDepositCsv={};members.forEach(m=>{memberFundDepositCsv[m.id]=0;});
+    fundDepositsCsv.forEach(d=>{
+      if(d.fromMemberId&&memberFundDepositCsv[d.fromMemberId]!==undefined)
+        memberFundDepositCsv[d.fromMemberId]+=Math.round(toBase(d.amt,d.cur||baseCur,t.rates,baseCur));
+    });
+    const totalFundDepositCsv=Object.values(memberFundDepositCsv).reduce((s,v)=>s+v,0);
+    const fundSpentBaseCsv=fundMemberCsv?Math.round(memberPaid[fundMemberCsv.id]||0):0;
+    const fundSurplusCsv=Math.max(0,totalFundDepositCsv-fundSpentBaseCsv);
+    const surplusPerMemberCsv=fundSurplusCsv>0.5?Math.round(fundSurplusCsv/regularMembersCsv.length):0;
     const memberShareNF={};
     regularMembersCsv.forEach(m=>{memberShareNF[m.id]=0;});
     groupExps.filter(e=>e.note!=='金額待補').forEach(e=>{
@@ -4146,10 +4157,13 @@ const App = {
       return s>0?Math.round(s):'';
     });
     const grandTotal=groupExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0);
-    const ttlRow1=['TTL','群組支出','','',...empties(1),...curTotals,'',Math.round(grandTotal),'每人',...members.map(m=>memberShare[m.id]||0)];
+    const ttlRow1=['TTL','群組支出','','',...empties(1),...curTotals,'',Math.round(grandTotal+fundSurplusCsv),'每人',...members.map(m=>{
+      if(m.isGroupFund) return fundSpentBaseCsv||0;
+      return (memberShare[m.id]||0)+surplusPerMemberCsv;
+    })];
     const ttlRow1b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已付公費',...members.map(m=>{
-      if(m.isGroupFund) return '公款帳';
-      const dep=Math.round((memberShare[m.id]||0)-(memberShareNF[m.id]||0));
+      if(m.isGroupFund) return totalFundDepositCsv>0?totalFundDepositCsv:'—';
+      const dep=memberFundDepositCsv[m.id]||0;
       return dep>0?dep:'—';
     })];
     const ttlRow2=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付群組',...members.map(m=>memberGroupPaidCsv[m.id]||0)];
