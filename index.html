@@ -3763,7 +3763,7 @@ const App = {
         <td style="${tdS}color:#6B7280;">公款帳</td>
         <td style="${numSL}">${fundSurplus.toLocaleString()}</td>
         <td style="${numS}">${surplusPerMember.toLocaleString()}</td>
-        ${displayMembers.map((m,i)=>m.isGroupFund?`<td style="${numS}${mbl(i)}color:#9CA3AF;">公款帳</td>`:`<td style="${numS}${mbl(i)}">${surplusPerMember.toLocaleString()}</td>`).join('')}
+        ${displayMembers.map((m,i)=>m.isGroupFund?`<td style="${tdS}${mbl(i)}text-align:center;color:#9CA3AF;">公款帳</td>`:`<td style="${numS}${mbl(i)}">${surplusPerMember.toLocaleString()}</td>`).join('')}
       </tr>`;
     }
     // Group TTL
@@ -3905,7 +3905,7 @@ const App = {
       ${combinedCurTotals}
       <td style="${cttl}"></td>
       <td style="${cttln}font-weight:700;border-left:2.5px solid #9CA3AF;">${Math.round(combinedGrandTotal).toLocaleString()}</td>
-      <td style="${cttl}font-weight:700;text-align:center;">個人</td>
+      <td style="${cttl}font-weight:700;text-align:center;">總支出</td>
       ${displayMembers.map((m,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${((memberGroupShare[m.id]||0)+(memberSelfPay[m.id]||0)).toLocaleString()}</td>`).join('')}
     </tr>${fundDepRow}${paidOtherRow}${_proxyRowC}${selfPayRow}${owedRow}`;
     // Settlement — 對齊主 app 計算邏輯（expenses + payRecords + fundDeposits）
