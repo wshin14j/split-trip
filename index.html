@@ -3760,10 +3760,10 @@ const App = {
         <td style="${tdS}font-style:italic;color:#6B7280;">公費餘額</td>
         <td style="${tdS}"></td><td style="${tdS}text-align:center;">${regCount}</td>
         ${_surplusCurCells}
-        <td style="${tdS}color:#6B7280;">公帳款</td>
+        <td style="${tdS}color:#6B7280;">公款帳</td>
         <td style="${numSL}">${fundSurplus.toLocaleString()}</td>
         <td style="${numS}">${surplusPerMember.toLocaleString()}</td>
-        ${displayMembers.map((m,i)=>m.isGroupFund?`<td style="${numS}${mbl(i)}font-size:10px;color:#9CA3AF;text-align:center;">公帳款</td>`:`<td style="${numS}${mbl(i)}">${surplusPerMember.toLocaleString()}</td>`).join('')}
+        ${displayMembers.map((m,i)=>m.isGroupFund?`<td style="${numS}${mbl(i)}color:#9CA3AF;">公款帳</td>`:`<td style="${numS}${mbl(i)}">${surplusPerMember.toLocaleString()}</td>`).join('')}
       </tr>`;
     }
     // Group TTL
