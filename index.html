@@ -3658,11 +3658,10 @@ const App = {
       <th style="${thS}" colspan="2">分攤</th>
       <th style="${thSL}" rowspan="2">總金額(${baseCur})</th><th style="${thS}" rowspan="2">單價(${baseCur})</th>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<th style="${thS}${mbl(i)}" rowspan="2">${m.name}</th>`).join('')}
-      ${hasFundPdf?`<th style="${thS}${mbl(fundDisplayIdx)}" colspan="2">公款帳</th>`:''}
+      ${hasFundPdf?`<th style="${thS}${mbl(fundDisplayIdx)}" rowspan="2">實際支出<br>(${fundLocalCur})</th><th style="${thS}" rowspan="2">對照金額<br>(${baseCur})</th>`:''}
     </tr><tr>
       ${allCurs.map(c=>`<th style="${thS}">${c}</th>`).join('')}
       <th style="${thS}">方式</th><th style="${thS}">單位人數</th>
-      ${hasFundPdf?`<th style="${thS}">${fundLocalCur}</th><th style="${thS}">${baseCur}</th>`:''}
     </tr>`;
     // Separate accumulators: group vs personal
     const memberGroupShare={};const memberGroupShareNF={};const memberSelfPay={};const memberGroupPaid={};const memberFundDeposit={};
@@ -4055,8 +4054,8 @@ const App = {
     });
 
     // Header: two rows (群組標題 + 欄位名)
-    const header1=['','','','支出金額',...empties(allCurs.length-1),'','分攤','','','',...empties(regularMembersCsv.length),...(hasFund?['公款帳','']:[])];
-    const header2=['日期','類別','項目明細',...allCurs,'付款人','方式','單位人數',`總金額(${baseCur})`,`單價(${baseCur})`,...regularMembersCsv.map(m=>m.name),...(hasFund?[fundLocalCurCsv,baseCur]:[])];
+    const header1=['','','','支出金額',...empties(allCurs.length-1),'','分攤','','','',...empties(regularMembersCsv.length),...(hasFund?['','']:[])];
+    const header2=['日期','類別','項目明細',...allCurs,'付款人','方式','單位人數',`總金額(${baseCur})`,`單價(${baseCur})`,...regularMembersCsv.map(m=>m.name),...(hasFund?[`實際支出(${fundLocalCurCsv})`,`對照金額(${baseCur})`]:[])];
     csv+=header1.map(esc).join(',')+'\n';
     csv+=header2.map(esc).join(',')+'\n';
 
