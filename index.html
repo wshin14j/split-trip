@@ -3928,10 +3928,17 @@ const App = {
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${_cttl2n}${mbl(i)}color:#6B7280;">${(_selfOnlyShare[m.id]||0)>0?(_selfOnlyShare[m.id]||0).toLocaleString():'—'}</td>`).join('')}
       ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}color:#6B7280;">—</td><td style="${_cttl2n}color:#6B7280;">—</td>`:''}
     </tr>`;
+    const _peerBDRounded={};regularMembers.forEach(m=>{_peerBDRounded[m.id]=Math.round(peerBalDetail[m.id]||0);});
+    const _settleTxs=minimizeTx(_peerBDRounded);
+    const _nMem=_regMPdf.length;
+    const _txLine=_settleTxs.length===0?'🎉 大家都平帳了！':_settleTxs.map(tx=>`${mName(tx.from)} → ${mName(tx.to)}：${baseSym}${Math.round(tx.amt).toLocaleString()}`).join('　｜　');
     const owedRow=`<tr>${_cblankArr}
-      <td style="${_cttl2}text-align:center;font-weight:700;color:#EF4444;">待付款</td>
+      <td style="${_cttl2}text-align:center;font-weight:700;color:#EF4444;" rowspan="2">待付款</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const owed=Math.round(-(peerBalDetail[m.id]||0));const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
       ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}color:#6B7280;">—</td><td style="${_cttl2n}color:#6B7280;">—</td>`:''}
+    </tr><tr>${_cblankArr}
+      <td colspan="${_nMem}" style="${_cttl2}text-align:center;color:#92400E;font-weight:600;padding:6px 12px;white-space:normal;">${_txLine}</td>
+      ${hasFundPdf?`<td style="${_cttl2}"></td><td style="${_cttl2}"></td>`:''}
     </tr>`;
     // LRM for combined section：確保成員欄加總 = 總金額（不含公費餘額）
     const _rawCombShares=_regMPdf.map(m=>(memberGroupShare[m.id]||0)+(memberSelfPay[m.id]||0));
