@@ -3653,7 +3653,7 @@ const App = {
     const mainHeader=`<tr>
       <th style="${thS}" rowspan="2">日期</th><th style="${thS}" rowspan="2">類別</th><th style="${thS}" rowspan="2">項目明細</th>
       <th style="${thS}" colspan="${allCurs.length}">支出金額</th>
-      <th style="${thS}" rowspan="2">付款人</th>
+      <th style="${thSL}" rowspan="2">付款人</th>
       <th style="${thS}" colspan="2">分攤</th>
       <th style="${thSL}" rowspan="2">總金額(${baseCur})</th><th style="${thS}" rowspan="2">單價(${baseCur})</th>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<th style="${thS}${mbl(i)}" rowspan="2">${m.name}</th>`).join('')}
@@ -3727,7 +3727,7 @@ const App = {
         <td style="${tdS}">${e.category||'其他'}</td>
         <td style="${tdS}font-weight:600;">${e.name}</td>
         ${curCells}
-        <td style="${tdS}text-align:center;">${payer}</td>
+        <td style="${tdS}border-left:2.5px solid #9CA3AF;text-align:center;">${payer}</td>
         <td style="${tdS}text-align:center;">${_splitLbl}</td>
         <td style="${tdS}text-align:center;">${ps.length}</td>
         <td style="${numSL}font-weight:600;${isPending?'color:#F97316;':''}">${isPending?'待補':baseTotalNum.toLocaleString()}</td>
@@ -3775,7 +3775,7 @@ const App = {
         <td style="${tdS}"></td><td style="${tdS}"></td>
         <td style="${tdS}color:#6B7280;">公費餘額</td>
         ${_surplusCurCells}
-        <td style="${tdS}text-align:center;color:#6B7280;">公款帳</td>
+        <td style="${tdS}border-left:2.5px solid #9CA3AF;text-align:center;color:#6B7280;">公款帳</td>
         <td style="${tdS}"></td>
         <td style="${tdS}text-align:center;">${regCount}</td>
         <td style="${numSL}">${fundSurplus.toLocaleString()}</td>
@@ -3842,7 +3842,7 @@ const App = {
     const groupTtlRows=`<tr>
       <td style="${ttl1}font-weight:700;"${_grpRs}>TTL</td><td style="${ttl1}font-weight:700;"${_grpRs}>群組支出</td><td style="${ttl1}"${_grpRs}></td>
       ${groupCurTotals}
-      <td style="${ttl1}"${_grpRs}></td><td style="${ttl1}"${_grpRs}></td><td style="${ttl1}"${_grpRs}></td>
+      <td style="${ttl1}border-left:2.5px solid #9CA3AF;"${_grpRs}></td><td style="${ttl1}"${_grpRs}></td><td style="${ttl1}"${_grpRs}></td>
       <td style="${ttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;"${_grpRs}>${_intGrpTotal.toLocaleString()}</td>
       <td style="${ttl1}"${_grpRs}></td>
       ${_lrmGrpShares.map((sh,i)=>`<td style="${ttl1n}${mbl(i)}font-weight:700;"${_grpRs}>${sh.toLocaleString()}</td>`).join('')}
@@ -3876,7 +3876,7 @@ const App = {
           if(mShare[pid]!==undefined) mShare[pid]+=Math.round(toBase(sh,expCur,t.rates,baseCur));
         });
       });
-      return `<tr><td style="${pttl1}font-weight:700;">TTL</td><td style="${pttl1}font-weight:700;">${label}</td><td style="${pttl1}"></td>${curTtl}<td style="${pttl1}"></td><td style="${pttl1}"></td><td style="${pttl1}"></td><td style="${pttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;">${tot.toLocaleString()}</td><td style="${pttl1}"></td>${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${pttl1n}${mbl(i)}font-weight:700;">${(mShare[m.id]||0)>0?(mShare[m.id]||0).toLocaleString():'—'}</td>`).join('')}${hasFundPdf?`<td style="${pttl1n}${mbl(fundDisplayIdx)}font-weight:700;">—</td><td style="${pttl1n}font-weight:700;">—</td>`:''}</tr>`;
+      return `<tr><td style="${pttl1}font-weight:700;">TTL</td><td style="${pttl1}font-weight:700;">${label}</td><td style="${pttl1}"></td>${curTtl}<td style="${pttl1}border-left:2.5px solid #9CA3AF;"></td><td style="${pttl1}"></td><td style="${pttl1}"></td><td style="${pttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;">${tot.toLocaleString()}</td><td style="${pttl1}"></td>${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${pttl1n}${mbl(i)}font-weight:700;">${(mShare[m.id]||0)>0?(mShare[m.id]||0).toLocaleString():'—'}</td>`).join('')}${hasFundPdf?`<td style="${pttl1n}${mbl(fundDisplayIdx)}font-weight:700;">—</td><td style="${pttl1n}font-weight:700;">—</td>`:''}</tr>`;
     };
     let personalSection='';
     if(personalExps.length){
@@ -3900,7 +3900,8 @@ const App = {
     const _cttl2=`padding:6px 9px;font-size:11px;background:#FEF9C3;border:1px solid #FDE68A;white-space:nowrap;vertical-align:middle;`;
     const _cttl2n=_cttl2+'text-align:right;';
     const _cblank2=`<td style="${_cttl2}"></td>`;
-    const _cblankArr=Array(fixedLeft+allCurs.length+fixedMid-1).fill(_cblank2).join('');
+    const _payBlank2=`<td style="${_cttl2}border-left:2.5px solid #9CA3AF;"></td>`;
+    const _cblankArr=[...Array(fixedLeft+allCurs.length).fill(_cblank2),_payBlank2,...Array(fixedMid-2).fill(_cblank2)].join('');
     const fundDepRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已存入公費</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{
@@ -3951,7 +3952,7 @@ const App = {
     const combinedSection=sectionRow('整趟旅程完整花費（群組＋個人）','#FEF9C3','#92400E','#FDE68A')+`<tr>
       <td style="${cttl}font-weight:700;">合計</td><td style="${cttl}font-weight:700;">全部支出</td><td style="${cttl}"></td>
       ${combinedCurTotals}
-      <td style="${cttl}"></td><td style="${cttl}"></td><td style="${cttl}"></td>
+      <td style="${cttl}border-left:2.5px solid #9CA3AF;"></td><td style="${cttl}"></td><td style="${cttl}"></td>
       <td style="${cttln}font-weight:700;border-left:2.5px solid #9CA3AF;">${_intCombTotal.toLocaleString()}</td>
       <td style="${cttl}font-weight:700;text-align:center;">總花費</td>
       ${_lrmCombShares.map((sh,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${sh.toLocaleString()}</td>`).join('')}
