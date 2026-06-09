@@ -3935,11 +3935,11 @@ const App = {
     const _sortedTxs=[..._settleTxs].sort((a,b)=>{const d=(_mOrd[a.to]??99)-(_mOrd[b.to]??99);return d!==0?d:(_mOrd[a.from]??99)-(_mOrd[b.from]??99);});
     const _txLine=_sortedTxs.length===0?'🎉 大家都平帳了！':_sortedTxs.map(tx=>`${mName(tx.from)} → ${mName(tx.to)}：${baseSym}${Math.round(tx.amt).toLocaleString()}`).join('<br>');
     const owedRow=`<tr>${_cblankArr}
-      <td style="${_cttl2}text-align:center;font-weight:700;color:#92400E;" rowspan="2">待付款</td>
-      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const owed=Math.round(-(peerBalDetail[m.id]||0));const col=owed>0?'#EF4444':owed<0?'#22c55e':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}border-top:2px solid #F59E0B;border-bottom:none;font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
+      <td style="${_cttl2}text-align:center;font-weight:700;color:#78350F;" rowspan="2">待付款</td>
+      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const owed=Math.round(-(peerBalDetail[m.id]||0));const col=owed>0?'#B91C1C':owed<0?'#166534':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}border-top:2px solid #F59E0B;border-bottom:none;font-weight:700;color:${col};">${owed>0?`−${owed.toLocaleString()}`:owed<0?(-owed).toLocaleString():0}</td>`;}).join('')}
       ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}"></td><td style="${_cttl2n}"></td>`:''}
     </tr><tr>${_cblankArr}
-      <td colspan="${_nMem}" style="${_cttl2}border-top:none;border-left:2.5px solid #9CA3AF;text-align:center;color:#92400E;font-weight:600;padding:6px 12px;white-space:normal;">${_txLine}</td>
+      <td colspan="${_nMem}" style="${_cttl2}border-top:none;border-left:2.5px solid #9CA3AF;text-align:center;color:#78350F;font-weight:600;padding:6px 12px;white-space:normal;">${_txLine}</td>
       ${hasFundPdf?`<td style="${_cttl2}border-top:none;border-left:2.5px solid #9CA3AF;"></td><td style="${_cttl2}border-top:none;"></td>`:''}
     </tr>`;
     // LRM for combined section：確保成員欄加總 = 總金額（不含公費餘額）
