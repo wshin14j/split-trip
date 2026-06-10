@@ -4062,7 +4062,8 @@ const App = {
     const exps=Object.values(t.expenses||{}).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     const baseCur=t.baseCurrency||'TWD';
     const baseSym=(C[baseCur]||C.TWD).sym;
-    const esc=v=>`"${String(v).replace(/"/g,'""')}"`;
+    const esc=v=>typeof v==='number'?String(v):`"${String(v).replace(/"/g,'""')}"`;
+    const r2=v=>parseFloat(v.toFixed(2)); // 顯示金額保留兩位小數，確保欄位加總精確
     const mName=id=>{const m=members.find(m=>m.id===id);return m?.name||id;};
     const _fDepCursCsv=(t.fundDeposits||[]).map(d=>d.cur||baseCur).filter(c=>c!==baseCur);
     const fundLocalCurCsv=_fDepCursCsv.length>0?_fDepCursCsv.sort((a,b)=>_fDepCursCsv.filter(c=>c===b).length-_fDepCursCsv.filter(c=>c===a).length)[0]:baseCur;
@@ -4095,10 +4096,12 @@ const App = {
     // Accumulators
     const memberShare={};const memberPaid={};
     members.forEach(m=>{memberShare[m.id]=0;memberPaid[m.id]=0;});
+    // 追蹤每人群組份額的「實際顯示整數值」，確保 TTL = 欄位加總
+    const memberGroupShareDisplayCsv={};regularMembersCsv.forEach(m=>{memberGroupShareDisplayCsv[m.id]=0;});
     const fundMemberCsv=members.find(m=>m.isGroupFund);
     const fundLocalRateCsv=t.rates?.[fundLocalCurCsv]||1;
 
-    const buildRows=(list)=>{
+    const buildRows=(list,shareAcc)=>{
       list.forEach(e=>{
         const expCur=e.currency||baseCur;
         const isPending=e.note==='金額待補';
@@ -4106,11 +4109,11 @@ const App = {
         const payer=typeof e.paidBy==='object'
           ? Object.entries(e.paidBy).filter(([,amt])=>amt>0).map(([pid,amt])=>`${members.find(m=>m.id===pid)?.name||'?'}(${Number(amt).toLocaleString()})`).join(' + ')
           : (members.find(m=>m.id===e.paidBy)?.name||'?');
-        const baseTotalNum=isPending?0:Math.round(toBase(e.amount,expCur,t.rates,baseCur));
-        const unitPrice=ps.length>0?Math.round(baseTotalNum/ps.length):0;
+        const baseTotalNum=isPending?0:r2(toBase(e.amount,expCur,t.rates,baseCur));
+        const unitPrice=ps.length>0?r2(baseTotalNum/ps.length):0;
         if(!isPending){
           if(typeof e.paidBy==='string'&&memberPaid[e.paidBy]!==undefined) memberPaid[e.paidBy]+=baseTotalNum;
-          else if(typeof e.paidBy==='object'&&e.paidBy) Object.entries(e.paidBy).forEach(([pid,amt])=>{if(memberPaid[pid]!==undefined) memberPaid[pid]+=Math.round(toBase(amt,expCur,t.rates,baseCur));});
+          else if(typeof e.paidBy==='object'&&e.paidBy) Object.entries(e.paidBy).forEach(([pid,amt])=>{if(memberPaid[pid]!==undefined) memberPaid[pid]+=r2(toBase(amt,expCur,t.rates,baseCur));});
         }
         const curCells=allCurs.map(c=>c===expCur?(isPending?'待補':e.amount):'');
         const regularMemberCells=regularMembersCsv.map(m=>{
@@ -4121,7 +4124,9 @@ const App = {
           else sh=e.amount/ps.length;
           const shBase=toBase(sh,expCur,t.rates,baseCur);
           memberShare[m.id]+=shBase;
-          return Math.round(shBase);
+          const shRounded=r2(shBase);
+          if(shareAcc) shareAcc[m.id]=(shareAcc[m.id]||0)+shRounded;
+          return shRounded;
         });
         const splitModeLabel=e.splitMode==='proportion'&&e.proportions?`比例 ${regularMembersCsv.map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:splitLabel(e.splitMode);
         let fundCells=[];
@@ -4152,7 +4157,7 @@ const App = {
     const groupExps=exps.filter(e=>isGroupExpCsv(e));
     const personalExps=exps.filter(e=>!isGroupExpCsv(e));
     sectionRow('群組支出明細');
-    buildRows(groupExps);
+    buildRows(groupExps,memberGroupShareDisplayCsv);
 
     // 計算 memberShareNF 與 peerBalDetailCsv（與 HTML export 邏輯一致）
     const memberGroupPaidCsv={};members.forEach(m=>{memberGroupPaidCsv[m.id]=memberPaid[m.id]||0;});
@@ -4175,7 +4180,7 @@ const App = {
     const fundSpentBaseCsv=fundMemberCsv?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===fundMemberCsv.id:!!(e.paidBy?.[fundMemberCsv.id]>0)).reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,baseCur),0):0;
     const fundSurplusRawCsv=Math.max(0,totalFundDepositRawCsv-fundSpentBaseCsv);
     const fundSurplusCsv=Math.round(fundSurplusRawCsv);
-    const surplusPerMemberCsv=fundSurplusRawCsv>0.5?Math.round(fundSurplusRawCsv/regularMembersCsv.length):0;
+    const surplusPerMemberCsv=fundSurplusRawCsv>0.5?r2(fundSurplusRawCsv/regularMembersCsv.length):0;
     const memberShareNF={};
     regularMembersCsv.forEach(m=>{memberShareNF[m.id]=0;});
     groupExps.filter(e=>e.note!=='金額待補').forEach(e=>{
@@ -4242,16 +4247,13 @@ const App = {
       const _sLocalFmt=parseFloat(_sLocalAmt.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
       const surplusRowCsv=['','','公費餘額',...surplusCurCsv,'公款帳','',regularMembersCsv.length,fundSurplusCsv,surplusPerMemberCsv,...regularMembersCsv.map(()=>surplusPerMemberCsv),...(hasFund?[`剩餘退款 ${_sLocalFmt} ${fundLocalCurCsv}`,fundSurplusCsv]:[])];
       csv+=surplusRowCsv.map(esc).join(',')+'\n';
+      // 公費餘額也顯示在成員欄，加入累積器確保 TTL 一致
+      regularMembersCsv.forEach(m=>{memberGroupShareDisplayCsv[m.id]+=surplusPerMemberCsv;});
     }
-    // 最大餘數法：確保成員欄整數加總 = 群組總金額整數
-    const _rawGrpSharesCsv=regularMembersCsv.map(m=>(memberGroupOnlyShareCsv[m.id]||0)+(fundSurplusRawCsv>0.5?fundSurplusRawCsv/regularMembersCsv.length:0));
-    const _intGrpTotalCsv=Math.round(groupGrandTotalRawCsv);
-    const _floorGrpSharesCsv=_rawGrpSharesCsv.map(v=>Math.floor(v));
-    const _fracGrpIdxsCsv=_rawGrpSharesCsv.map((v,i)=>({i,f:v-Math.floor(v)})).sort((a,b)=>b.f-a.f);
-    const _grpRemCsv=_intGrpTotalCsv-_floorGrpSharesCsv.reduce((s,v)=>s+v,0);
-    for(let _ri=0;_ri<_grpRemCsv;_ri++)_floorGrpSharesCsv[_fracGrpIdxsCsv[_ri].i]++;
+    // 群組 TTL：直接用顯示累積值，確保欄位加總 = TTL
+    const _intGrpTotalCsv=regularMembersCsv.reduce((s,m)=>s+(memberGroupShareDisplayCsv[m.id]||0),0);
     const _fundSpentLocalCsv=fundSpentBaseCsv>0?parseFloat((fundSpentBaseCsv/fundLocalRateCsv).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3}):'0';
-    const groupTtlRow=['TTL','群組支出','',...groupCurTotals,'',...empties(2),_intGrpTotalCsv,'',..._floorGrpSharesCsv,...(hasFund?[`實際支出 ${_fundSpentLocalCsv} ${fundLocalCurCsv}`,Math.round(fundSpentBaseCsv)]:[])];
+    const groupTtlRow=['TTL','群組支出','',...groupCurTotals,'',...empties(2),_intGrpTotalCsv,'',...regularMembersCsv.map(m=>memberGroupShareDisplayCsv[m.id]||0),...(hasFund?[`實際支出 ${_fundSpentLocalCsv} ${fundLocalCurCsv}`,Math.round(fundSpentBaseCsv)]:[])];
     csv+=groupTtlRow.map(esc).join(',')+'\n';
     // 公費存入 rows（與 PDF 一致）
     if(hasFund&&totalFundDepositRawCsv>0.5){
@@ -4273,11 +4275,11 @@ const App = {
     const memberPersonalShareAccCsv={};regularMembersCsv.forEach(m=>{memberPersonalShareAccCsv[m.id]=0;});
     const buildPersonalTtlCsv=(list,label)=>{
       const curTtls=allCurs.map(c=>{const s=list.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);return s>0?Math.round(s):'';});
-      const tot=list.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+Math.round(toBase(e.amount,e.currency||baseCur,t.rates,baseCur)),0);
+      const tot=list.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+r2(toBase(e.amount,e.currency||baseCur,t.rates,baseCur)),0);
       const loc={};regularMembersCsv.forEach(m=>{loc[m.id]=0;});
       list.filter(e=>e.note!=='金額待補').forEach(e=>{
         const ps=e.parts||regularMembersCsv.map(m=>m.id);const expCur=e.currency||baseCur;
-        ps.forEach(pid=>{if(loc[pid]!==undefined){let sh=(e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts?e.customAmounts[pid]||0:e.amount/ps.length;loc[pid]+=Math.round(toBase(sh,expCur,t.rates,baseCur));}});
+        ps.forEach(pid=>{if(loc[pid]!==undefined){let sh=(e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts?e.customAmounts[pid]||0:e.amount/ps.length;loc[pid]+=r2(toBase(sh,expCur,t.rates,baseCur));}});
       });
       regularMembersCsv.forEach(m=>{memberPersonalShareAccCsv[m.id]+=(loc[m.id]||0);});
       csv+=['TTL',label,'',...curTtls,'',...empties(2),tot,'',...regularMembersCsv.map(m=>(loc[m.id]||0)||''),...(hasFund?['','']:[])].map(esc).join(',')+'\n';
@@ -4305,7 +4307,7 @@ const App = {
       return s>0?Math.round(s):'';
     });
     // 總花費 = 群組 LRM 份額 + 個人各區段份額（直接加總，與上方各區欄位數字一致，不重跑 LRM）
-    const _floorCombSharesCsv=regularMembersCsv.map((m,i)=>_floorGrpSharesCsv[i]+(memberPersonalShareAccCsv[m.id]||0));
+    const _floorCombSharesCsv=regularMembersCsv.map(m=>(memberGroupShareDisplayCsv[m.id]||0)+(memberPersonalShareAccCsv[m.id]||0));
     const _intCombTotalCsv=_floorCombSharesCsv.reduce((s,v)=>s+v,0);
     sectionRow('整趟旅程完整花費（群組＋個人）');
     const ttlRow1=['合計','全部支出','',...combinedCurTotals,'',...empties(2),_intCombTotalCsv,'總花費',..._floorCombSharesCsv,...(hasFund?['','']:[])];
