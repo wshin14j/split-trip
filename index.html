@@ -4269,6 +4269,8 @@ const App = {
     }
 
     // Personal expenses — 分為「他人墊付」與「自購」兩區（與 PDF 一致）
+    // 同時累積個人份額，供後面 總花費 直接加總，確保欄位數字可以對上
+    const memberPersonalShareAccCsv={};regularMembersCsv.forEach(m=>{memberPersonalShareAccCsv[m.id]=0;});
     const buildPersonalTtlCsv=(list,label)=>{
       const curTtls=allCurs.map(c=>{const s=list.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);return s>0?Math.round(s):'';});
       const tot=Math.round(list.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0));
@@ -4277,6 +4279,7 @@ const App = {
         const ps=e.parts||regularMembersCsv.map(m=>m.id);const expCur=e.currency||baseCur;
         ps.forEach(pid=>{if(loc[pid]!==undefined){let sh=(e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts?e.customAmounts[pid]||0:e.amount/ps.length;loc[pid]+=Math.round(toBase(sh,expCur,t.rates,baseCur));}});
       });
+      regularMembersCsv.forEach(m=>{memberPersonalShareAccCsv[m.id]+=(loc[m.id]||0);});
       csv+=['TTL',label,'',...curTtls,'',...empties(2),tot,'',...regularMembersCsv.map(m=>(loc[m.id]||0)||''),...(hasFund?['','']:[])].map(esc).join(',')+'\n';
     };
     if(personalExps.length){
@@ -4296,19 +4299,14 @@ const App = {
 
     }
 
-    // 整趟旅程完整花費（群組＋個人）— 與 PDF 一致
+    // 整趟旅程完整花費（群組＋個人）
     const combinedCurTotals=allCurs.map(c=>{
       const s=exps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);
       return s>0?Math.round(s):'';
     });
-    const combinedGrandTotalRawCsv=exps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0);
-    // LRM for combined section：確保成員欄加總 = 總金額
-    const _rawCombSharesCsv=regularMembersCsv.map(m=>memberShare[m.id]||0);
-    const _intCombTotalCsv=Math.round(combinedGrandTotalRawCsv);
-    const _floorCombSharesCsv=_rawCombSharesCsv.map(v=>Math.floor(v));
-    const _fracCombIdxsCsv=_rawCombSharesCsv.map((v,i)=>({i,f:v-Math.floor(v)})).sort((a,b)=>b.f-a.f);
-    const _combRemCsv=_intCombTotalCsv-_floorCombSharesCsv.reduce((s,v)=>s+v,0);
-    for(let _ri=0;_ri<_combRemCsv;_ri++)_floorCombSharesCsv[_fracCombIdxsCsv[_ri].i]++;
+    // 總花費 = 群組 LRM 份額 + 個人各區段份額（直接加總，與上方各區欄位數字一致，不重跑 LRM）
+    const _floorCombSharesCsv=regularMembersCsv.map((m,i)=>_floorGrpSharesCsv[i]+(memberPersonalShareAccCsv[m.id]||0));
+    const _intCombTotalCsv=_floorCombSharesCsv.reduce((s,v)=>s+v,0);
     sectionRow('整趟旅程完整花費（群組＋個人）');
     const ttlRow1=['合計','全部支出','',...combinedCurTotals,'',...empties(2),_intCombTotalCsv,'總花費',..._floorCombSharesCsv,...(hasFund?['','']:[])];
     const ttlRow1b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已存入公費',...regularMembersCsv.map(m=>{const dep=Math.round(memberFundDepositCsv[m.id]||0);return dep||'';}),...(hasFund?['','']:[])];
