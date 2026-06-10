@@ -4273,7 +4273,7 @@ const App = {
     const memberPersonalShareAccCsv={};regularMembersCsv.forEach(m=>{memberPersonalShareAccCsv[m.id]=0;});
     const buildPersonalTtlCsv=(list,label)=>{
       const curTtls=allCurs.map(c=>{const s=list.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);return s>0?Math.round(s):'';});
-      const tot=Math.round(list.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0));
+      const tot=list.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+Math.round(toBase(e.amount,e.currency||baseCur,t.rates,baseCur)),0);
       const loc={};regularMembersCsv.forEach(m=>{loc[m.id]=0;});
       list.filter(e=>e.note!=='金額待補').forEach(e=>{
         const ps=e.parts||regularMembersCsv.map(m=>m.id);const expCur=e.currency||baseCur;
