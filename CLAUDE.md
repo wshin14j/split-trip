@@ -27,5 +27,5 @@ python3 -m http.server 8000
 ## 部署
 
 - 正式網址:**https://roamsplit.pages.dev**(Cloudflare Pages,push 到 main 自動部署)
-- ⚠️ 2026-07-06 儲存庫過戶到 wshin14j 後,Cloudflare 的 git 連結需要重新設定——若 push 後網站沒更新,先檢查 Cloudflare Pages 後台的部署紀錄
+- Cloudflare 的 git 連結已於 2026-07-06 重新接到 wshin14j/split-trip(過戶後重設),自動部署正常。Cloudflare 帳號用的是 wenchenlee1127@gmail.com
 - 使用者用 GitHub Desktop 操作 git(登入 wshin14j 帳號)
