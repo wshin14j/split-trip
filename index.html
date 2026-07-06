@@ -2628,10 +2628,18 @@ const App = {
         .map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
     const curSel=document.getElementById('in-exp-cur');
     const _allExpCurs=[...Object.keys(DEF),...(t.customCurrencies||[]).map(c=>c.code)].filter((v,i,a)=>a.indexOf(v)===i);
-    curSel.innerHTML=_allExpCurs.map(c=>{
+    // 聰明排序:這趟旅程用過的幣別排最前面(依最近使用),其餘完整清單在分隔線下方
+    const _expListCur=Object.values(t.expenses||{});
+    const _lastUsedCur={};_expListCur.forEach(e=>{const c=e.currency||t.baseCurrency||'TWD';_lastUsedCur[c]=Math.max(_lastUsedCur[c]||0,e.createdAt||0);});
+    const _usedCurs=Object.keys(_lastUsedCur).filter(c=>_allExpCurs.includes(c)).sort((a,b)=>_lastUsedCur[b]-_lastUsedCur[a]);
+    const _restCurs=_allExpCurs.filter(c=>!_usedCurs.includes(c));
+    const _mkCurOpt=c=>{
       const zhName=CUR_ZH[c]||(t.customCurrencies||[]).find(cc=>cc.code===c)?.name||c;
       return `<option value="${c}">${curFlag(c)} ${c} ${zhName}</option>`;
-    }).join('');
+    };
+    curSel.innerHTML=_usedCurs.map(_mkCurOpt).join('')
+      +(_usedCurs.length&&_restCurs.length?`<option disabled>──────────</option>`:'')
+      +_restCurs.map(_mkCurOpt).join('');
     document.getElementById('in-exp-parts').innerHTML=
       t.members.filter(m=>!m.isGroupFund).map(m=>`<button class="chip chip-lg on" id="cp-${m.id}" onclick="App.togglePart('${m.id}')">${m.name}</button>`).join('')+
       `<button class="chip chip-lg" id="cp-none" onclick="App.toggleSelfPurchase()">自購</button>`+
@@ -2688,7 +2696,9 @@ const App = {
       document.getElementById('in-exp-date').value=this.dateWithDay(todayStr);
       document.getElementById('in-exp-cat').value='餐飲';
       document.getElementById('in-exp-name').value='';
-      document.getElementById('in-exp-cur').value='TWD';
+      // 預設帶入最近一筆的幣別(連續記帳免選),沒有紀錄則用 TWD
+      const _lastExpCur=_expListCur.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))[0];
+      document.getElementById('in-exp-cur').value=(_lastExpCur&&_allExpCurs.includes(_lastExpCur.currency))?_lastExpCur.currency:'TWD';
       document.getElementById('in-exp-amt').value='';
       document.getElementById('in-exp-pay-method').value='現金';
     }
