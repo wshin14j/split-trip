@@ -3667,7 +3667,7 @@ const App = {
     const blank=`<td style="${tdS}"></td>`;
     const fixedLeft=3;const fixedMid=5;
     const totalCols=fixedLeft+allCurs.length+fixedMid+displayMembers.length+(hasFundPdf?1:0);
-    const splitLabel=m=>({equal:'平均',custom:'自訂',proportion:'比例',self:'自購'}[m]||'平均');
+    const splitLabel=m=>({equal:'平均',custom:'自訂',proportion:'比例',self:'自購',extproxy:'代購'}[m]||'平均');
     const mbl=i=>(i===0||(fundDisplayIdx>=0&&i===fundDisplayIdx))?'border-left:2.5px solid #9CA3AF;':'';
     // TTL row styles — strong top border for clear separation
     const ttl1=`padding:6px 9px;font-size:11px;background:#EEF2FF;border:1px solid #C7D2FE;border-top:2px solid #818CF8;white-space:nowrap;vertical-align:middle;`;
@@ -3751,7 +3751,9 @@ const App = {
           fundTWDCell=`<td style="${numS}color:#9CA3AF;font-size:10px;">${fundAmt.toLocaleString()}</td>`;
         }
       }
-      const _splitLbl=e.splitMode==='proportion'&&e.proportions?`比例 ${displayMembers.filter(m=>!m.isGroupFund).map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:e.splitMode==='custom'?`<span style="color:#0891B2;font-weight:700;">自訂</span>`:splitLabel(e.splitMode);
+      const _payerIdLbl=typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0];
+      const _isProxyLbl=e.splitMode!=='self'&&e.splitMode!=='extproxy'&&ps.length===1&&ps[0]!==_payerIdLbl;
+      const _splitLbl=_isProxyLbl?'代付':e.splitMode==='proportion'&&e.proportions?`比例 ${displayMembers.filter(m=>!m.isGroupFund).map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:e.splitMode==='custom'?`<span style="color:#0891B2;font-weight:700;">自訂</span>`:splitLabel(e.splitMode);
       return `<tr>
         <td style="${tdS}">${e.date||'—'}</td>
         <td style="${tdS}">${e.category||'其他'}</td>
@@ -3979,61 +3981,78 @@ const App = {
     groupExps.forEach(e=>{const c=ENG.perExp[e._k];if(!c||c.pending)return;const cat=e.category||'其他';catTotals[cat]=(catTotals[cat]||0)+c.baseTotal;});
     const catEntries=Object.entries(catTotals).sort(([,a],[,b])=>b-a);
     const analysisTotal=catEntries.reduce((s,[,v])=>s+v,0);
-    // SVG donut chart
-    const _r=50,_cx=80,_cy=80,_circ=2*Math.PI*_r;
-    let _cumLen=0;
-    const _svgSegs=catEntries.map(([cat,amt])=>{
-      const segLen=(analysisTotal>0?amt/analysisTotal:0)*_circ;
-      const offset=_circ/4-_cumLen;
-      _cumLen+=segLen;
-      return `<circle r="${_r}" cx="${_cx}" cy="${_cy}" fill="none" stroke="${catCol[cat]||'#6B7280'}" stroke-width="28" stroke-dasharray="${segLen.toFixed(2)} ${(_circ-segLen).toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}"/>`;
-    }).join('');
-    const donutSVG=`<svg width="140" height="140" viewBox="0 0 160 160" style="flex-shrink:0;"><circle r="${_r}" cx="${_cx}" cy="${_cy}" fill="none" stroke="#F3F4F6" stroke-width="28"/>${_svgSegs}<circle r="36" cx="${_cx}" cy="${_cy}" fill="white"/></svg>`;
-    const catRows=catEntries.map(([cat,amt])=>{
-      const pct=analysisTotal>0?Math.round(amt/analysisTotal*100):0;
-      const col=catCol[cat]||'#6B7280';
+    // 版型參照 app 內「群組支出分析」:總覽 → 分類 → 成員占比 → 各付款人區塊
+    const mkDonut=(entries,size)=>{
+      const r=50,cx=80,cy=80,circ=2*Math.PI*r,tot=entries.reduce((s,[,v])=>s+v,0);
+      let cum=0;
+      const segs=entries.map(([cat,amt])=>{
+        const len=(tot>0?amt/tot:0)*circ;const off=circ/4-cum;cum+=len;
+        return `<circle r="${r}" cx="${cx}" cy="${cy}" fill="none" stroke="${catCol[cat]||'#6B7280'}" stroke-width="28" stroke-dasharray="${len.toFixed(2)} ${(circ-len).toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}"/>`;
+      }).join('');
+      return `<svg width="${size}" height="${size}" viewBox="0 0 160 160" style="flex-shrink:0;"><circle r="${r}" cx="${cx}" cy="${cy}" fill="none" stroke="#F3F4F6" stroke-width="28"/>${segs}<circle r="36" cx="${cx}" cy="${cy}" fill="white"/></svg>`;
+    };
+    const mkCatRows=(entries,tot)=>entries.map(([cat,amt])=>{
+      const pct=tot>0?Math.round(amt/tot*100):0;
       return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #F3F4F6;">
-        <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0;"></div>
+        <div style="width:10px;height:10px;border-radius:50%;background:${catCol[cat]||'#6B7280'};flex-shrink:0;"></div>
         <div style="flex:1;font-size:13px;">${cat}</div>
         <div style="font-size:12px;color:#6B7280;width:36px;text-align:right;">${pct}%</div>
-        <div style="font-size:13px;font-weight:600;width:90px;text-align:right;">${baseSym} ${amt.toLocaleString()}</div>
+        <div style="font-size:13px;font-weight:700;width:100px;text-align:right;">${baseSym} ${amt.toLocaleString()}</div>
       </div>`;
     }).join('');
+    // 各付款人的類別花費(引擎整數;多人代墊按各自實付歸屬)
+    const payerCat={};
+    groupExps.forEach(e=>{
+      const c=ENG.perExp[e._k];if(!c||c.pending)return;
+      const cat=e.category||'其他';
+      Object.entries(c.paid).forEach(([pid,v])=>{
+        if(v<=0)return;
+        (payerCat[pid]=payerCat[pid]||{})[cat]=(payerCat[pid][cat]||0)+v;
+      });
+    });
     const totalPaid=Object.values(memberGroupPaid).reduce((s,v)=>s+v,0);
-    const paidEntries=displayMembers.filter(m=>!m.isGroupFund).map(m=>({m,paid:memberGroupPaid[m.id]||0,col:mCol(m)})).concat(displayMembers.filter(m=>m.isGroupFund).map(m=>({m,paid:memberGroupPaid[m.id]||0,col:mCol(m)}))).filter(x=>x.paid>0).sort((a,b)=>b.paid-a.paid);
+    const paidEntries=[...displayMembers].map(m=>({m,paid:memberGroupPaid[m.id]||0,col:mCol(m)})).filter(x=>x.paid>0).sort((a,b)=>b.paid-a.paid);
     const barSegs=paidEntries.map(x=>`<div style="height:100%;width:${totalPaid>0?(x.paid/totalPaid*100).toFixed(1):0}%;background:${x.col};"></div>`).join('');
-    const memberPayRows=paidEntries.map(x=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
-      <div style="width:10px;height:10px;border-radius:50%;background:${x.col};flex-shrink:0;"></div>
-      <div style="flex:1;font-size:13px;">${x.m.name}</div>
+    const memberPayRows=paidEntries.map(x=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;">
+      <div style="width:10px;height:10px;border-radius:3px;background:${x.col};flex-shrink:0;"></div>
+      <div style="flex:1;font-size:13px;font-weight:600;">${x.m.name}</div>
       <div style="font-size:13px;color:#6B7280;">${baseSym} ${x.paid.toLocaleString()}</div>
-      <div style="font-size:13px;font-weight:600;color:${x.col};width:42px;text-align:right;">${totalPaid>0?Math.round(x.paid/totalPaid*100):0}%</div>
+      <div style="font-size:13px;font-weight:700;color:${x.col};width:44px;text-align:right;">${totalPaid>0?Math.round(x.paid/totalPaid*100):0}%</div>
     </div>`).join('');
-    const analysisHTML=`<div style="margin-top:20px;max-width:480px;">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px;">群組支出分析</div>
-      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:12px;">
-        <span style="font-size:12px;color:#6B7280;">總支出</span>
+    const payerSections=paidEntries.map(x=>{
+      const entries=Object.entries(payerCat[x.m.id]||{}).sort(([,a],[,b])=>b-a);
+      if(!entries.length)return '';
+      const tot=entries.reduce((s,[,v])=>s+v,0);
+      return `<div style="margin-top:18px;page-break-inside:avoid;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px solid #E5E7EB;padding-top:14px;margin-bottom:8px;">
+          <span style="font-size:14px;font-weight:800;">${x.m.name}</span>
+          <span style="font-size:14px;font-weight:800;color:#6366F1;">${baseSym} ${tot.toLocaleString()}</span>
+        </div>
+        <div style="display:flex;gap:16px;align-items:center;">${mkDonut(entries,110)}<div style="flex:1;min-width:0;">${mkCatRows(entries,tot)}</div></div>
+      </div>`;
+    }).join('');
+    const analysisHTML=`<div style="margin-top:24px;max-width:480px;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;page-break-inside:avoid;">
+        <span style="font-size:15px;font-weight:800;">群組支出分析</span>
         <span style="font-size:16px;font-weight:800;color:#6366F1;">${baseSym} ${analysisTotal.toLocaleString()}</span>
       </div>
-      <div style="display:flex;gap:16px;align-items:flex-start;">
-        <div style="flex-shrink:0;">
-          ${donutSVG}
-        </div>
-        <div style="flex:1;min-width:0;padding-top:4px;">
-          ${catRows}
-          <div style="margin-top:12px;">
-            <div style="font-size:12px;color:#6B7280;margin-bottom:6px;">成員已支出%</div>
-            <div style="height:10px;border-radius:999px;overflow:hidden;display:flex;margin-bottom:8px;">${barSegs}</div>
-            ${memberPayRows}
-          </div>
-        </div>
+      <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;page-break-inside:avoid;">
+        ${mkDonut(catEntries,130)}
+        <div style="flex:1;min-width:0;">${mkCatRows(catEntries,analysisTotal)}</div>
       </div>
+      <div style="border-top:1px solid #E5E7EB;padding-top:12px;page-break-inside:avoid;">
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px;">成員已支出%</div>
+        <div style="height:12px;border-radius:999px;overflow:hidden;display:flex;margin-bottom:8px;">${barSegs}</div>
+        ${memberPayRows}
+      </div>
+      ${payerSections}
     </div>`;
     return `
       <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
         <div style="font-size:13px;font-weight:700;">支出明細</div>
         <div style="font-size:11px;color:#9CA3AF;">＊ 原始計算結果，不含轉帳還款紀錄</div>
       </div>
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px;">
         <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${surplusRow}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
       </div>
       ${analysisHTML}`;
@@ -4077,7 +4096,7 @@ const App = {
     const fundCols=hasFund?2:0; // 公款帳 OMR+TWD
     const totalCols=fixedLeft+allCurs.length+fixedMid+regularMembersCsv.length+fundCols;
     const empties=n=>Array(n).fill('');
-    const splitLabel=m=>({equal:'平均',custom:'自訂',proportion:'比例',self:'自購'}[m]||'平均');
+    const splitLabel=m=>({equal:'平均',custom:'自訂',proportion:'比例',self:'自購',extproxy:'代購'}[m]||'平均');
 
     let csv='﻿'; // BOM
 
@@ -4125,7 +4144,9 @@ const App = {
           if(shareAcc) shareAcc[m.id]=(shareAcc[m.id]||0)+shInt;
           return shInt;
         });
-        const splitModeLabel=e.splitMode==='proportion'&&e.proportions?`比例 ${regularMembersCsv.map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:splitLabel(e.splitMode);
+        const _payerIdCsvLbl=typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0];
+        const _isProxyCsvLbl=e.splitMode!=='self'&&e.splitMode!=='extproxy'&&ps.length===1&&ps[0]!==_payerIdCsvLbl;
+        const splitModeLabel=_isProxyCsvLbl?'代付':e.splitMode==='proportion'&&e.proportions?`比例 ${regularMembersCsv.map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:splitLabel(e.splitMode);
         let fundCells=[];
         if(hasFund){
           const isFundPayer=fundMemberCsv&&(typeof e.paidBy==='string'?e.paidBy===fundMemberCsv.id:!!(e.paidBy?.[fundMemberCsv.id]>0));
@@ -4284,7 +4305,8 @@ const App = {
       return s>0?Math.round(s):'';
     });
     // 總花費 = 群組 LRM 份額 + 個人各區段份額（直接加總，與上方各區欄位數字一致，不重跑 LRM）
-    const _floorCombSharesCsv=regularMembersCsv.map(m=>(memberGroupShareDisplayCsv[m.id]||0)+(memberPersonalShareAccCsv[m.id]||0));
+    // 總花費 = 實際花費(群組份額不含公費餘額退款 + 個人份額),與 PDF/網頁成員總覽一致
+    const _floorCombSharesCsv=regularMembersCsv.map(m=>(memberGroupShareDisplayCsv[m.id]||0)-(_surplusMapCsv[m.id]||0)+(memberPersonalShareAccCsv[m.id]||0));
     const _intCombTotalCsv=_floorCombSharesCsv.reduce((s,v)=>s+v,0);
     sectionRow('整趟旅程完整花費（群組＋個人）');
     const ttlRow1=['合計','全部支出','',...combinedCurTotals,'',...empties(2),_intCombTotalCsv,'總花費',..._floorCombSharesCsv,...(hasFund?['','']:[])];
