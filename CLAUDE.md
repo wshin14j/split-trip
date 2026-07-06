@@ -13,6 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 架構
 
 - **單檔應用**:整個 app 就是 `index.html`(約 4400 行,HTML/CSS/JS 全部在裡面,沒有框架、沒有建置工具)。`preview.html` 是簡短的預覽/宣傳頁
+- **金額計算鐵律(2026-07-06 起)**:所有金額一律經過共用引擎 `calcExp(e,t)` / `calcTrip(t)`(在 index.html 工具函數區,用最大餘數法保證整數加總一致)。網頁、PDF 匯出、CSV 匯出全部取用引擎的整數結果。**絕對不要**在任何顯示處自行 `Math.round`/`toFixed` 重算分攤——那正是過去「表格差一元、各處對不上」的病因。規格:PDF/CSV 的群組 TTL 含公費餘額退款(刻意設計),網頁總支出不含,兩者差額=公費餘額屬預期
 - **沒有後端、沒有資料庫**:分帳資料存在使用者瀏覽器的 **localStorage**;分享行程用 **pako** 壓縮後塞進網址的 hash(`location.hash`),對方打開連結即可載入
 - 修改時注意:所有功能都在同一個檔案裡,改動前先確認影響範圍,改完務必本機測試
 
