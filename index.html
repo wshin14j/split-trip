@@ -161,6 +161,16 @@ select.input{
 .color-swatch:active{transform:scale(.85);}
 .modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
 .modal-title{font-size:18px;font-weight:700;text-align:center;margin-bottom:20px;}
+
+/* ===== FAQ ===== */
+.faq-group{font-size:12px;font-weight:700;color:var(--t2);margin:16px 0 2px;letter-spacing:.05em;}
+.faq-item{border-bottom:1px solid var(--border);}
+.faq-item summary{list-style:none;cursor:pointer;padding:13px 2px;font-size:14px;font-weight:600;color:var(--t1);display:flex;justify-content:space-between;align-items:center;gap:10px;-webkit-tap-highlight-color:transparent;}
+.faq-item summary::-webkit-details-marker{display:none;}
+.faq-item summary::after{content:'＋';color:var(--t2);font-size:14px;flex-shrink:0;}
+.faq-item[open] summary{color:var(--accent);}
+.faq-item[open] summary::after{content:'－';color:var(--accent);}
+.faq-item .faq-a{padding:0 2px 14px;font-size:13px;line-height:1.75;color:var(--t2);}
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 
 /* ===== TOAST ===== */
@@ -333,14 +343,21 @@ select.input{
 <div id="s-trip" class="screen">
   <div class="trip-header">
     <div class="trip-header-bar">
-      <div style="display:flex;flex-shrink:0;width:80px;">
+      <div style="display:flex;flex-shrink:0;width:108px;">
         <button class="icon-btn" onclick="App.go('home')" style="font-size:22px;">←</button>
       </div>
       <div class="trip-header-center">
         <div id="trip-name" style="font-size:16px;font-weight:700;color:var(--primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
         <div id="trip-sub" class="xs muted" style="margin-top:2px;"></div>
       </div>
-      <div style="display:flex;flex-shrink:0;width:80px;justify-content:flex-end;">
+      <div style="display:flex;flex-shrink:0;width:108px;justify-content:flex-end;">
+        <button class="icon-btn" onclick="App.openModal('m-faq')" title="常見問題">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </button>
         <button class="icon-btn" onclick="App.openModal('m-share')" style="color:var(--primary);">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 3v13M8 7l4-4 4 4"/>
@@ -439,6 +456,73 @@ select.input{
         <div class="xs muted">透過更多方式分享（簡訊、Email…）</div>
       </div>
     </button>
+  </div>
+</div>
+
+<!-- FAQ MODAL -->
+<div class="modal-overlay" id="m-faq">
+  <div class="modal-sheet" style="max-height:88vh;">
+    <div class="modal-handle"></div>
+    <button class="modal-x-btn" onclick="App.closeModal('m-faq')">×</button>
+    <div class="modal-title">常見問題</div>
+
+    <div class="faq-group">基本使用</div>
+    <details class="faq-item">
+      <summary>需要註冊帳號嗎？要付費嗎？</summary>
+      <div class="faq-a">都不用。打開網頁就能直接使用，完全免費。</div>
+    </details>
+    <details class="faq-item">
+      <summary>這個會記住我記的帳嗎？</summary>
+      <div class="faq-a">會。資料會自動存在這台裝置的瀏覽器裡，同時也會同步一份到雲端，下次用同一個瀏覽器打開就會看到。但要注意：清除瀏覽器資料或使用無痕模式後，旅程列表會不見，需要用分享連結重新載入，建議把連結留一份給自己。</div>
+    </details>
+    <details class="faq-item">
+      <summary>換手機或換瀏覽器，資料還在嗎？</summary>
+      <div class="faq-a">新裝置不會自動出現舊的旅程列表。換裝置前，先點右上角分享按鈕把行程連結傳給自己（例如傳到 LINE），再用新裝置打開連結即可載入，載入後的更新也會繼續自動同步。</div>
+    </details>
+    <details class="faq-item">
+      <summary>我想看目前誰欠誰多少，去哪裡看？</summary>
+      <div class="faq-a">點上方的「結算」分頁，系統會自動算出最精簡的轉帳方式，讓大家用最少筆數結清。想看每個人的花費明細，可以到「成員」分頁點開各成員查看。</div>
+    </details>
+
+    <div class="faq-group">匯率</div>
+    <details class="faq-item">
+      <summary>匯率怎麼調整？</summary>
+      <div class="faq-a">點右上角「⋯」選單，選「匯率設定」，就能新增幣別、修改匯率。記帳時選了外幣，結算會自動按你設定的匯率換算成主幣別。</div>
+    </details>
+    <details class="faq-item">
+      <summary>分帳金額為什麼有時候差一元？</summary>
+      <div class="faq-a">金額除不盡時，尾數會自動輪流分配給成員，確保加總和原始金額一致，不會多算也不會少算。</div>
+    </details>
+
+    <div class="faq-group">公款帳 💰</div>
+    <details class="faq-item">
+      <summary>什麼是公款帳？什麼時候該用？</summary>
+      <div class="faq-a">出發前大家先湊一筆公共基金（例如每人先繳 5000），旅途中的共同開銷直接從這筆錢支付，就適合開公款帳。到「成員」分頁點成員旁的編輯鍵，打開「設為公款帳戶」即可啟用。</div>
+    </details>
+    <details class="faq-item">
+      <summary>公款帳怎麼記帳？</summary>
+      <div class="faq-a">先用「存入公款」記錄每個人繳了多少；之後共同開銷記帳時，付款人選公款帳就好。公款支付的帳不會算進成員之間的互欠，結算時各自和公款帳結清。</div>
+    </details>
+    <details class="faq-item">
+      <summary>公款用不完或不夠怎麼辦？</summary>
+      <div class="faq-a">結算時系統會自動處理：有剩的話，餘額會退還給大家；不夠的話，會列出每個人還要補給公款帳多少錢。</div>
+    </details>
+
+    <div class="faq-group">分享與同步</div>
+    <details class="faq-item">
+      <summary>怎麼把行程分享給朋友？</summary>
+      <div class="faq-a">點右上角的分享按鈕，可以透過 LINE 分享、複製連結或其他方式傳給朋友，對方打開連結就能載入整個行程。</div>
+    </details>
+    <details class="faq-item">
+      <summary>朋友新增的支出，我這邊會自動同步嗎？</summary>
+      <div class="faq-a">會。只要朋友是透過你的分享連結開啟行程，之後任何人新增或修改支出，其他人的畫面都會自動更新（需要網路連線）。如果暫時沒看到最新內容，重新整理頁面即可。</div>
+    </details>
+
+    <div class="faq-group">匯出</div>
+    <details class="faq-item">
+      <summary>可以把帳目匯出保存嗎？</summary>
+      <div class="faq-a">可以。點右上角「⋯」選單，選「匯出支出/結算明細」，可以複製結算文字、列印 PDF 或匯出 CSV 檔案。</div>
+    </details>
   </div>
 </div>
 
