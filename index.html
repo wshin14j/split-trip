@@ -4456,6 +4456,80 @@ const App = {
   },
 };
 
+// ─── 自我驗收(#selftest)─────────────────────────────────────
+// 用途:任何金額邏輯修改後,開「網址/#selftest」自動跑回歸驗算,全綠才可發佈。
+// 涵蓋:引擎單元測試、尾差輪流、結算歸零、PDF 逐列加總、CSV 逐列加總。不會動到真實資料。
+function runSelfTest(){
+  const R=[];const ok=(name,pass,detail)=>R.push({name,pass:!!pass,detail:detail||''});
+  try{
+    const t0={baseCurrency:'TWD',rates:{},members:[{id:'A',name:'甲'},{id:'B',name:'乙'},{id:'C',name:'丙'}],expenses:{}};
+    const s1=calcExp({amount:100,currency:'TWD',paidBy:'A',parts:['A','B','C'],splitMode:'equal',createdAt:1},t0).shares;
+    ok('100 元 3 人均分,加總=100',Object.values(s1).reduce((a,b)=>a+b,0)===100);
+    const s2=calcExp({amount:1000,currency:'TWD',paidBy:'B',parts:['A','B','C'],splitMode:'proportion',customAmounts:{A:333.3,B:333.3,C:333.4},createdAt:2},t0).shares;
+    ok('比例分帳,加總=1000',Object.values(s2).reduce((a,b)=>a+b,0)===1000);
+    const t1={...t0,rates:{OMR:85.5}};
+    const s3=calcExp({amount:12.5,currency:'OMR',paidBy:'A',parts:['A','B','C'],splitMode:'equal',createdAt:3},t1);
+    ok('多幣別分攤,加總=整數總額',Object.values(s3.shares).reduce((a,b)=>a+b,0)===s3.baseTotal);
+    const w=ts=>{const s=calcExp({amount:100,currency:'TWD',paidBy:'A',parts:['A','B','C'],splitMode:'equal',createdAt:ts},t0).shares;return Object.entries(s).find(([,v])=>v===34)[0];};
+    ok('尾差輪流分配(逐筆換人)',new Set([w(10),w(11),w(12)]).size>1);
+    const fx={id:'__st',name:'驗收',baseCurrency:'TWD',rates:{},payRecords:[],
+      fundDeposits:[{fromMemberId:'A',amt:200,cur:'TWD'},{fromMemberId:'B',amt:200,cur:'TWD'}],
+      members:[{id:'A',name:'甲'},{id:'B',name:'乙'},{id:'C',name:'丙'},{id:'F',name:'公款',isGroupFund:true}],
+      expenses:{
+        e1:{name:'餐',category:'餐飲',amount:100,currency:'TWD',paidBy:'A',parts:['A','B','C'],splitMode:'equal',date:'2026/01/01',createdAt:1},
+        e2:{name:'宿',category:'住宿',amount:999,currency:'TWD',paidBy:{A:500,B:499},parts:['A','B'],splitMode:'equal',date:'2026/01/02',createdAt:2},
+        e3:{name:'票',category:'玩樂',amount:249,currency:'TWD',paidBy:'F',parts:['A','B','C'],splitMode:'equal',date:'2026/01/03',createdAt:3},
+        e4:{name:'禮',category:'購物',amount:70,currency:'TWD',paidBy:'C',parts:['C'],splitMode:'self',date:'2026/01/04',createdAt:4},
+        e5:{name:'水',category:'其他',amount:45,currency:'TWD',paidBy:'A',parts:['B'],splitMode:'equal',date:'2026/01/04',createdAt:5}
+      }};
+    const eng=calcTrip(fx);
+    ok('結算收支歸零',Object.values(eng.peerBal).reduce((a,b)=>a+b,0)===0);
+    ok('群組+個人=總花費',eng.groupTotal+eng.personalTotal===1463);
+    const html=App._buildExportHTML(fx);
+    const doc=new DOMParser().parseFromString('<table>'+html+'</table>','text/html');
+    const num=td=>{const s=td.textContent.replace(/[,\s]/g,'');if(s===''||s==='—')return null;const m=s.match(/^−?-?\d+(\.\d+)?$/);return m?parseFloat(s.replace('−','-')):null;};
+    let checked=0,bad=0;
+    doc.querySelectorAll('tr').forEach(tr=>{
+      const tds=[...tr.children].filter(c=>c.tagName==='TD');
+      if(tds.length!==14)return;
+      const tot=num(tds[7]);if(tot===null||tr.textContent.includes('待補'))return;
+      checked++;
+      if((num(tds[9])||0)+(num(tds[10])||0)+(num(tds[11])||0)!==tot)bad++;
+    });
+    ok(`PDF 逐列驗算(${checked} 列)`,checked>5&&bad===0,bad?`${bad} 列不一致`:'');
+    const _orig=localStorage.getItem('st_trips');
+    let csvText=null;const _B=window.Blob;const _click=HTMLAnchorElement.prototype.click;
+    try{
+      const all=_orig?JSON.parse(_orig):{};all.__st=fx;
+      localStorage.setItem('st_trips',JSON.stringify(all));
+      window.Blob=function(parts,opts){csvText=parts.join('');return new _B(parts,opts);};
+      HTMLAnchorElement.prototype.click=function(){};
+      const _tid=App.tripId;App.tripId='__st';App.exportCSV();App.tripId=_tid;
+    }finally{
+      window.Blob=_B;HTMLAnchorElement.prototype.click=_click;
+      if(_orig===null)localStorage.removeItem('st_trips');else localStorage.setItem('st_trips',_orig);
+    }
+    const pl=l=>{const o=[];let c='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(q){if(ch==='"'){if(l[i+1]==='"'){c+='"';i++;}else q=false;}else c+=ch;}else{if(ch==='"')q=true;else if(ch===','){o.push(c);c='';}else c+=ch;}}o.push(c);return o;};
+    let cChecked=0,cBad=0;
+    (csvText||'').replace(/^﻿/,'').split('\n').forEach(l=>{
+      const c=pl(l);if(c.length!==14)return;
+      const n=s=>{if(s===''||s==='—')return null;const m=String(s).match(/^-?\d+(\.\d+)?$/);return m?parseFloat(s):null;};
+      const tot=n(c[7]);if(tot===null||l.includes('待補'))return;
+      cChecked++;
+      if((n(c[9])||0)+(n(c[10])||0)+(n(c[11])||0)!==tot)cBad++;
+    });
+    ok(`CSV 逐列驗算(${cChecked} 列)`,cChecked>5&&cBad===0,cBad?`${cBad} 列不一致`:'');
+  }catch(err){ok('執行過程發生錯誤',false,String(err));}
+  const allPass=R.every(r=>r.pass);
+  const el=document.createElement('div');
+  el.style.cssText='position:fixed;inset:16px;z-index:99999;background:#fff;color:#111;border:3px solid '+(allPass?'#22c55e':'#EF4444')+';border-radius:16px;padding:20px;overflow:auto;font-size:14px;box-shadow:0 8px 40px rgba(0,0,0,.3);';
+  el.innerHTML='<div style="font-size:18px;font-weight:800;margin-bottom:12px;">'+(allPass?'✅ 自我驗收全數通過,可以發佈':'❌ 驗收失敗,請勿發佈!')+'</div>'
+    +R.map(r=>'<div style="padding:6px 0;border-bottom:1px solid #eee;">'+(r.pass?'✅':'❌')+' '+r.name+' <span style="color:#888;font-size:12px;">'+r.detail+'</span></div>').join('')
+    +'<button onclick="this.parentNode.remove()" style="margin-top:14px;padding:8px 20px;border-radius:8px;border:none;background:#6366F1;color:#fff;cursor:pointer;">關閉</button>';
+  document.body.appendChild(el);
+  return allPass;
+}
+
 // ─── INIT ────────────────────────────────────────────────────
 window.addEventListener('load',()=>{
   document.querySelectorAll('.modal-overlay').forEach(el=>{
@@ -4464,6 +4538,7 @@ window.addEventListener('load',()=>{
   App.checkShare();
   const _trips=loadAll();
   Object.keys(_trips).forEach(id=>fbListen(id));
+  if(location.hash==='#selftest') setTimeout(runSelfTest,600);
 });
 </script>
 </body>
