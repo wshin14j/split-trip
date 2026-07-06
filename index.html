@@ -949,13 +949,17 @@ function minimizeTx(bal){
 // (PDF 群組總計含公費餘額退款屬刻意設計,與網頁總支出的差額=公費餘額,為預期行為)
 
 // 最大餘數法:把浮點分配調整為整數,且加總恰等於 targetInt(差額補給小數部分最大者)
-function lrmRound(rawMap,targetInt){
+// seed(選填):同分時的輪流種子——每筆支出傳入不同 seed,讓「多付一元的人」逐筆輪替,整趟下來公平分散
+function lrmRound(rawMap,targetInt,seed){
   const ids=Object.keys(rawMap);
   if(!ids.length) return {};
   const out={};let floorSum=0;
   ids.forEach(id=>{out[id]=Math.floor(rawMap[id]);floorSum+=out[id];});
   let rem=targetInt-floorSum;
-  const byFrac=ids.map(id=>({id,f:rawMap[id]-Math.floor(rawMap[id])})).sort((a,b)=>b.f-a.f||(a.id<b.id?-1:1));
+  const _n=ids.length;
+  const _rot=(((seed||0)%_n)+_n)%_n;
+  const _pos={};ids.forEach((id,i)=>{_pos[id]=(i-_rot+_n)%_n;});
+  const byFrac=ids.map(id=>({id,f:rawMap[id]-Math.floor(rawMap[id])})).sort((a,b)=>b.f-a.f||_pos[a.id]-_pos[b.id]);
   for(let i=0;rem>0;i=(i+1)%byFrac.length,rem--) out[byFrac[i].id]++;
   for(let i=byFrac.length-1;rem<0;i=(i-1+byFrac.length)%byFrac.length,rem++) out[byFrac[i].id]--;
   return out;
@@ -980,7 +984,7 @@ function calcExp(e,t){
     }else{
       ps.forEach(p=>{raw[p]=baseTotal/ps.length;});
     }
-    shares=lrmRound(raw,baseTotal);
+    shares=lrmRound(raw,baseTotal,e.createdAt||0);// 以建立時間當輪流種子,尾差逐筆換人吸收
   }
   let paid={};
   if(!pending&&baseTotal!==0){
@@ -4061,6 +4065,7 @@ const App = {
       <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
         <div style="font-size:13px;font-weight:700;">支出明細</div>
         <div style="font-size:11px;color:#9CA3AF;">＊ 原始計算結果，不含轉帳還款紀錄</div>
+        <div style="font-size:11px;color:#9CA3AF;">＊ 均分金額以整數顯示，±1 元尾差由系統逐筆輪流分配，結算時自動抵平</div>
       </div>
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px;">
         <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${surplusRow}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
