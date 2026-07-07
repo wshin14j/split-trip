@@ -754,7 +754,7 @@ select.input{
     </div>
     <div id="export-detail-content" style="flex:1;overflow-y:auto;padding:0 20px 16px;"></div>
     <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0;">
-      <button onclick="App.exportPDF()" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;">列印 PDF</button>
+      <button onclick="App.exportPDF()" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;">儲存/列印 PDF</button>
       <button onclick="App.exportCSV()" style="flex:1;padding:11px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">匯出 CSV</button>
     </div>
   </div>
@@ -4149,7 +4149,7 @@ const App = {
         <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 原始計算結果，不含轉帳還款紀錄</div>
         <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 均分金額以整數顯示，±1 元尾差由系統逐筆輪流分配，結算時自動抵平</div>
       </div>
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px;">
+      <div class="tbl-scroll" style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px;">
         <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
       </div>
       ${analysisHTML}`;
@@ -4163,11 +4163,38 @@ const App = {
     win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       <title>${t.name} 支出明細</title>
-      <style>body{font-family:-apple-system,sans-serif;padding:16px;color:#111;}h2{color:#6366F1;}@media print{.no-print{display:none;}}</style>
+      <style>
+        body{font-family:-apple-system,sans-serif;padding:16px;color:#111;}
+        h2{color:#6366F1;}
+        /* 列印:A4 橫向、取消表格捲動框的裁切,讓所有欄位都印得出來 */
+        @page{size:A4 landscape;margin:8mm;}
+        @media print{
+          body{padding:0;}
+          .no-print{display:none;}
+          .tbl-scroll{overflow:visible !important;padding-bottom:0 !important;}
+        }
+      </style>
       </head><body>
-      <h2>${t.name} 支出／結算明細</h2>
-      ${html}
-      <br><button class="no-print" onclick="window.print()" style="padding:10px 24px;background:#6366F1;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">列印／存成 PDF</button>
+      <div id="print-root">
+        <h2>${t.name} 支出／結算明細</h2>
+        ${html}
+      </div>
+      <br><button class="no-print" onclick="window.__fitAndPrint()" style="padding:10px 24px;background:#6366F1;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">列印／存成 PDF</button>
+      <script>
+        // 列印前量測最寬的內容(通常是明細表格),用 zoom 縮到符合 A4 橫向可列印寬度(約 281mm),避免右側欄位被切掉。
+        // 用 zoom(非 transform):zoom 會真正改變佈局尺寸,列印引擎才會依縮後尺寸排版,不會右緣溢出。
+        window.__fitAndPrint=function(){
+          var root=document.getElementById('print-root');
+          root.style.zoom='';
+          var els=root.querySelectorAll('table');
+          var maxW=root.scrollWidth;
+          els.forEach(function(el){maxW=Math.max(maxW,el.scrollWidth);});
+          var availPx=281/25.4*96; // A4 橫向去邊後可列印寬(px @96dpi)
+          var scale=maxW>availPx?(availPx/maxW):1;
+          if(scale<1) root.style.zoom=scale;
+          setTimeout(function(){window.print();},80);
+        };
+      <\/script>
       </body></html>`);
     win.document.close();
   },
