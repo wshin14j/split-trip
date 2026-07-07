@@ -17,6 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **強制驗收(使用者明確要求,不可跳過)**:任何涉及金額、分攤、匯出的修改,完成後**必須**開啟 `index.html#selftest`(本機起 server 後帶 #selftest 開頁)執行內建自我驗收,**八項全綠才算完成**;有紅色就是改壞了別處,禁止宣稱完成或發佈。這是為了根絕「改 A 壞 B、改 B 壞 A」的鬼打牆——使用者深惡痛絕此情況。修改策略一律「改引擎、驗全局」,禁止在個別顯示處打補丁
 - **資料儲存與同步**:分帳資料存在使用者瀏覽器的 **localStorage**,同時透過 **Firebase Realtime Database**(`fbWrite`/`fbListen`,SSE 即時監聽)雲端同步——任何人修改行程,其他開過同一行程的裝置會即時更新,**不是純離線單機**。分享行程用 **pako** 壓縮後塞進網址的 hash(`location.hash`),對方打開連結即可載入並加入同步
 - **PDF 列印(2026-07-07 修)**:`exportPDF` 開新視窗列印。明細表格外層是 `.tbl-scroll`(overflow-x:auto),螢幕可捲動,但**列印時 overflow 會把右側欄位裁掉留白**——這是舊版存出 PDF「右邊空白、調縮放也救不回」的病因(裁切發生在縮放之前)。修法:列印頁 CSS 設 `@page{size:A4 landscape}` + `@media print{.tbl-scroll{overflow:visible}}`,並用 JS `__fitAndPrint` 量測最寬表格、以 **zoom**(非 transform,zoom 才會改變佈局尺寸讓列印引擎正確排版)自動縮到 A4 橫向可列印寬(約 281mm)。**注意 Safari(WebKit)不理會 `@page{size:landscape}`,不會自動轉橫向,使用者需在列印對話框手動選橫向;Chrome 才會自動橫向。內容不全的問題靠 overflow:visible + zoom 已解決,方向是平台限制。**改這段務必確認所有成員/幣別欄都在頁寬內(可用 iframe + elementFromPoint 驗證欄位未被裁,截圖會被 preview 視口寬度誤導)
+- **結算「成員花費與墊付總覽」卡片(2026-07-07 改版)**:每位成員可點開。**收合態**只顯示「總花費 + 應付/應收」(維持舊版,不可動)。**展開態**為三段式:①花費構成(5 項相加=總花費,其中會進同伴結算的「全員/部分/墊付」3 項金額標 `var(--accent)` 藍色)②跟同伴的帳(白底 2px 藍框突顯:我該分攤−已先付=應付/應收,應付紅、應收綠)③跟公費的帳(存入−用掉=可退回/需補繳)。程式在 `memberSummary` 的 `expandedRows`。**手機寬度關鍵**:成員列用 `flex-wrap:wrap`,展開內容放在 `flex-basis:100%` 子元素換行佔滿整卡寬——否則展開內容會擠在 avatar 右側窄欄、右邊金額被切。所有數字取自現有變數(psp/ppsp/proxySp/fsp/personalSp/netShare/netPaid/peerAdj/fp),未改引擎
 - 修改時注意:所有功能都在同一個檔案裡,改動前先確認影響範圍,改完務必本機測試
 
 ## 常用指令

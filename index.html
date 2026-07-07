@@ -2102,28 +2102,50 @@ const App = {
         const netPaid=pdGroup+pdPartial+pdProxy+tp;
         const netShare=psp+ppsp+proxySp;
         const personalSp=selfSpent[m.id]||0;
+        const refund=Math.round(fp)-Math.round(fsp);
+        const _boxLight='margin-top:8px;padding:9px 11px;background:var(--soft);border-radius:10px;';
+        const _hdr='font-size:11px;color:var(--t2);font-weight:600;margin-bottom:5px;';
+        const _row='font-size:12px;display:flex;justify-content:space-between;gap:10px;padding:2px 0;';
+        const _sub='font-size:11px;color:var(--t3);display:flex;justify-content:space-between;gap:10px;padding:1px 0 1px 12px;';
+        const _composeRows=`
+          ${psp>0.5?`<div style="${_row};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','fullgroup')"><span style="color:var(--t2);">群組·全員分攤</span><span style="color:var(--accent);font-weight:600;">${fmtS(psp)}</span></div>`:''}
+          ${ppsp>0.5?`<div style="${_row};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','partialgroup')"><span style="color:var(--t2);">群組·部分分攤</span><span style="color:var(--accent);font-weight:600;">${fmtS(ppsp)}</span></div>`:''}
+          ${proxySp>0.5?`<div style="${_row};cursor:pointer;" onclick="event.stopPropagation();App.filterProxyFor('${m.id}')"><span style="color:var(--t2);">他人墊付</span><span style="color:var(--accent);font-weight:600;">${fmtS(proxySp)}</span></div>`:''}
+          ${fundMember&&fsp>0.5?`<div style="${_row};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','fundgroup','${fundMember.id}')"><span style="color:var(--t2);">群組·公費支付</span><span style="color:var(--t1);">${fmtS(fsp)}</span></div>`:''}
+          ${inclPersonal&&extProxySp>0.5?`<div style="${_row};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','extproxy')"><span style="color:var(--t2);">代購（外部成員）</span><span style="color:var(--t1);">${fmtS(extProxySp)}</span></div>`:''}
+          ${inclPersonal&&personalSp>0.5?`<div style="${_row};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','self')"><span style="color:var(--t2);">自購</span><span style="color:var(--t1);">${fmtS(personalSp)}</span></div>`:''}`;
         const expandedRows=isExp?`
-          <div style="margin-top:4px;">
-          ${psp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','fullgroup')"><span>群組花費－全員</span><span>${fmtS(psp)}</span></div>`:''}
-          ${ppsp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','partialgroup')"><span>群組花費－部分</span><span>${fmtS(ppsp)}</span></div>`:''}
-          ${fundMember&&fsp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','fundgroup','${fundMember.id}')"><span>群組花費－公費</span><span>${fmtS(fsp)}</span></div>`:''}
-          ${proxySp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.filterProxyFor('${m.id}')"><span>個人花費－他人墊付</span><span>${fmtS(proxySp)}</span></div>`:''}
-          ${inclPersonal&&extProxySp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','extproxy')"><span>個人花費－代購（外部成員）</span><span>${fmtS(extProxySp)}</span></div>`:''}
-          ${inclPersonal&&personalSp>0.5?`<div style="${rStyle};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','self')"><span>個人花費－自購</span><span>${fmtS(personalSp)}</span></div>`:''}
-          ${fp>0.5?`${div}<div style="${rStyle}"><span>已存入公費</span><span>${fmtS(fp)}</span></div>`:''}
-          ${div}${pd>0.5?`<div style="font-size:12px;color:var(--t2);text-align:left;">已付支出（不含自購）</div>`:''}${pdGroup>0.5?`<div style="font-size:11px;color:var(--t3);display:flex;justify-content:space-between;gap:12px;padding-left:8px;cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidgroup')"><span>└ 全員分攤</span><span>${fmtS(pdGroup)}</span></div>`:''}${pdPartial>0.5?`<div style="font-size:11px;color:var(--t3);display:flex;justify-content:space-between;gap:12px;padding-left:8px;cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidgroup')"><span>└ 部分分攤</span><span>${fmtS(pdPartial)}</span></div>`:''}${pdProxy>0.5?`<div style="font-size:11px;color:var(--t3);display:flex;justify-content:space-between;gap:12px;padding-left:8px;cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidproxy')"><span>└ 代付</span><span>${fmtS(pdProxy)}</span></div>`:''}${tp>0.5?`<div style="${rStyle}"><span>轉帳支出</span><span>${fmtS(tp)}</span></div>`:''}
-          ${hasPeerExps?`<div style="border-top:1px solid var(--border);margin:6px 0 2px;"></div><div style="font-size:11px;color:var(--t3);margin-bottom:3px;">同伴結算（不含自購）</div><div style="font-size:11px;color:var(--t2);text-align:right;">已付 ${fmtS(netPaid)} − 分攤 ${fmtS(netShare)}<br>= <span style="font-weight:600;color:${peerAdj>0.5?'#22c55e':peerAdj<-0.5?'#EF4444':'var(--t2)'}">${peerAdj>0.5?'應收 '+fmtS(peerAdj):peerAdj<-0.5?'應付 '+fmtS(-peerAdj):'已平帳'}</span></div>`:''}
+          <div style="margin-top:6px;">
+          <div style="${_boxLight}">
+            <div style="${_hdr}">花費構成</div>
+            ${_composeRows}
+            <div style="${_row};border-top:1px solid var(--border);margin-top:3px;padding-top:5px;"><span style="font-weight:600;color:var(--t1);">= 總花費</span><span style="font-weight:700;color:var(--t1);">${fmtS(sp)}</span></div>
+          </div>
+          ${hasPeerExps?`<div style="margin-top:8px;padding:10px 11px;background:var(--surface,#fff);border:2px solid var(--accent);border-radius:10px;">
+            <div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:5px;">跟同伴的帳</div>
+            <div style="${_row}"><span style="color:var(--t1);">我該分攤 <span style="font-size:10px;color:var(--t3);">(全員＋部分＋墊付)</span></span><span style="color:var(--accent);font-weight:600;">${fmtS(netShare)}</span></div>
+            <div style="${_row}"><span style="color:var(--t1);">減去我已先付</span><span style="font-weight:600;color:var(--t1);">− ${fmtS(netPaid)}</span></div>
+            ${pdGroup>0.5?`<div style="${_sub};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidgroup')"><span>└ 全員分攤·我墊的</span><span>${fmtS(pdGroup)}</span></div>`:''}
+            ${pdPartial>0.5?`<div style="${_sub};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidgroup')"><span>└ 部分分攤·我墊的</span><span>${fmtS(pdPartial)}</span></div>`:''}
+            ${pdProxy>0.5?`<div style="${_sub};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidproxy')"><span>└ 代付</span><span>${fmtS(pdProxy)}</span></div>`:''}
+            ${tp>0.5?`<div style="${_sub}"><span>└ 轉帳支出</span><span>${fmtS(tp)}</span></div>`:''}
+            <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--border);margin-top:5px;padding-top:6px;"><span style="font-size:13px;font-weight:600;color:var(--t1);">= ${peerAdj<-0.5?'應付':peerAdj>0.5?'應收':'已平帳'}</span><span style="font-size:17px;font-weight:700;color:${peerAdj>0.5?'#22c55e':peerAdj<-0.5?'#EF4444':'var(--t2)'};">${peerAdj>0.5?fmtS(peerAdj):peerAdj<-0.5?fmtS(-peerAdj):'✓'}</span></div>
+          </div>`:''}
+          ${fundMember&&(fp>0.5||fsp>0.5)?`<div style="${_boxLight}display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+            <span style="font-size:11px;color:var(--t2);">跟公費的帳 <span style="color:var(--t3);">存入 ${fmtS(fp)} − 用掉 ${fmtS(fsp)}</span></span>
+            <span style="white-space:nowrap;"><span style="font-size:10px;color:var(--t3);">${refund>=0?'可退回 ':'需補繳 '}</span><span style="font-size:14px;font-weight:700;color:${refund>=0?'#22c55e':'#EF4444'};">${fmtS(Math.abs(refund))}</span></span>
+          </div>`:''}
           </div>`:'';
-        return `<div id="msrow-${m.id}" style="display:flex;align-items:${isExp?'flex-start':'center'};gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
-          <div class="avatar" style="${avStyle(t,m.id)};${isExp?'margin-top:2px;':''}">${avText(m.name)}</div>
-          <div style="flex:1;min-width:0;${isExp?'padding-top:2px;':''}">
+        return `<div id="msrow-${m.id}" style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+          <div class="avatar" style="${avStyle(t,m.id)};">${avText(m.name)}</div>
+          <div style="flex:1;min-width:0;">
             <div class="base semibold">${m.name}</div>
           </div>
           <div style="text-align:right;flex-shrink:0;">
             <div style="font-size:15px;font-weight:700;display:inline-flex;align-items:center;cursor:pointer;" onclick="App.toggleMemberExpand('${m.id}')">總花費 ${fmtS(sp)}${chevron}</div>
-            ${expandedRows}
             ${alwaysLines}
           </div>
+          ${isExp?`<div style="flex-basis:100%;width:100%;">${expandedRows}</div>`:''}
         </div>`;
       }).join('');
       const toggle=`<button type="button" onclick="App._summaryIncludePersonal=!App._summaryIncludePersonal;App.renderTab();" style="width:36px;height:20px;border-radius:999px;background:${inclPersonal?'var(--accent)':'#D1D5DB'};position:relative;border:none;cursor:pointer;padding:0;flex-shrink:0;"><div style="width:16px;height:16px;border-radius:50%;background:#fff;position:absolute;top:2px;${inclPersonal?'right:2px':'left:2px'};transition:all .2s;"></div></button>`;
