@@ -4144,10 +4144,10 @@ const App = {
       ${payerSections}
     </div>`;
     return `
-      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
-        <div style="font-size:13px;font-weight:700;">支出明細</div>
-        <div style="font-size:11px;color:#9CA3AF;">＊ 原始計算結果，不含轉帳還款紀錄</div>
-        <div style="font-size:11px;color:#9CA3AF;">＊ 均分金額以整數顯示，±1 元尾差由系統逐筆輪流分配，結算時自動抵平</div>
+      <div style="margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:700;white-space:nowrap;margin-bottom:3px;">支出明細</div>
+        <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 原始計算結果，不含轉帳還款紀錄</div>
+        <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 均分金額以整數顯示，±1 元尾差由系統逐筆輪流分配，結算時自動抵平</div>
       </div>
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px;">
         <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
