@@ -3886,10 +3886,20 @@ const App = {
     // Fund surplus row
     const _fundId=fundMember?.id;
     const fundSpentBase=_fundId?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===_fundId:!!(e.paidBy?.[_fundId]>0)).reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,baseCur),0):0;
-    const fundSurplusRaw=totalFundDepositRaw-fundSpentBase;
-    const fundSurplus=Math.round(fundSurplusRaw);
+    const fundSurplusRaw=totalFundDepositRaw-fundSpentBase;// 供外幣參考顯示
+    // 引擎整數版公款帳:每人公款支出份額(僅字串 paidBy=公款帳,與 peerBal 排除條件一致)、每人存入、每人退款
+    // 報表恆等式:待付款 = 總花費 −(已存入公費 − 公費退款)− 已支付群組 − 已支付他人墊付 − 已支出自購
+    const _fundShareInt={};regularMembers.forEach(m=>{_fundShareInt[m.id]=0;});
+    if(_fundId)Object.entries(t.expenses||{}).forEach(([k,e])=>{
+      if(typeof e.paidBy==='string'&&e.paidBy===_fundId){const c=ENG.perExp[k];if(!c||c.pending)return;Object.entries(c.shares).forEach(([id,v])=>{if(_fundShareInt[id]!==undefined)_fundShareInt[id]+=v;});}
+    });
+    const _depInt={};regularMembers.forEach(m=>{_depInt[m.id]=Math.round(memberFundDeposit[m.id]||0);});
+    const _refundInt={};regularMembers.forEach(m=>{_refundInt[m.id]=(_depInt[m.id]||0)-(_fundShareInt[m.id]||0);});
+    const fundSpentInt=Object.values(_fundShareInt).reduce((s,v)=>s+v,0);
+    const fundDepositInt=Object.values(_depInt).reduce((s,v)=>s+v,0);
+    const fundSurplus=fundDepositInt-fundSpentInt;// 整數:存入−實際支出=剩餘退款,逐項軋平
     // 公費餘額(剩餘退款)只顯示在公款帳欄,不列入成員欄與群組 TTL——群組 TTL=實際花費,總花費=群組 TTL+個人 TTL
-    const _hasSurplusRow=fundSurplus>0.5&&hasFundPdf;
+    const _hasSurplusRow=fundSurplus>0&&hasFundPdf;
     // Group TTL
     const _regMPdf=displayMembers.filter(m=>!m.isGroupFund);
     const _grpRs=hasFundPdf?` rowspan="${2+_regMPdf.length+(_hasSurplusRow?1:0)}"`:'';
@@ -3933,10 +3943,10 @@ const App = {
       <td style="${ttl1n}font-weight:700;border-left:2.5px solid #9CA3AF;"${_grpRs}>${_intGrpTotal.toLocaleString()}</td>
       <td style="${ttl1}"${_grpRs}></td>
       ${_lrmGrpShares.map((sh,i)=>`<td style="${ttl1n}${mbl(i)}font-weight:700;"${_grpRs}>${sh.toLocaleString()}</td>`).join('')}
-      ${hasFundPdf?`<td style="${ttl1n}${mbl(fundDisplayIdx)}font-weight:700;">實際支出 ${parseFloat((fundSpentBase/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}</td><td style="${ttl1n}font-weight:700;color:#6B7280;">${Math.round(fundSpentBase).toLocaleString()}</td>`:''}
+      ${hasFundPdf?`<td style="${ttl1n}${mbl(fundDisplayIdx)}font-weight:700;">實際支出 ${parseFloat((fundSpentBase/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}</td><td style="${ttl1n}font-weight:700;color:#6B7280;">${fundSpentInt.toLocaleString()}</td>`:''}
     </tr>${hasFundPdf?`<tr>
       <td style="${ttl1n}${mbl(fundDisplayIdx)}color:#6B7280;font-weight:600;border-bottom:none;">公費存入 ${fmtLocal(totalFundDepositLocal)} ${fundLocalCur}</td>
-      <td style="${ttl1n}color:#6B7280;border-bottom:none;">${Math.round(totalFundDeposit).toLocaleString()}</td>
+      <td style="${ttl1n}color:#6B7280;border-bottom:none;">${fundDepositInt.toLocaleString()}</td>
     </tr>${_regMPdf.map(m=>{const depLocal=memberFundDepositLocal[m.id]||0;const depBase=Math.round(memberFundDeposit[m.id]||0);const omrTxt=fundLocalCur!==baseCur&&depLocal>0?`└ ${m.name}：${parseFloat(depLocal.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}`:`└ ${m.name}：${depBase.toLocaleString()} ${baseCur}`;return `<tr><td style="${ttl1n}${mbl(fundDisplayIdx)}color:#6B7280;font-size:10px;border-top:none;border-bottom:none;">${omrTxt}</td><td style="${ttl1n}color:#6B7280;font-size:10px;border-top:none;border-bottom:none;">${depBase>0?depBase.toLocaleString():'—'}</td></tr>`;}).join('')}${_hasSurplusRow?`<tr>
       <td style="${ttl1n}${mbl(fundDisplayIdx)}color:#22c55e;font-weight:600;border-top:none;">剩餘退款 ${parseFloat((fundSurplusRaw/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}</td>
       <td style="${ttl1n}color:#22c55e;font-weight:600;border-top:none;">${fundSurplus.toLocaleString()}</td>
@@ -3997,6 +4007,13 @@ const App = {
       }).join('')}
       ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}"></td><td style="${_cttl2n}"></td>`:''}
     </tr>`;
+    // 公費退款:每人存入−每人公款支出份額;正=退回現金(綠),負=應補公款(紅)
+    const _hasRefundRow=hasFundPdf&&_regMPdf.some(m=>(_refundInt[m.id]||0)!==0);
+    const fundRefundRow=_hasRefundRow?`<tr>${_cblankArr}
+      <td style="${_cttl2}text-align:center;color:#6B7280;">公費退款</td>
+      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const v=_refundInt[m.id]||0;const col=v>0?'#22c55e':v<0?'#EF4444':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}color:${col};">${v>0?v.toLocaleString():v<0?`−${(-v).toLocaleString()}`:'—'}</td>`;}).join('')}
+      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}"></td><td style="${_cttl2n}"></td>`:''}
+    </tr>`:'';
     const paidOtherRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支付群組</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${_cttl2n}${mbl(i)}">${(memberGroupPaid[m.id]||0).toLocaleString()}</td>`).join('')}
@@ -4039,7 +4056,7 @@ const App = {
       <td style="${cttl}font-weight:700;text-align:center;">總花費</td>
       ${_lrmCombShares.map((sh,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${sh.toLocaleString()}</td>`).join('')}
       ${hasFundPdf?`<td style="${cttln}${mbl(fundDisplayIdx)}"></td><td style="${cttln}"></td>`:''}
-    </tr>${fundDepRow}${paidOtherRow}${_proxyRowC}${selfPayRow}${owedRow}`;
+    </tr>${fundDepRow}${fundRefundRow}${paidOtherRow}${_proxyRowC}${selfPayRow}${owedRow}`;
     // Settlement — 對齊主 app 計算邏輯（expenses + payRecords + fundDeposits）
     const bal=calcBal(t);
     const _payRecs=t.payRecords||[];
@@ -4072,11 +4089,11 @@ const App = {
     };
     const mkCatRows=(entries,tot)=>entries.map(([cat,amt])=>{
       const pct=tot>0?Math.round(amt/tot*100):0;
-      return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #F3F4F6;">
+      return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #F3F4F6;">
         <div style="width:10px;height:10px;border-radius:50%;background:${catCol[cat]||'#6B7280'};flex-shrink:0;"></div>
-        <div style="flex:1;font-size:13px;">${cat}</div>
-        <div style="font-size:12px;color:#6B7280;width:36px;text-align:right;">${pct}%</div>
-        <div style="font-size:13px;font-weight:700;width:100px;text-align:right;">${baseSym} ${amt.toLocaleString()}</div>
+        <div style="font-size:13px;white-space:nowrap;">${cat}</div>
+        <div style="flex:1;font-size:12px;color:#6B7280;text-align:right;white-space:nowrap;">${pct}%</div>
+        <div style="font-size:13px;font-weight:700;text-align:right;white-space:nowrap;min-width:86px;">${baseSym} ${amt.toLocaleString()}</div>
       </div>`;
     }).join('');
     // 各付款人的類別花費(引擎整數;多人代墊按各自實付歸屬)
@@ -4094,9 +4111,9 @@ const App = {
     const barSegs=paidEntries.map(x=>`<div style="height:100%;width:${totalPaid>0?(x.paid/totalPaid*100).toFixed(1):0}%;background:${x.col};"></div>`).join('');
     const memberPayRows=paidEntries.map(x=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;">
       <div style="width:10px;height:10px;border-radius:3px;background:${x.col};flex-shrink:0;"></div>
-      <div style="flex:1;font-size:13px;font-weight:600;">${x.m.name}</div>
-      <div style="font-size:13px;color:#6B7280;">${baseSym} ${x.paid.toLocaleString()}</div>
-      <div style="font-size:13px;font-weight:700;color:${x.col};width:44px;text-align:right;">${totalPaid>0?Math.round(x.paid/totalPaid*100):0}%</div>
+      <div style="flex:1;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${x.m.name}</div>
+      <div style="font-size:13px;color:#6B7280;white-space:nowrap;">${baseSym} ${x.paid.toLocaleString()}</div>
+      <div style="font-size:13px;font-weight:700;color:${x.col};width:44px;text-align:right;white-space:nowrap;">${totalPaid>0?Math.round(x.paid/totalPaid*100):0}%</div>
     </div>`).join('');
     const payerSections=paidEntries.map(x=>{
       const entries=Object.entries(payerCat[x.m.id]||{}).sort(([,a],[,b])=>b-a);
@@ -4144,8 +4161,9 @@ const App = {
     const html=this._buildExportHTML(t);
     const win=window.open('','_blank');
     win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
       <title>${t.name} 支出明細</title>
-      <style>body{font-family:-apple-system,sans-serif;padding:20px;color:#111;}h2{color:#6366F1;}@media print{.no-print{display:none;}}</style>
+      <style>body{font-family:-apple-system,sans-serif;padding:16px;color:#111;}h2{color:#6366F1;}@media print{.no-print{display:none;}}</style>
       </head><body>
       <h2>${t.name} 支出／結算明細</h2>
       ${html}
@@ -4280,8 +4298,17 @@ const App = {
     });
     const totalFundDepositRawCsv=Object.values(memberFundDepositCsv).reduce((s,v)=>s+v,0);
     const fundSpentBaseCsv=fundMemberCsv?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===fundMemberCsv.id:!!(e.paidBy?.[fundMemberCsv.id]>0)).reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,baseCur),0):0;
-    const fundSurplusRawCsv=Math.max(0,totalFundDepositRawCsv-fundSpentBaseCsv);
-    const fundSurplusCsv=Math.round(fundSurplusRawCsv);
+    // 引擎整數版公款帳(與 PDF 一致):每人公款支出份額(僅字串 paidBy=公款帳)、每人存入、每人退款
+    const _fundShareIntCsv={};regularMembersCsv.forEach(m=>{_fundShareIntCsv[m.id]=0;});
+    if(fundMemberCsv)Object.entries(t.expenses||{}).forEach(([k,e])=>{
+      if(typeof e.paidBy==='string'&&e.paidBy===fundMemberCsv.id){const c=ENG.perExp[k];if(!c||c.pending)return;Object.entries(c.shares).forEach(([id,v])=>{if(_fundShareIntCsv[id]!==undefined)_fundShareIntCsv[id]+=v;});}
+    });
+    const _depIntCsv={};regularMembersCsv.forEach(m=>{_depIntCsv[m.id]=Math.round(memberFundDepositCsv[m.id]||0);});
+    const _refundIntCsv={};regularMembersCsv.forEach(m=>{_refundIntCsv[m.id]=(_depIntCsv[m.id]||0)-(_fundShareIntCsv[m.id]||0);});
+    const fundSpentIntCsv=Object.values(_fundShareIntCsv).reduce((s,v)=>s+v,0);
+    const fundDepositIntCsv=Object.values(_depIntCsv).reduce((s,v)=>s+v,0);
+    const fundSurplusRawCsv=Math.max(0,totalFundDepositRawCsv-fundSpentBaseCsv);// 供外幣參考顯示
+    const fundSurplusCsv=fundDepositIntCsv-fundSpentIntCsv;// 整數:存入−實際支出=剩餘退款
     const memberShareNF={};
     regularMembersCsv.forEach(m=>{memberShareNF[m.id]=0;});
     groupExps.forEach(e=>{
@@ -4322,12 +4349,12 @@ const App = {
     // 群組 TTL：直接用顯示累積值，確保欄位加總 = TTL
     const _intGrpTotalCsv=regularMembersCsv.reduce((s,m)=>s+(memberGroupShareDisplayCsv[m.id]||0),0);
     const _fundSpentLocalCsv=fundSpentBaseCsv>0?parseFloat((fundSpentBaseCsv/fundLocalRateCsv).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3}):'0';
-    const groupTtlRow=['TTL','群組支出','',...groupCurTotals,'',...empties(2),_intGrpTotalCsv,'',...regularMembersCsv.map(m=>memberGroupShareDisplayCsv[m.id]||0),...(hasFund?[`實際支出 ${_fundSpentLocalCsv} ${fundLocalCurCsv}`,Math.round(fundSpentBaseCsv)]:[])];
+    const groupTtlRow=['TTL','群組支出','',...groupCurTotals,'',...empties(2),_intGrpTotalCsv,'',...regularMembersCsv.map(m=>memberGroupShareDisplayCsv[m.id]||0),...(hasFund?[`實際支出 ${_fundSpentLocalCsv} ${fundLocalCurCsv}`,fundSpentIntCsv]:[])];
     csv+=groupTtlRow.map(esc).join(',')+'\n';
     // 公費存入 rows（與 PDF 一致）
     if(hasFund&&totalFundDepositRawCsv>0.5){
       const _depLocalFmt=parseFloat(totalFundDepositLocalCsv.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
-      csv+=[...empties(fixedLeft+allCurs.length+fixedMid),...regularMembersCsv.map(()=>''),`公費存入 ${_depLocalFmt} ${fundLocalCurCsv}`,Math.round(totalFundDepositRawCsv)].map(esc).join(',')+'\n';
+      csv+=[...empties(fixedLeft+allCurs.length+fixedMid),...regularMembersCsv.map(()=>''),`公費存入 ${_depLocalFmt} ${fundLocalCurCsv}`,fundDepositIntCsv].map(esc).join(',')+'\n';
       regularMembersCsv.forEach(m=>{
         const depBase=Math.round(memberFundDepositCsv[m.id]||0);
         if(depBase>0){
@@ -4337,7 +4364,7 @@ const App = {
           csv+=[...empties(fixedLeft+allCurs.length+fixedMid),...regularMembersCsv.map(()=>''),`└ ${m.name}：${_locFmt} ${_locCur}`,depBase].map(esc).join(',')+'\n';
         }
       });
-      if(fundSurplusRawCsv>0.5){
+      if(fundSurplusCsv>0){
         const _sLocalFmt=parseFloat((fundSurplusRawCsv/fundLocalRateCsv).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
         csv+=[...empties(fixedLeft+allCurs.length+fixedMid),...regularMembersCsv.map(()=>''),`剩餘退款 ${_sLocalFmt} ${fundLocalCurCsv}`,fundSurplusCsv].map(esc).join(',')+'\n';
       }
@@ -4385,13 +4412,16 @@ const App = {
     const _intCombTotalCsv=_floorCombSharesCsv.reduce((s,v)=>s+v,0);
     sectionRow('整趟旅程完整花費（群組＋個人）');
     const ttlRow1=['合計','全部支出','',...combinedCurTotals,'',...empties(2),_intCombTotalCsv,'總花費',..._floorCombSharesCsv,...(hasFund?['','']:[])];
-    const ttlRow1b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已存入公費',...regularMembersCsv.map(m=>{const dep=Math.round(memberFundDepositCsv[m.id]||0);return dep||'';}),...(hasFund?['','']:[])];
+    const ttlRow1b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已存入公費',...regularMembersCsv.map(m=>_depIntCsv[m.id]||''),...(hasFund?['','']:[])];
+    // 公費退款:正=退回現金,負=應補公款(與 PDF 一致)
+    const ttlRow1c=[...empties(fixedLeft+allCurs.length+fixedMid-1),'公費退款',...regularMembersCsv.map(m=>{const v=_refundIntCsv[m.id]||0;return v!==0?v:'';}),...(hasFund?['','']:[])];
     const ttlRow2=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付群組',...regularMembersCsv.map(m=>memberGroupPaidCsv[m.id]||0),...(hasFund?['','']:[])];
     const ttlRow2b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付他人墊付',...regularMembersCsv.map(m=>{const v=memberProxyPaidCsv[m.id]||0;return v||'';}),...(hasFund?['','']:[])];
     const ttlRow2c=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支出自購',...regularMembersCsv.map(m=>{const v=_selfOnlyShareCsv[m.id]||0;return v||'';}),...(hasFund?['','']:[])];
     const ttlRow3=[...empties(fixedLeft+allCurs.length+fixedMid-1),'待付款',...regularMembersCsv.map(m=>{const owed=Math.round(-(peerBalDetailCsv[m.id]||0));return owed!==0?owed:0;}),...(hasFund?['','']:[])];
     csv+=ttlRow1.map(esc).join(',')+'\n';
     csv+=ttlRow1b.map(esc).join(',')+'\n';
+    if(hasFund&&regularMembersCsv.some(m=>(_refundIntCsv[m.id]||0)!==0)) csv+=ttlRow1c.map(esc).join(',')+'\n';
     csv+=ttlRow2.map(esc).join(',')+'\n';
     if(Object.values(memberProxyPaidCsv).some(v=>v>0)) csv+=ttlRow2b.map(esc).join(',')+'\n';
     csv+=ttlRow2c.map(esc).join(',')+'\n';
