@@ -2162,11 +2162,13 @@ const App = {
             <div style="font-size:16px;font-weight:800;">${fmtS(groupTotal)}</div>
           </div>
         </div>
-        ${fundMember?`<div style="font-size:11px;color:var(--t2);margin-top:6px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 合計 及 應付／應收 均不含公款存入金額</div>`:''}
-        <div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 群組花費：2 人以上分攤的項目，已納入應付／應收計算</div>
-        <div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 個人花費－他人墊付：由他人代墊，需還款，已納入應付／應收計算</div>
-        ${inclPersonal?`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 個人花費－代購（外部成員）：採購給非旅伴，僅記錄不影響結算</div>`:''}
-        ${inclPersonal?`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 個人花費－自購：個人自費，不影響他人結算</div>`:''}`
+        <div style="font-size:11px;color:var(--t2);margin-top:6px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 群組·全員分攤：全團每個人都有份的花費。</div>
+        <div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 群組·部分分攤：只有其中幾個人分、不是全團一起的花費。</div>
+        ${fundMember?`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 群組·公費支付：用公費付的共同花費，算在「跟公費的帳」，不進同伴應付／應收。</div>`:''}
+        <div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 他人墊付：別人先幫你付、你要還的，已算進應付／應收。</div>
+        ${inclPersonal?`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 代購（外部成員）：買給非旅伴的東西，只記錄、不影響結算。</div>`:''}
+        ${inclPersonal?`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 自購：自己的花費，不影響別人。</div>`:''}
+        ${fundMember?`<div style="font-size:11px;color:var(--t2);margin-top:4px;margin-left:16px;padding:0 4px;padding-left:1.2em;text-indent:-1.2em;">＊ 合計 及 應付／應收 不含公費存入金額。</div>`:''}`
 
     })();
 
