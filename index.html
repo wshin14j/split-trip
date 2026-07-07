@@ -1030,7 +1030,7 @@ function minimizeTx(bal){
 // ═══ 共用分帳引擎:所有金額的唯一計算來源 ═══
 // 規格:每筆費用只「分一次錢」,結果為整數且加總恰等於該筆整數總額;
 // 網頁明細、結算、PDF 各列各欄一律取用同一份結果,杜絕各處自行四捨五入造成的差一/不合。
-// (PDF 群組總計含公費餘額退款屬刻意設計,與網頁總支出的差額=公費餘額,為預期行為)
+// (2026-07-07 起:PDF/CSV 群組 TTL=實際花費,不含公費餘額退款;剩餘退款只列在公款帳欄。總花費=群組 TTL+個人各段 TTL,逐欄相等)
 
 // 最大餘數法:把浮點分配調整為整數,且加總恰等於 targetInt(差額補給小數部分最大者)
 // seed(選填):同分時的輪流種子——每筆支出傳入不同 seed,讓「多付一元的人」逐筆輪替,整趟下來公平分散
@@ -3888,38 +3888,16 @@ const App = {
     const fundSpentBase=_fundId?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===_fundId:!!(e.paidBy?.[_fundId]>0)).reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,baseCur),0):0;
     const fundSurplusRaw=totalFundDepositRaw-fundSpentBase;
     const fundSurplus=Math.round(fundSurplusRaw);
-    const regCount=regularMembers.length||1;
-    const surplusPerMember=fundSurplusRaw>0.5?Math.round(fundSurplusRaw/regCount):0;
-    // 公費餘額的每人分配(最大餘數法,加總必等於 fundSurplus)
-    const _surplusMap=fundSurplusRaw>0.5?lrmRound(Object.fromEntries(regularMembers.map(m=>[m.id,fundSurplusRaw/regCount])),fundSurplus):{};
-    let surplusRow='';
-    if(fundSurplus>0.5&&fundMember){
-      const _surplusCurCells=allCurs.map(c=>{
-        if(c===fundLocalCur){const n=parseFloat((fundSurplusRaw/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});return `<td style="${numS}">${n}</td>`;}
-        return blank;
-      }).join('');
-      surplusRow=`<tr style="font-style:italic;">
-        <td style="${tdS}"></td><td style="${tdS}"></td>
-        <td style="${tdS}color:#6B7280;">公費餘額</td>
-        ${_surplusCurCells}
-        <td style="${tdS}border-left:2.5px solid #9CA3AF;text-align:center;color:#6B7280;">公款帳</td>
-        <td style="${tdS}"></td>
-        <td style="${tdS}text-align:center;">${regCount}</td>
-        <td style="${numSL}">${fundSurplus.toLocaleString()}</td>
-        <td style="${numS}">${surplusPerMember.toLocaleString()}</td>
-        ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>`<td style="${numS}${mbl(i)}">${(_surplusMap[m.id]||0).toLocaleString()}</td>`).join('')}
-        ${hasFundPdf?`<td style="${numS}${mbl(fundDisplayIdx)}font-weight:600;color:#22c55e;">剩餘退款 ${parseFloat((fundSurplusRaw/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}</td><td style="${numS}color:#22c55e;">${fundSurplus.toLocaleString()}</td>`:''}
-      </tr>`;
-    }
+    // 公費餘額(剩餘退款)只顯示在公款帳欄,不列入成員欄與群組 TTL——群組 TTL=實際花費,總花費=群組 TTL+個人 TTL
+    const _hasSurplusRow=fundSurplus>0.5&&hasFundPdf;
     // Group TTL
-    const _surplusLocalAmt=fundSurplusRaw>0.5?fundSurplusRaw/fundLocalRate:0;
     const _regMPdf=displayMembers.filter(m=>!m.isGroupFund);
-    const _grpRs=hasFundPdf?` rowspan="${2+_regMPdf.length}"`:'';
+    const _grpRs=hasFundPdf?` rowspan="${2+_regMPdf.length+(_hasSurplusRow?1:0)}"`:'';
     const groupCurTotals=allCurs.map(c=>{
-      const s=groupExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0)+(c===fundLocalCur?_surplusLocalAmt:0);
+      const s=groupExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);
       return Math.abs(s)>0.5?`<td style="${ttl1n}font-weight:700;"${_grpRs}>${Math.round(s).toLocaleString()}</td>`:`<td style="${ttl1}"${_grpRs}></td>`;
     }).join('');
-    const groupGrandTotal=groupExps.reduce((s,e)=>s+((ENG.perExp[e._k]||{}).baseTotal||0),0)+fundSurplus;
+    const groupGrandTotal=groupExps.reduce((s,e)=>s+((ENG.perExp[e._k]||{}).baseTotal||0),0);
     // 代付淨額
     const memberProxyPaid={};const memberProxyReceived={};
     members.forEach(m=>{memberProxyPaid[m.id]=0;memberProxyReceived[m.id]=0;});
@@ -3945,8 +3923,8 @@ const App = {
       }).join('')}
       ${hasFundPdf?`<td style="${ttl2n}${mbl(fundDisplayIdx)}color:#6B7280;">—</td><td style="${ttl2n}color:#6B7280;">—</td>`:''}
     </tr>`:'';
-    // 成員欄 TTL = 引擎整數份額 + 公費餘額整數分配;各欄加總必等於群組總金額,不需再跑修正
-    const _lrmGrpShares=_regMPdf.map(m=>(memberGroupShare[m.id]||0)+(_surplusMap[m.id]||0));
+    // 成員欄 TTL = 引擎整數份額(不含公費餘額);各欄加總必等於群組總金額,不需再跑修正
+    const _lrmGrpShares=_regMPdf.map(m=>(memberGroupShare[m.id]||0));
     const _intGrpTotal=_lrmGrpShares.reduce((s,v)=>s+v,0);
     const groupTtlRows=`<tr>
       <td style="${ttl1}font-weight:700;"${_grpRs}>TTL</td><td style="${ttl1}font-weight:700;"${_grpRs}>群組支出</td><td style="${ttl1}"${_grpRs}></td>
@@ -3959,7 +3937,10 @@ const App = {
     </tr>${hasFundPdf?`<tr>
       <td style="${ttl1n}${mbl(fundDisplayIdx)}color:#6B7280;font-weight:600;border-bottom:none;">公費存入 ${fmtLocal(totalFundDepositLocal)} ${fundLocalCur}</td>
       <td style="${ttl1n}color:#6B7280;border-bottom:none;">${Math.round(totalFundDeposit).toLocaleString()}</td>
-    </tr>${_regMPdf.map(m=>{const depLocal=memberFundDepositLocal[m.id]||0;const depBase=Math.round(memberFundDeposit[m.id]||0);const omrTxt=fundLocalCur!==baseCur&&depLocal>0?`└ ${m.name}：${parseFloat(depLocal.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}`:`└ ${m.name}：${depBase.toLocaleString()} ${baseCur}`;return `<tr><td style="${ttl1n}${mbl(fundDisplayIdx)}color:#6B7280;font-size:10px;border-top:none;border-bottom:none;">${omrTxt}</td><td style="${ttl1n}color:#6B7280;font-size:10px;border-top:none;border-bottom:none;">${depBase>0?depBase.toLocaleString():'—'}</td></tr>`;}).join('')}`:''}`;
+    </tr>${_regMPdf.map(m=>{const depLocal=memberFundDepositLocal[m.id]||0;const depBase=Math.round(memberFundDeposit[m.id]||0);const omrTxt=fundLocalCur!==baseCur&&depLocal>0?`└ ${m.name}：${parseFloat(depLocal.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}`:`└ ${m.name}：${depBase.toLocaleString()} ${baseCur}`;return `<tr><td style="${ttl1n}${mbl(fundDisplayIdx)}color:#6B7280;font-size:10px;border-top:none;border-bottom:none;">${omrTxt}</td><td style="${ttl1n}color:#6B7280;font-size:10px;border-top:none;border-bottom:none;">${depBase>0?depBase.toLocaleString():'—'}</td></tr>`;}).join('')}${_hasSurplusRow?`<tr>
+      <td style="${ttl1n}${mbl(fundDisplayIdx)}color:#22c55e;font-weight:600;border-top:none;">剩餘退款 ${parseFloat((fundSurplusRaw/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3})} ${fundLocalCur}</td>
+      <td style="${ttl1n}color:#22c55e;font-weight:600;border-top:none;">${fundSurplus.toLocaleString()}</td>
+    </tr>`:''}`:''}`;
     // Personal section
     const _isProxy=e=>{
       if(e.splitMode==='self'||e.splitMode==='extproxy') return false;
@@ -4152,7 +4133,7 @@ const App = {
         <div style="font-size:11px;color:#9CA3AF;">＊ 均分金額以整數顯示，±1 元尾差由系統逐筆輪流分配，結算時自動抵平</div>
       </div>
       <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px;">
-        <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${surplusRow}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
+        <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
       </div>
       ${analysisHTML}`;
   },
@@ -4205,6 +4186,10 @@ const App = {
       const row=[`${c} rate`,rate,...empties(totalCols-2)];
       csv+=row.map(esc).join(',')+'\n';
     });
+
+    // 備註(與 PDF 明細表上方的兩行同步)
+    csv+=['＊ 原始計算結果，不含轉帳還款紀錄'].map(esc).join(',')+'\n';
+    csv+=['＊ 均分金額以整數顯示，±1 元尾差由系統逐筆輪流分配，結算時自動抵平'].map(esc).join(',')+'\n';
 
     // Header: two rows (群組標題 + 欄位名)
     const header1=['','','','支出金額',...empties(allCurs.length-1),'','分攤','','','',...empties(regularMembersCsv.length),...(hasFund?['公款帳','']:[])];
@@ -4297,9 +4282,6 @@ const App = {
     const fundSpentBaseCsv=fundMemberCsv?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===fundMemberCsv.id:!!(e.paidBy?.[fundMemberCsv.id]>0)).reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,baseCur),0):0;
     const fundSurplusRawCsv=Math.max(0,totalFundDepositRawCsv-fundSpentBaseCsv);
     const fundSurplusCsv=Math.round(fundSurplusRawCsv);
-    const surplusPerMemberCsv=fundSurplusRawCsv>0.5?Math.round(fundSurplusRawCsv/regularMembersCsv.length):0;
-    // 公費餘額每人分配(最大餘數法整數,加總=餘額)
-    const _surplusMapCsv=fundSurplusRawCsv>0.5?lrmRound(Object.fromEntries(regularMembersCsv.map(m=>[m.id,fundSurplusRawCsv/regularMembersCsv.length])),fundSurplusCsv):{};
     const memberShareNF={};
     regularMembersCsv.forEach(m=>{memberShareNF[m.id]=0;});
     groupExps.forEach(e=>{
@@ -4330,23 +4312,13 @@ const App = {
     });
 
     // 群組支出 TTL（僅合計行，不含 detail rows）
+    // 公費餘額(剩餘退款)只列在公款帳欄,不列入成員欄與群組 TTL——群組 TTL=實際花費(與 PDF 一致)
     const groupCurTotals=allCurs.map(c=>{
       const s=groupExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);
-      const extra=c===fundLocalCurCsv&&fundSurplusRawCsv>0.5?fundSurplusRawCsv/fundLocalRateCsv:0;
-      return (s+extra)>0.5?Math.round(s+extra):'';
+      return s>0.5?Math.round(s):'';
     });
-    const groupGrandTotalRawCsv=groupExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0)+fundSurplusRawCsv;
+    const groupGrandTotalRawCsv=groupExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0);
     const memberGroupOnlyShareCsv={};members.forEach(m=>{memberGroupOnlyShareCsv[m.id]=memberShare[m.id]||0;});
-    // 公費餘額 row（與 PDF 一致）
-    if(fundSurplusRawCsv>0.5){
-      const _sLocalAmt=fundSurplusRawCsv/fundLocalRateCsv;
-      const surplusCurCsv=allCurs.map(c=>c===fundLocalCurCsv?parseFloat(_sLocalAmt.toFixed(3)):'');
-      const _sLocalFmt=parseFloat(_sLocalAmt.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
-      const surplusRowCsv=['','','公費餘額',...surplusCurCsv,'公款帳','',regularMembersCsv.length,fundSurplusCsv,surplusPerMemberCsv,...regularMembersCsv.map(m=>_surplusMapCsv[m.id]||0),...(hasFund?[`剩餘退款 ${_sLocalFmt} ${fundLocalCurCsv}`,fundSurplusCsv]:[])];
-      csv+=surplusRowCsv.map(esc).join(',')+'\n';
-      // 公費餘額也顯示在成員欄，加入累積器確保 TTL 一致
-      regularMembersCsv.forEach(m=>{memberGroupShareDisplayCsv[m.id]+=(_surplusMapCsv[m.id]||0);});
-    }
     // 群組 TTL：直接用顯示累積值，確保欄位加總 = TTL
     const _intGrpTotalCsv=regularMembersCsv.reduce((s,m)=>s+(memberGroupShareDisplayCsv[m.id]||0),0);
     const _fundSpentLocalCsv=fundSpentBaseCsv>0?parseFloat((fundSpentBaseCsv/fundLocalRateCsv).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3}):'0';
@@ -4365,6 +4337,10 @@ const App = {
           csv+=[...empties(fixedLeft+allCurs.length+fixedMid),...regularMembersCsv.map(()=>''),`└ ${m.name}：${_locFmt} ${_locCur}`,depBase].map(esc).join(',')+'\n';
         }
       });
+      if(fundSurplusRawCsv>0.5){
+        const _sLocalFmt=parseFloat((fundSurplusRawCsv/fundLocalRateCsv).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
+        csv+=[...empties(fixedLeft+allCurs.length+fixedMid),...regularMembersCsv.map(()=>''),`剩餘退款 ${_sLocalFmt} ${fundLocalCurCsv}`,fundSurplusCsv].map(esc).join(',')+'\n';
+      }
     }
 
     // Personal expenses — 分為「他人墊付」與「自購」兩區（與 PDF 一致）
@@ -4405,7 +4381,7 @@ const App = {
     });
     // 總花費 = 群組 LRM 份額 + 個人各區段份額（直接加總，與上方各區欄位數字一致，不重跑 LRM）
     // 總花費 = 實際花費(群組份額不含公費餘額退款 + 個人份額),與 PDF/網頁成員總覽一致
-    const _floorCombSharesCsv=regularMembersCsv.map(m=>(memberGroupShareDisplayCsv[m.id]||0)-(_surplusMapCsv[m.id]||0)+(memberPersonalShareAccCsv[m.id]||0));
+    const _floorCombSharesCsv=regularMembersCsv.map(m=>(memberGroupShareDisplayCsv[m.id]||0)+(memberPersonalShareAccCsv[m.id]||0));
     const _intCombTotalCsv=_floorCombSharesCsv.reduce((s,v)=>s+v,0);
     sectionRow('整趟旅程完整花費（群組＋個人）');
     const ttlRow1=['合計','全部支出','',...combinedCurTotals,'',...empties(2),_intCombTotalCsv,'總花費',..._floorCombSharesCsv,...(hasFund?['','']:[])];
