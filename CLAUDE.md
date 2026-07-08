@@ -34,4 +34,4 @@ python3 -m http.server 8000
 - 正式網址:**https://roamsplit.pages.dev**(Cloudflare Pages,push 到 main 自動部署)
 - Cloudflare 的 git 連結已於 2026-07-06 重新接到 wshin14j/split-trip(過戶後重設),自動部署正常。Cloudflare 帳號用的是 wenchenlee1127@gmail.com
 - 使用者用 GitHub Desktop 操作 git(登入 wshin14j 帳號)
-- **匯率即時來源(2026-07-09 定案)**:「取得即時匯率」與 `autoFillRate` 都用 fawazahmed0/currency-api(市場參考價,前端直抓,`1/rate` 換算成「1 外幣=X 台幣」)。**曾嘗試接台灣銀行「現金賣出」但失敗**:台銀 `rate.bot.com.tw` 有 JS challenge＋擋雲端機房 IP,Cloudflare Pages Function 中繼取回的是 Challenge 頁(rates count:0);FinMind 雖有台銀 JSON 但需 token、鏈路長、依賴第三方,評估後不採。已移除 `functions/bank-rates.js`。**結論:分帳用市場參考價比含銀行價差的現金賣出更公允,勿再走台銀路線**
+- **匯率即時來源(2026-07-09 定案)**:「取得即時匯率」與 `autoFillRate` 都用 **ExchangeRate-API**(`https://open.er-api.com/v6/latest/TWD`,免費免 key、前端直抓、有 CORS、每日更新、166 幣別含 OMR;回傳 base=TWD 的 `rates`,用 `1/rate` 換算成「1 外幣=X 台幣」)。來源透明(官網 exchangerate-api.com,彙整各國央行＋商業來源),比先前的 fawazahmed0(匿名、慢 2 天)好。**曾嘗試接台灣銀行「現金賣出」但失敗**:台銀有 JS challenge＋擋雲端 IP,Cloudflare 中繼取回 Challenge 頁(count:0);FinMind 需 token、依賴第三方,不採,已移除 `functions/bank-rates.js`。**結論:分帳用市場參考價比含銀行價差的現金賣出公允,勿再走台銀路線**
