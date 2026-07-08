@@ -34,4 +34,4 @@ python3 -m http.server 8000
 - 正式網址:**https://roamsplit.pages.dev**(Cloudflare Pages,push 到 main 自動部署)
 - Cloudflare 的 git 連結已於 2026-07-06 重新接到 wshin14j/split-trip(過戶後重設),自動部署正常。Cloudflare 帳號用的是 wenchenlee1127@gmail.com
 - 使用者用 GitHub Desktop 操作 git(登入 wshin14j 帳號)
-- **Cloudflare Pages Functions(2026-07-09 起)**:repo 根目錄有 `functions/` 資料夾,Cloudflare Pages 會自動把裡面的檔案部署成 serverless function(不需額外設定)。目前有 `functions/bank-rates.js`:同源中繼,server-side 抓台灣銀行牌告 CSV(`rate.bot.com.tw/xrt/flcsv/0/day`,帶瀏覽器 UA 繞過反爬)、解析「現金賣出」(CSV 第 3 欄,index 2;不收現金者退回即期賣出 index 4)回傳 JSON。前端 `fetchLiveRates` 改抓 `/bank-rates`(不再用 fawazahmed0);`autoFillRate`(新增自訂幣別)仍用 fawazahmed0(台銀無冷門幣)。`/bank-rates?raw=1` 回傳台銀原始 CSV 供除錯。**此中繼只能在 Cloudflare 上實測(本地 python server 不跑 functions);台銀可能擋雲端 IP,若失敗需看 ?raw=1 調整**
+- **匯率即時來源(2026-07-09 定案)**:「取得即時匯率」與 `autoFillRate` 都用 fawazahmed0/currency-api(市場參考價,前端直抓,`1/rate` 換算成「1 外幣=X 台幣」)。**曾嘗試接台灣銀行「現金賣出」但失敗**:台銀 `rate.bot.com.tw` 有 JS challenge＋擋雲端機房 IP,Cloudflare Pages Function 中繼取回的是 Challenge 頁(rates count:0);FinMind 雖有台銀 JSON 但需 token、鏈路長、依賴第三方,評估後不採。已移除 `functions/bank-rates.js`。**結論:分帳用市場參考價比含銀行價差的現金賣出更公允,勿再走台銀路線**
