@@ -508,7 +508,7 @@ select.input{
     </details>
     <details class="faq-item">
       <summary>公款帳怎麼記帳？</summary>
-      <div class="faq-a">先用「存入公款」記錄每個人繳了多少；之後共同開銷記帳時，付款人選公款帳就好。公款支付的帳不會算進成員之間的互欠，結算時各自和公款帳結清。</div>
+      <div class="faq-a">先用「存入公款」記錄每個人繳了多少；之後共同開銷記帳時，付款人選公款帳就好。公款支付的帳不會算進成員之間的互欠，結算時各自和公款帳結清。<br><br>如果公款不夠、臨時由某人補差額，付款人改選「多人」，分別填公款帳和墊錢的人各出多少。公款出的部分會記進每個人「跟公費的帳」，墊錢的部分才算成員互欠。</div>
     </details>
     <details class="faq-item">
       <summary>公款用不完或不夠怎麼辦？</summary>
@@ -1061,6 +1061,7 @@ function lrmRound(rawMap,targetInt,seed){
 }
 // 單筆費用的標準計算結果(整數):
 // baseTotal=整數總額 / shares={成員:整數分攤,加總=baseTotal} / paid={成員:整數實付,加總=baseTotal}
+// peerShares/fundShares=每人分攤再拆成同伴出的與公費出的(見下方混合付款註解),各處公費/互欠計算一律取用
 function calcExp(e,t){
   const base=t.baseCurrency||'TWD';
   const cur=e.currency||base;
@@ -1088,7 +1089,21 @@ function calcExp(e,t){
       paid=lrmRound(rawP,baseTotal);
     }else if(e.paidBy){paid={[e.paidBy]:baseTotal};}
   }
-  return {baseTotal,shares,paid,pending,ps,cur};
+  // 公款帳混合付款(2026-07-10 起):每人分攤拆成「同伴份額 peerShares」+「公費份額 fundShares」
+  // fundPaid=公款帳實付整數;peerShares 加總=baseTotal−fundPaid、fundShares 加總=fundPaid,逐人 peer+fund=shares
+  // 公款帳單獨支付→peerShares 全空(同舊行為);無公款參與→peerShares=shares、fundShares 全空
+  const fundId=((t.members||[]).find(m=>m.isGroupFund)||{}).id||null;
+  const fundPaid=fundId?(paid[fundId]||0):0;
+  let peerShares=shares,fundShares={};
+  if(fundPaid>0){
+    if(fundPaid>=baseTotal){fundShares=shares;peerShares={};}
+    else{
+      const rawPeer={};Object.keys(shares).forEach(id=>{rawPeer[id]=shares[id]*(baseTotal-fundPaid)/baseTotal;});
+      peerShares=lrmRound(rawPeer,baseTotal-fundPaid,e.createdAt||0);
+      fundShares={};Object.keys(shares).forEach(id=>{fundShares[id]=shares[id]-(peerShares[id]||0);});
+    }
+  }
+  return {baseTotal,shares,paid,pending,ps,cur,fundPaid,peerShares,fundShares};
 }
 // 整趟旅程的彙總(全部由 calcExp 的整數結果累加,不再各處自行計算):
 // groupTotal/personalTotal、每人 groupShare/selfPay/groupPaid、peerBal(結算用,排除公款支付)
@@ -1116,12 +1131,10 @@ function calcTrip(t){
       r.personalTotal+=c.baseTotal;
       Object.entries(c.shares).forEach(([id,v])=>{r.selfPay[id]=(r.selfPay[id]||0)+v;});
     }
-    // 結算(peerBal):公款帳「單獨支付」的費用不進成員互欠(與原結算頁條件一致:僅字串比對)
-    const isFundPaid=!!(fundId&&typeof e.paidBy==='string'&&e.paidBy===fundId);
-    if(!isFundPaid){
-      Object.entries(c.paid).forEach(([id,v])=>{if(r.peerBal[id]!==undefined)r.peerBal[id]+=v;});
-      Object.entries(c.shares).forEach(([id,v])=>{if(r.peerBal[id]!==undefined)r.peerBal[id]-=v;});
-    }
+    // 結算(peerBal):公款帳付的部分不進成員互欠——實付只計非公款付款人,分攤只計同伴份額(peerShares)
+    // 公款帳單獨支付→peerShares 全空,行為同舊版;混合付款→只有同伴實付的部分進互欠,收支必歸零
+    Object.entries(c.paid).forEach(([id,v])=>{if(id!==fundId&&r.peerBal[id]!==undefined)r.peerBal[id]+=v;});
+    Object.entries(c.peerShares).forEach(([id,v])=>{if(r.peerBal[id]!==undefined)r.peerBal[id]-=v;});
   });
   return r;
 }
@@ -1734,7 +1747,11 @@ const App = {
         if(typeof e.paidBy==='string') return e.paidBy===fundMember.id;
         return e.paidBy?.[fundMember.id]>0;
       });
-      const totalOutBase=fundExps.reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,baseCur),0);
+      const totalOutBase=fundExps.reduce((s,e)=>{
+        if(e.note==='金額待補') return s;
+        const amt=typeof e.paidBy==='object'?(e.paidBy[fundMember.id]||0):e.amount;// 混合付款只計公款實付部分
+        return s+toBase(amt,e.currency,t.rates,baseCur);
+      },0);
       const remainBase=totalInBase-totalOutBase;
       const regular=t.members.filter(m=>!m.isGroupFund);
       const perPerson=regular.length>0?remainBase/regular.length:0;
@@ -1818,25 +1835,18 @@ const App = {
       </div>`;
     })();
 
-    // 同伴債務：只計算非公款帳支付的費用，避免 minimizeTx 把 peer debt 繞道公款帳
-    const peerBal={...calcTrip(t).peerBal};// 共用引擎結算(整數,與 PDF/CSV 同源)
+    // 同伴債務：只計算非公款帳支付的部分（引擎 peerShares），避免 minimizeTx 把 peer debt 繞道公款帳
+    const ENG_S=calcTrip(t);// 共用引擎結算(整數,與 PDF/CSV 同源)
+    const peerBal={...ENG_S.peerBal};
     const peerTxs=minimizeTx(peerBal);
-    // 公款債務：每個成員對公款帳的原始欠款，扣掉存款 + 轉帳，只保留未結清的
+    // 公款債務：每人公費份額(引擎 fundShares,含混合付款的公款部分)，扣掉存款 + 轉帳，只保留未結清的
     const fundTxs=[];
     if(fundMember){
       const fundOwed={};
       t.members.filter(m=>!m.isGroupFund).forEach(m=>{fundOwed[m.id]=0;});
-      Object.values(t.expenses||{}).forEach(e=>{
-        if(typeof e.paidBy!=='string'||e.paidBy!==fundMember.id) return;
-        const tot=toBase(e.amount,e.currency,t.rates,t.baseCurrency);
-        const ps=(e.parts||t.members.map(m=>m.id)).filter(id=>fundOwed[id]!==undefined);
-        if(ps.length===0) return;
-        if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts){
-          ps.forEach(p=>{const ca=toBase(e.customAmounts[p]||0,e.currency,t.rates,t.baseCurrency);if(fundOwed[p]!==undefined)fundOwed[p]+=ca;});
-        } else {
-          const sh=tot/ps.length;
-          ps.forEach(p=>{if(fundOwed[p]!==undefined)fundOwed[p]+=sh;});
-        }
+      Object.values(ENG_S.perExp).forEach(c=>{
+        if(c.pending) return;
+        Object.entries(c.fundShares||{}).forEach(([id,v])=>{if(fundOwed[id]!==undefined)fundOwed[id]+=v;});
       });
       t.members.filter(m=>!m.isGroupFund).forEach(m=>{
         const rawOwed=fundOwed[m.id]||0;
@@ -2032,23 +2042,26 @@ const App = {
           if(spent[pid]!==undefined) spent[pid]+=tot;
         } else {
           const ps=e.parts||t.members.map(m=>m.id);
-          const isFundPaid=fundMember&&typeof e.paidBy==='string'&&e.paidBy===fundMember.id;
-          const isFullGroup=!isFundPaid&&regularIds.every(id=>ps.includes(id));
+          const _fundId=fundMember?fundMember.id:null;
+          const isFullGroup=regularIds.every(id=>ps.includes(id));
           const _payerIdSum=typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0];
-          const isProxy=!isFundPaid&&!isFullGroup&&ps.length===1&&ps[0]!==_payerIdSum;
-          // paid
+          const isProxy=!isFullGroup&&ps.length===1&&ps[0]!==_payerIdSum;
+          // paid:公款帳實付不算成員「我已先付」,其餘照類型歸類(混合付款各歸各的)
           Object.entries(_ec.paid).forEach(([id,a])=>{
             if(paid[id]!==undefined) paid[id]+=a;
-            if(!isFundPaid){if(isFullGroup){if(paidGroup[id]!==undefined)paidGroup[id]+=a;}else if(isProxy){if(paidProxy[id]!==undefined)paidProxy[id]+=a;}else{if(paidPartial[id]!==undefined)paidPartial[id]+=a;}}
+            if(id!==_fundId){if(isFullGroup){if(paidGroup[id]!==undefined)paidGroup[id]+=a;}else if(isProxy){if(paidProxy[id]!==undefined)paidProxy[id]+=a;}else{if(paidPartial[id]!==undefined)paidPartial[id]+=a;}}
           });
-          // spent (share) + fund/peer/partial split — 引擎整數分攤
+          // spent:總花費計全額份額;公費份額(fundShares)歸「群組·公費支付」,同伴份額(peerShares)照類型歸類
           ps.forEach(p=>{
             const sh=_ec.shares[p]||0;
             if(spent[p]!==undefined) spent[p]+=sh;
-            if(isFundPaid){if(groupFundSpent[p]!==undefined)groupFundSpent[p]+=sh;}
-            else if(isFullGroup){if(groupPeerSpent[p]!==undefined)groupPeerSpent[p]+=sh;}
-            else if(isProxy){if(proxySpent[p]!==undefined)proxySpent[p]+=sh;}
-            else{if(partialPeerSpent[p]!==undefined)partialPeerSpent[p]+=sh;}
+            const fsh=_ec.fundShares[p]||0;
+            if(fsh&&groupFundSpent[p]!==undefined) groupFundSpent[p]+=fsh;
+            const psh=_ec.peerShares[p]||0;
+            if(!psh) return;
+            if(isFullGroup){if(groupPeerSpent[p]!==undefined)groupPeerSpent[p]+=psh;}
+            else if(isProxy){if(proxySpent[p]!==undefined)proxySpent[p]+=psh;}
+            else{if(partialPeerSpent[p]!==undefined)partialPeerSpent[p]+=psh;}
           });
         }
       });
@@ -2067,11 +2080,12 @@ const App = {
         const a=toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
         if(outPay[r.from]!==undefined) outPay[r.from]+=a;
       });
-      // hasPeerExps：是否有非公款帳支付的群組費用
+      // hasPeerExps：是否有非公款帳支付（或混合付款中同伴出資）的群組費用
       const hasPeerExps=Object.values(t.expenses||{}).some(e=>{
         if(e.splitMode==='self') return false;
         if(!fundMember) return true;
         if(typeof e.paidBy==='string') return e.paidBy!==fundMember.id;
+        if(typeof e.paidBy==='object'&&e.paidBy) return Object.entries(e.paidBy).some(([id,v])=>id!==fundMember.id&&v>0);
         return true;
       });
       // adjPeerBal：僅同伴費用 balance，加上轉帳紀錄調整，用於應付/應收
@@ -2377,8 +2391,12 @@ const App = {
     let fundShowBase=false;
     if(fundMember){
       const totalIn=(t.fundDeposits||[]).reduce((s,d)=>s+toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-      const totalOut=Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'&&e.paidBy===fundMember.id)
-        .reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,t.baseCurrency),0);
+      const totalOut=Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===fundMember.id:!!(e.paidBy&&e.paidBy[fundMember.id]>0))
+        .reduce((s,e)=>{
+          if(e.note==='金額待補') return s;
+          const amt=typeof e.paidBy==='object'?(e.paidBy[fundMember.id]||0):e.amount;// 混合付款只計公款實付部分
+          return s+toBase(amt,e.currency,t.rates,t.baseCurrency);
+        },0);
       fundRemain=totalIn-totalOut;
       hasFundActivity=(t.fundDeposits||[]).length>0||totalOut>0;
       const _deps=t.fundDeposits||[];
@@ -3950,13 +3968,17 @@ const App = {
     });
     // Fund surplus row
     const _fundId=fundMember?.id;
-    const fundSpentBase=_fundId?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===_fundId:!!(e.paidBy?.[_fundId]>0)).reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,baseCur),0):0;
+    const fundSpentBase=_fundId?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===_fundId:!!(e.paidBy?.[_fundId]>0)).reduce((s,e)=>{
+      if(e.note==='金額待補') return s;
+      const amt=typeof e.paidBy==='object'?(e.paidBy[_fundId]||0):e.amount;// 混合付款只計公款實付部分
+      return s+toBase(amt,e.currency,t.rates,baseCur);
+    },0):0;
     const fundSurplusRaw=totalFundDepositRaw-fundSpentBase;// 供外幣參考顯示
-    // 引擎整數版公款帳:每人公款支出份額(僅字串 paidBy=公款帳,與 peerBal 排除條件一致)、每人存入、每人退款
+    // 引擎整數版公款帳:每人公款支出份額(引擎 fundShares,含混合付款公款部分,與 peerBal 排除口徑一致)、每人存入、每人退款
     // 報表恆等式:待付款 = 總花費 −(已存入公費 − 公費退款)− 已支付群組 − 已支付他人墊付 − 已支出自購
     const _fundShareInt={};regularMembers.forEach(m=>{_fundShareInt[m.id]=0;});
-    if(_fundId)Object.entries(t.expenses||{}).forEach(([k,e])=>{
-      if(typeof e.paidBy==='string'&&e.paidBy===_fundId){const c=ENG.perExp[k];if(!c||c.pending)return;Object.entries(c.shares).forEach(([id,v])=>{if(_fundShareInt[id]!==undefined)_fundShareInt[id]+=v;});}
+    if(_fundId)Object.values(ENG.perExp).forEach(c=>{
+      if(c.pending)return;Object.entries(c.fundShares||{}).forEach(([id,v])=>{if(_fundShareInt[id]!==undefined)_fundShareInt[id]+=v;});
     });
     const _depInt={};regularMembers.forEach(m=>{_depInt[m.id]=Math.round(memberFundDeposit[m.id]||0);});
     const _refundInt={};regularMembers.forEach(m=>{_refundInt[m.id]=(_depInt[m.id]||0)-(_fundShareInt[m.id]||0);});
@@ -4389,11 +4411,15 @@ const App = {
       }
     });
     const totalFundDepositRawCsv=Object.values(memberFundDepositCsv).reduce((s,v)=>s+v,0);
-    const fundSpentBaseCsv=fundMemberCsv?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===fundMemberCsv.id:!!(e.paidBy?.[fundMemberCsv.id]>0)).reduce((s,e)=>s+toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,baseCur),0):0;
-    // 引擎整數版公款帳(與 PDF 一致):每人公款支出份額(僅字串 paidBy=公款帳)、每人存入、每人退款
+    const fundSpentBaseCsv=fundMemberCsv?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===fundMemberCsv.id:!!(e.paidBy?.[fundMemberCsv.id]>0)).reduce((s,e)=>{
+      if(e.note==='金額待補') return s;
+      const amt=typeof e.paidBy==='object'?(e.paidBy[fundMemberCsv.id]||0):e.amount;// 混合付款只計公款實付部分
+      return s+toBase(amt,e.currency,t.rates,baseCur);
+    },0):0;
+    // 引擎整數版公款帳(與 PDF 一致):每人公款支出份額(引擎 fundShares,含混合付款公款部分)、每人存入、每人退款
     const _fundShareIntCsv={};regularMembersCsv.forEach(m=>{_fundShareIntCsv[m.id]=0;});
-    if(fundMemberCsv)Object.entries(t.expenses||{}).forEach(([k,e])=>{
-      if(typeof e.paidBy==='string'&&e.paidBy===fundMemberCsv.id){const c=ENG.perExp[k];if(!c||c.pending)return;Object.entries(c.shares).forEach(([id,v])=>{if(_fundShareIntCsv[id]!==undefined)_fundShareIntCsv[id]+=v;});}
+    if(fundMemberCsv)Object.values(ENG.perExp).forEach(c=>{
+      if(c.pending)return;Object.entries(c.fundShares||{}).forEach(([id,v])=>{if(_fundShareIntCsv[id]!==undefined)_fundShareIntCsv[id]+=v;});
     });
     const _depIntCsv={};regularMembersCsv.forEach(m=>{_depIntCsv[m.id]=Math.round(memberFundDepositCsv[m.id]||0);});
     const _refundIntCsv={};regularMembersCsv.forEach(m=>{_refundIntCsv[m.id]=(_depIntCsv[m.id]||0)-(_fundShareIntCsv[m.id]||0);});
@@ -4662,11 +4688,16 @@ function runSelfTest(){
         e2:{name:'宿',category:'住宿',amount:999,currency:'TWD',paidBy:{A:500,B:499},parts:['A','B'],splitMode:'equal',date:'2026/01/02',createdAt:2},
         e3:{name:'票',category:'玩樂',amount:249,currency:'TWD',paidBy:'F',parts:['A','B','C'],splitMode:'equal',date:'2026/01/03',createdAt:3},
         e4:{name:'禮',category:'購物',amount:70,currency:'TWD',paidBy:'C',parts:['C'],splitMode:'self',date:'2026/01/04',createdAt:4},
-        e5:{name:'水',category:'其他',amount:45,currency:'TWD',paidBy:'A',parts:['B'],splitMode:'equal',date:'2026/01/04',createdAt:5}
+        e5:{name:'水',category:'其他',amount:45,currency:'TWD',paidBy:'A',parts:['B'],splitMode:'equal',date:'2026/01/04',createdAt:5},
+        e6:{name:'車',category:'交通',amount:300,currency:'TWD',paidBy:{F:200,A:100},parts:['A','B','C'],splitMode:'equal',date:'2026/01/05',createdAt:6}
       }};
     const eng=calcTrip(fx);
     ok('結算收支歸零',Object.values(eng.peerBal).reduce((a,b)=>a+b,0)===0);
-    ok('群組+個人=總花費',eng.groupTotal+eng.personalTotal===1463);
+    ok('群組+個人=總花費',eng.groupTotal+eng.personalTotal===1763);
+    // 混合付款(公款帳+成員合付):公費份額加總=公款實付,同伴份額加總=同伴實付,逐人 peer+fund=shares
+    const c6=eng.perExp.e6;
+    ok('混合付款:公費份額加總=公款實付',c6.fundPaid===200&&Object.values(c6.fundShares).reduce((a,b)=>a+b,0)===200);
+    ok('混合付款:逐人 同伴+公費=分攤',c6.ps.every(id=>(c6.peerShares[id]||0)+(c6.fundShares[id]||0)===(c6.shares[id]||0))&&Object.values(c6.peerShares).reduce((a,b)=>a+b,0)===100);
     const html=App._buildExportHTML(fx);
     const doc=new DOMParser().parseFromString('<table>'+html+'</table>','text/html');
     const num=td=>{const s=td.textContent.replace(/[,\s]/g,'');if(s===''||s==='—')return null;const m=s.match(/^−?-?\d+(\.\d+)?$/);return m?parseFloat(s.replace('−','-')):null;};
