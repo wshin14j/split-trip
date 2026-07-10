@@ -386,7 +386,7 @@ select.input{
   <div id="trip-filter-outer" style="display:none;flex-shrink:0;padding:8px 20px;background:var(--bg);border-bottom:1px solid var(--border);"></div>
   <div class="scroll pb-fab" id="trip-content"></div>
   <button class="fab" id="fab" onclick="App.showAddExpense()">+</button>
-  <div id="back-to-summary-bar" style="display:none;position:fixed;bottom:32px;left:max(20px,calc((100vw - 390px)/2 + 20px));z-index:998;"><button type="button" onclick="App.backToMemberSummary()" style="width:60px;height:60px;border-radius:50%;background:#fff;color:var(--accent);border:1.5px solid var(--accent);font-size:24px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;" title="返回花費總覽"><span id="back-to-summary-label" style="display:none;"></span>←</button></div>
+  <div id="back-to-summary-bar" style="display:none;position:fixed;bottom:32px;left:max(20px,calc((100vw - 390px)/2 + 20px));z-index:998;"><button type="button" onclick="App.backToMemberSummary()" style="height:44px;border-radius:999px;background:#fff;color:var(--accent);border:1.5px solid var(--accent);cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.15);display:flex;align-items:center;gap:6px;padding:0 16px;max-width:250px;" title="返回花費總覽"><span style="font-size:17px;font-weight:700;flex-shrink:0;">←</span><span id="back-to-summary-label" style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span></button></div>
   <div id="footer-slogan">
     <div style="flex:1;height:1px;background:#E6E8EC;"></div>
     <div style="width:8px;height:8px;background:#C4C7CE;transform:rotate(45deg);flex-shrink:0;margin:0 8px;"></div>
@@ -557,7 +557,7 @@ select.input{
         <option value="EUR">EUR - 歐元</option>
         <option value="GBP">GBP - 英鎊</option>
       </select>
-      <div class="form-hint">後續可在『結算頁』調整</div>
+      <div class="form-hint">所有金額會換算成這個貨幣結算，建立後無法更改（結算頁仍可切換「顯示」幣別）</div>
     </div>
     <button class="btn btn-accent btn-full" onclick="App.createTrip()">建立旅程</button>
   </div>
@@ -711,6 +711,7 @@ select.input{
       </div>
     </div>
     <button class="btn btn-accent btn-full" onclick="App.saveExpense()">儲存支出</button>
+    <button class="btn btn-ghost btn-full mt2" id="btn-save-next" onclick="App.saveExpense(true)">儲存並再記一筆</button>
   </div>
 </div>
 
@@ -806,12 +807,12 @@ select.input{
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 10px;flex-shrink:0;">
-      <div style="font-size:17px;font-weight:700;">💰 存入公款</div>
+      <div style="font-size:17px;font-weight:700;" id="fund-dep-title">💰 存入公款</div>
       <button class="modal-x-btn" onclick="App.closeModal('m-fund-deposit')">×</button>
     </div>
     <div style="padding:0 20px 24px;display:flex;flex-direction:column;gap:14px;">
       <div>
-        <label class="form-label">存入者（可多選）</label>
+        <label class="form-label" id="fund-dep-members-label">存入者（可多選）</label>
         <div id="fund-dep-members" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
       </div>
       <div style="display:flex;gap:10px;">
@@ -1185,7 +1186,7 @@ const App = {
         <div class="trip-thumb">${t.emoji?.startsWith('data:')?`<img src="${t.emoji}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">`:(t.emoji||'✈️')}</div>
         <div class="flex-1 min-w-0">
           <div class="base bold truncate">${t.name}</div>
-          <div class="xs muted mt1">${(t.members||[]).length} 位成員 · ${expCount} 筆支出</div>
+          <div class="xs muted mt1">${(t.members||[]).filter(m=>!m.isGroupFund).length} 位成員 · ${expCount} 筆支出</div>
         </div>
       </div>`;
     }).join('');
@@ -1199,7 +1200,7 @@ const App = {
     const t=loadTrip(this.tripId);
     if(!t){this.go('home');return;}
     document.getElementById('trip-name').textContent=t.name;
-    document.getElementById('trip-sub').textContent=`${t.members.length} 位成員`;
+    document.getElementById('trip-sub').textContent=`${t.members.filter(m=>!m.isGroupFund).length} 位成員`;
     document.querySelectorAll('#trip-tabs .tab-btn').forEach((b,i)=>{
       b.classList.toggle('on',['expenses','settlement','members'][i]===this.tab);
     });
@@ -1546,6 +1547,15 @@ const App = {
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     let lastDate='';
+    // 當日小計:依目前顯示的清單(含篩選)逐日加總,金額取引擎整數,與總支出卡同一口徑
+    const _dayTotals={};const _dayPending={};
+    exps.forEach(([,e])=>{
+      const _c=calcExp(e,t);
+      const _v=fm&&typeof e.paidBy==='object'&&e.paidBy!==null?(_c.paid[fm]||0):_c.baseTotal;
+      const _d=e.date||'';
+      _dayTotals[_d]=(_dayTotals[_d]||0)+_v;
+      if(e.note==='金額待補') _dayPending[_d]=true;
+    });
     const _jom=this._jumpOriginMember;
     const _jomName=_jom?(t.members.find(m=>m.id===_jom)?.name||''):'';
     const _bar=document.getElementById('back-to-summary-bar');
@@ -1572,7 +1582,7 @@ const App = {
       else partsLabel=ps.slice(0,2).map(mName).join('、')+` +${ps.length-2}`;
       const splitLabel={'equal':'均分','proportion':'按比例','custom':'自訂','self':'自購'}[e.splitMode]||'均分';
       const _dw=e.date?['日','一','二','三','四','五','六'][new Date(e.date.replace(/\//g,'-')).getDay()]:'';
-      const dateHeader=e.date&&e.date!==lastDate?`<div style="font-size:12px;font-weight:700;color:var(--t2);padding:12px 4px 6px;">${e.date}（${_dw}）</div>`:'';
+      const dateHeader=e.date&&e.date!==lastDate?`<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:12px 4px 6px;"><span style="font-size:12px;font-weight:700;color:var(--t2);">${e.date}（${_dw}）</span><span style="font-size:12px;color:var(--t2);white-space:nowrap;">合計 ${bSym}${Math.round(_dayTotals[e.date]||0).toLocaleString()}${_dayPending[e.date]?`<span style="color:#F97316;">（含待補）</span>`:''}</span></div>`:'';
       lastDate=e.date||lastDate;
       const isExpExp=!!this._expandedExp[id];
       const chevronExp=`<svg width="12" height="12" viewBox="0 0 10 10" style="margin-left:4px;vertical-align:middle;flex-shrink:0;transition:transform .2s;transform:${isExpExp?'rotate(180deg)':'rotate(0deg)'}"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`;
@@ -2410,7 +2420,7 @@ const App = {
       </div>
     </div>`:'';
     c.innerHTML=`
-      <div class="sm semibold muted mb3">${t.members.length} 位成員</div>
+      <div class="sm semibold muted mb3">${t.members.filter(m=>!m.isGroupFund).length} 位成員${fundMember?'＋公款帳':''}</div>
       ${rows}
       ${shareCard}
       ${addForm}
@@ -2483,10 +2493,19 @@ const App = {
     const allCurs=[...new Set([baseCur,...Object.keys(t.rates||{}),...Object.keys(DEF)])];
     document.getElementById('fund-dep-cur').innerHTML=allCurs.map(c=>`<option value="${c}"${c===baseCur?' selected':''}>${c}</option>`).join('');
     const existing=depId?(t.fundDeposits||[]).find(d=>d.id===depId):null;
+    // 標題與說明依模式切換;編輯單筆時存入者不可變更(saveFundDeposit 本來就不會改),按鈕鎖住避免誤會
+    const titleEl=document.getElementById('fund-dep-title');
+    if(titleEl) titleEl.textContent=existing?'💰 編輯存入紀錄':'💰 存入公款';
+    const labelEl=document.getElementById('fund-dep-members-label');
+    if(labelEl) labelEl.textContent=existing?'存入者（編輯時不可變更）':'存入者（可多選）';
     // 成員勾選按鈕
     const membersEl=document.getElementById('fund-dep-members');
     membersEl.innerHTML=regular.map(m=>{
       const sel=existing?existing.fromMemberId===m.id:true;
+      if(existing){
+        return `<button type="button" id="fdm-${m.id}" data-sel="${sel?'1':''}" disabled
+          style="padding:6px 14px;border-radius:999px;border:1.5px solid ${sel?'var(--accent)':'var(--border)'};background:${sel?'var(--accent)':'#fff'};color:${sel?'#fff':'var(--t2)'};font-size:13px;font-weight:600;opacity:${sel?'1':'0.35'};">${m.name}</button>`;
+      }
       return `<button type="button" id="fdm-${m.id}" data-sel="${sel?'1':''}" onclick="App.toggleFundMember('${m.id}')"
         style="padding:6px 14px;border-radius:999px;border:1.5px solid ${sel?'var(--accent)':'var(--border)'};background:${sel?'var(--accent)':'#fff'};color:${sel?'#fff':'var(--t1)'};font-size:13px;font-weight:600;cursor:pointer;">${m.name}</button>`;
     }).join('');
@@ -2686,6 +2705,8 @@ const App = {
     }
     this.editId=eid; this.splitMode='equal';
     document.getElementById('exp-modal-title').textContent=eid?'編輯支出':'新增支出';
+    const _saveNextBtn=document.getElementById('btn-save-next');
+    if(_saveNextBtn) _saveNextBtn.style.display=eid?'none':'';// 編輯舊帳時不提供「再記一筆」
     document.getElementById('in-exp-paid').innerHTML=
       [...t.members].sort((a,b)=>(b.isGroupFund?1:0)-(a.isGroupFund?1:0))
         .map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
@@ -3255,7 +3276,7 @@ const App = {
     this.updateSplitPreview();
   },
 
-  saveExpense(){
+  saveExpense(andNext=false){
     const category=document.getElementById('in-exp-cat').value;
     const payMethod=document.getElementById('in-exp-pay-method').value;
     const name=document.getElementById('in-exp-name').value.trim().replace(/-$/,'');
@@ -3317,7 +3338,17 @@ const App = {
     // 編輯時保留原 createdAt:它是「多付一元輪流」的種子與同日排序依據,改掉會讓尾差換人、順序跳動
     if(this.editId){const _old=t.expenses[this.editId];t.expenses[this.editId]={..._old,...exp,createdAt:_old?.createdAt??exp.createdAt};}
     else{t.expenses[uid()]=exp;}
-    saveTrip(t); this.closeModal('m-expense');
+    saveTrip(t);
+    // 連續記帳:儲存後不關視窗,重開空白表單並保留日期(幣別由「最近使用」邏輯自動帶入剛存的那筆)
+    if(andNext&&!this.editId){
+      const keepDate=document.getElementById('in-exp-date').value;
+      this.renderTrip();
+      this.showAddExpense();
+      document.getElementById('in-exp-date').value=keepDate;
+      this.showToast('已新增！繼續記下一筆');
+      return;
+    }
+    this.closeModal('m-expense');
     this.renderTrip(); this.showToast(this.editId?'已更新支出 ✓':'支出已新增！');
     this.editId=null;
   },
@@ -3618,7 +3649,7 @@ const App = {
           document.getElementById('import-info').innerHTML=`
             <div style="font-size:36px;margin-bottom:8px;">${trip.emoji||'✈️'}</div>
             <div class="lg bold">${trip.name}</div>
-            <div class="sm muted mt2">${trip.members.length} 位成員 · ${Object.keys(trip.expenses||{}).length} 筆支出</div>`;
+            <div class="sm muted mt2">${(trip.members||[]).filter(m=>!m.isGroupFund).length} 位成員 · ${Object.keys(trip.expenses||{}).length} 筆支出</div>`;
           this.openModal('m-import');
         })
         .catch(()=>this.showToast('無法載入旅程，請確認網路連線'));
@@ -3629,7 +3660,7 @@ const App = {
       document.getElementById('import-info').innerHTML=`
         <div style="font-size:36px;margin-bottom:8px;">${trip.emoji||'✈️'}</div>
         <div class="lg bold">${trip.name}</div>
-        <div class="sm muted mt2">${trip.members.length} 位成員 · ${Object.keys(trip.expenses||{}).length} 筆支出</div>`;
+        <div class="sm muted mt2">${(trip.members||[]).filter(m=>!m.isGroupFund).length} 位成員 · ${Object.keys(trip.expenses||{}).length} 筆支出</div>`;
       this.openModal('m-import');
       history.replaceState(null,'',location.pathname);
     }
