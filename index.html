@@ -1029,29 +1029,7 @@ function toBase(amt,from,rates,base){
   if(base==='TWD') return inTWD;
   return inTWD/(rates[base]||DEF[base]||1);
 }
-function calcBal(t){
-  const b={};
-  t.members.forEach(m=>{b[m.id]=0;});
-  Object.values(t.expenses||{}).forEach(e=>{
-    const tot=toBase(e.amount,e.currency,t.rates,t.baseCurrency);
-    const ps=e.parts||t.members.map(m=>m.id);
-    if(typeof e.paidBy==='object'&&e.paidBy!==null){
-      Object.entries(e.paidBy).forEach(([id,paid])=>{const pb=toBase(paid,e.currency,t.rates,t.baseCurrency);if(b[id]!==undefined)b[id]+=pb;});
-    } else {
-      if(b[e.paidBy]!==undefined) b[e.paidBy]+=tot;
-    }
-    if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts){
-      ps.forEach(p=>{
-        const ca=toBase(e.customAmounts[p]||0,e.currency,t.rates,t.baseCurrency);
-        if(b[p]!==undefined) b[p]-=ca;
-      });
-    }else{
-      const sh=tot/ps.length;
-      ps.forEach(p=>{if(b[p]!==undefined) b[p]-=sh;});
-    }
-  });
-  return b;
-}
+// (舊的 calcBal 浮點結算已於 2026-07-10 移除:結清判斷/文字明細/卡片全部改用 calcTrip peerBal + _computeDebtStates 單一來源)
 function minimizeTx(bal){
   const cr=[],db=[];
   Object.entries(bal).forEach(([id,v])=>{
@@ -1746,19 +1724,14 @@ const App = {
     return {origTxs,debtStates,peerBal:ENG_S.peerBal,fundMember};
   },
   renderSettlement(t,c){
-    const bal=calcBal(t);
-    // auto confetti when fully settled
+    // 債務計算(卡片/文字明細/撒花判斷共用,單一來源:_computeDebtStates)
+    const _dstate=this._computeDebtStates(t);
+    // auto confetti when fully settled — 判斷與債務卡片完全同源:每張卡的淨餘額都歸零才算結清
     const _checkSettled=()=>{
-      const pr=t.payRecords||[];
-      const ots=minimizeTx(bal);
-      if(!ots.length) return;
+      if(!_dstate.debtStates.length) return;
       const hasPending=Object.values(t.expenses||{}).some(e=>e.note==='金額待補');
       if(hasPending) return;
-      const done=ots.every(ot=>{
-        const p=pr.filter(r=>r.from===ot.from&&r.to===ot.to)
-          .reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-        return (ot.amt-p)<=0.5;
-      });
+      const done=_dstate.debtStates.every(ds=>Math.abs(ds.netBal)<=0.5);
       const now=Date.now();
       if(done&&(!this._lastConfetti||now-this._lastConfetti>5000)){
         this._lastConfetti=now;
@@ -1767,19 +1740,6 @@ const App = {
     };
     _checkSettled();
     const payRecs=t.payRecords||[];
-    const adjBal={...bal};
-    payRecs.forEach(r=>{
-      const a=toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
-      if(adjBal[r.from]!==undefined) adjBal[r.from]+=a;
-      if(adjBal[r.to]!==undefined) adjBal[r.to]-=a;
-    });
-    // adjBalFull = adjBal + fundDeposits，用於債務卡片（判斷誰已還清）
-    const adjBalFull={...adjBal};
-    (t.fundDeposits||[]).forEach(d=>{
-      const a=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
-      if(adjBalFull[d.fromMemberId]!==undefined) adjBalFull[d.fromMemberId]+=a;
-    });
-    const txs=minimizeTx(adjBalFull);
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     const hasExps=Object.keys(t.expenses||{}).length>0;
     // Currency selector
@@ -1908,8 +1868,6 @@ const App = {
       </div>`;
     })();
 
-    // 債務計算(卡片與文字結清明細共用,單一來源:_computeDebtStates)
-    const _dstate=this._computeDebtStates(t);
     const peerBal={..._dstate.peerBal};
     const origTxs=_dstate.origTxs;
     const debtStates=_dstate.debtStates;
@@ -1917,8 +1875,6 @@ const App = {
     const reversals=debtStates.filter(ds=>ds.netBal<-0.5).map(ds=>({
       from:ds.ot.to,to:ds.ot.from,amt:-ds.netBal,origAmt:ds.ot.amt,origMatched:ds.fwdMatched
     }));
-    const unsettledMembers=new Set();
-    debtStates.forEach(({netBal,ot})=>{if(Math.abs(netBal)>0.5){unsettledMembers.add(ot.from);unsettledMembers.add(ot.to);}});
     const debtCards=debtStates.map(({ot,fwdMatched,fwdPaid,bwdMatched,bwdPaid,netBal},di)=>{
       const isSettled=Math.abs(netBal)<=0.5;
       const isReversed=netBal<-0.5;
@@ -2030,35 +1986,6 @@ const App = {
         :`<div class="card" style="padding:16px;text-align:center;color:var(--t2);font-size:13px;"><div style="font-weight:700;margin-bottom:4px;">目前尚無支出記錄</div><div>請到『支出頁』新增旅程第一筆費用</div></div>`)
       :(debtCards+reversalCards);
     const historicSection=historicCards?`<div style="margin-top:10px;">${historicCards}</div>`:'';
-
-    const balRows=t.members.map(m=>{
-      const v=adjBal[m.id]||0;
-      const memberInExp=Object.values(t.expenses||{}).some(e=>{
-        if(typeof e.paidBy==='string') return e.paidBy===m.id;
-        if(typeof e.paidBy==='object'&&e.paidBy!==null&&e.paidBy[m.id]) return true;
-        const ps=e.parts||(t.members||[]).filter(x=>!x.isGroupFund).map(x=>x.id);
-        return ps.includes(m.id);
-      });
-      let cls,lbl;
-      if(v>0.5){cls='receive';lbl=`應收 ${fmtS(v)}`;}
-      else if(v<-0.5){cls='owe';lbl=`應付 ${fmtS(-v)}`;}
-      else{
-        cls='ok';
-        const hasUnsettledCard=origTxs.some(ot=>{
-          if(ot.from!==m.id&&ot.to!==m.id) return false;
-          let _fwd=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-          if(fundMember&&ot.to===fundMember.id)(t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{_fwd+=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);});
-          const _bwd=(fundMember&&ot.to===fundMember.id)?0:payRecs.filter(r=>r.from===ot.to&&r.to===ot.from).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-          return Math.abs(ot.amt-_fwd+_bwd)>0.5;
-        });
-        lbl=(memberInExp&&!hasUnsettledCard)?'已平帳 ✓':'';
-      }
-      return `<div class="card member-row">
-        <div class="avatar" style="${avStyle(t,m.id)}">${avText(m.name)}</div>
-        <div class="flex-1 semibold">${m.name}</div>
-        <div class="${cls} bold" style="font-size:14px;">${lbl}</div>
-      </div>`;
-    }).join('');
 
     // Member expense summary
     const memberSummary=(()=>{
@@ -2355,25 +2282,8 @@ const App = {
     if(this._payRecDebtAmt) _pr.debtAmt=this._payRecDebtAmt;
     if(this._payRecOrigDebt) _pr.origDebt=this._payRecOrigDebt;
     t.payRecords.push(_pr);
+    // renderTab 會重畫結算頁,結清撒花由 renderSettlement 的 _checkSettled 統一判斷(與債務卡同源),此處不再另算
     saveTrip(t); this.closeModal('m-pay-record'); this.renderTab();
-    // 檢查是否全部結清
-    const bal2=calcBal(t);
-    const adjBal2={...bal2};
-    t.payRecords.forEach(r=>{
-      const a=toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
-      if(adjBal2[r.from]!==undefined) adjBal2[r.from]+=a;
-      if(adjBal2[r.to]!==undefined) adjBal2[r.to]-=a;
-    });
-    const origTxs2=minimizeTx(bal2);
-    const hasPending2=Object.values(t.expenses||{}).some(e=>e.note==='金額待補');
-    if(origTxs2.length>0&&!hasPending2){
-      const allDone=origTxs2.every(ot=>{
-        const paid=t.payRecords.filter(r=>r.from===ot.from&&r.to===ot.to)
-          .reduce((p,r)=>p+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-        return (ot.amt-paid)<=0.5;
-      });
-      if(allDone) setTimeout(()=>this.showConfetti(),400);
-    }
   },
   deletePayRecord(i){
     if(!confirm('確定要刪除這筆轉帳紀錄？')) return;
@@ -3853,25 +3763,6 @@ const App = {
     this.showToast('旅程名稱已更新 ✓');
   },
 
-  exportSettlement(){
-    const t=loadTrip(this.tripId);
-    if(!t) return;
-    const bal=calcBal(t);
-    const txs=minimizeTx(bal);
-    const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
-    let text=`【${t.name}】結算明細\n`;
-    if(txs.length===0){
-      text+='🎉 大家都平帳了！';
-    } else {
-      text+=`共需 ${txs.length} 筆轉帳：\n`;
-      txs.forEach(tx=>{text+=`• ${mName(tx.from)} 付給 ${mName(tx.to)} ${fmt(tx.amt,t.baseCurrency)}\n`;});
-    }
-    this.closeModal('m-trip-menu');
-    navigator.clipboard?.writeText(text)
-      .then(()=>this.showToast('結算結果已複製！'))
-      .catch(()=>{prompt('複製此結算結果：',text);});
-  },
-
   openExportDetail(){
     const t=loadTrip(this.tripId);
     if(!t) return;
@@ -4204,20 +4095,6 @@ const App = {
       ${_lrmCombShares.map((sh,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${sh.toLocaleString()}</td>`).join('')}
       ${hasFundPdf?`<td style="${cttln}${mbl(fundDisplayIdx)}"></td><td style="${cttln}"></td>`:''}
     </tr>${fundDepRow}${fundRefundRow}${paidOtherRow}${_proxyRowC}${selfPayRow}${owedRow}`;
-    // Settlement — 對齊主 app 計算邏輯（expenses + payRecords + fundDeposits）
-    const bal=calcBal(t);
-    const _payRecs=t.payRecords||[];
-    const adjBal={...bal};
-    _payRecs.forEach(r=>{
-      const a=toBase(r.amt,r.cur||baseCur,t.rates,baseCur);
-      if(adjBal[r.from]!==undefined) adjBal[r.from]+=a;
-      if(adjBal[r.to]!==undefined) adjBal[r.to]-=a;
-    });
-    const adjBalFull={...adjBal};
-    fundDeposits.forEach(d=>{
-      const a=toBase(d.amt,d.cur||baseCur,t.rates,baseCur);
-      if(adjBalFull[d.fromMemberId]!==undefined) adjBalFull[d.fromMemberId]+=a;
-    });
     const mCol=m=>{const c=AVATAR_COLORS.find(c=>c.id===m.color);return c?c.bg:'#6366F1';};
     const catCol={'餐飲':'#F97316','住宿':'#8B5CF6','交通':'#3B82F6','玩樂':'#EC4899','購物':'#10B981','其他':'#6B7280'};
     const catTotals={};
