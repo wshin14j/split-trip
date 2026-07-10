@@ -40,7 +40,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
 /* ===== SCREENS ===== */
 .screen{min-height:100vh;background:#fff;display:none;flex-direction:column;}
 .screen.active{display:flex;height:100vh;height:100dvh;min-height:unset;overflow:hidden;}
-#s-trip.active,#s-detail.active,#s-rates.active{position:fixed;top:0;left:max(0px,calc((100vw - 390px)/2));right:max(0px,calc((100vw - 390px)/2));bottom:0;height:auto;}
+#s-trip.active,#s-rates.active{position:fixed;top:0;left:max(0px,calc((100vw - 390px)/2));right:max(0px,calc((100vw - 390px)/2));bottom:0;height:auto;}
 
 /* ===== TOP BAR ===== */
 .top-bar{
@@ -374,7 +374,6 @@ select.input{
         <button class="icon-btn" onclick="App.openModal('m-trip-menu')">⋯</button>
       </div>
     </div>
-    <div id="trip-currencies" style="display:none;"></div>
   </div>
   <div style="padding:14px 20px 12px;background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;">
     <div class="tab-switch" id="trip-tabs">
@@ -397,25 +396,10 @@ select.input{
   </div>
 </div>
 
-<!-- ========== SCREEN 08 EXPENSE DETAIL ========== -->
-<div id="s-detail" class="screen">
-  <div class="top-bar">
-    <button class="icon-btn" onclick="App.go('trip')" style="font-size:22px;">←</button>
-    <div class="flex-1"></div>
-    <button class="icon-btn" onclick="App.editExpense()" title="編輯">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-    </button>
-    <button class="icon-btn" onclick="App.deleteExpense()" title="刪除">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--t1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-    </button>
-  </div>
-  <div class="scroll" id="detail-content"></div>
-</div>
-
 <!-- ========== SCREEN 09 EXCHANGE RATES ========== -->
 <div id="s-rates" class="screen">
   <div class="top-bar">
-    <button class="icon-btn" onclick="App.go('trip')" style="font-size:22px;">←</button>
+    <button class="icon-btn" onclick="App.leaveRates()" style="font-size:22px;">←</button>
     <span class="top-bar-title">匯率設定</span>
     <div style="width:36px;"></div>
   </div>
@@ -977,7 +961,7 @@ function fbListen(id){
       const {data}=JSON.parse(e.data);
       if(!data) return;
       const all=loadAll(); all[id]=data; DB.set('st_trips',all);
-      if(App.tripId===id && (App.screen==='trip'||App.screen==='detail')) App.renderTrip(false);
+      if(App.tripId===id && App.screen==='trip') App.renderTrip(false);
       if(App.screen==='home') App.renderHome();
     }catch{}
   });
@@ -1158,7 +1142,7 @@ function avText(name){ return (name||'?').slice(0,2); }
 const App = {
   screen:'landing', tripId:null, expId:null,
   tab:'expenses', editId:null, splitMode:'equal', pending:null, _payerMode:'single',
-  _myMemberId:null, _showMyShare:false, _showBreakdown:false, _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterPartsFor:null, _jumpOriginMember:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false, _showRatePanel:false,
+  _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterPartsFor:null, _jumpOriginMember:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false,
 
   go(s){
     document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -1166,13 +1150,7 @@ const App = {
     this.screen=s; window.scrollTo(0,0);
     if(s==='home') this.renderHome();
     else if(s==='trip') this.renderTrip();
-    else if(s==='detail') this.renderDetail();
     else if(s==='rates') this.renderRates();
-    else if(s==='landing'){
-      const hasTrips=Object.keys(DB.get('st_trips')||{}).length>0;
-      const btn=document.getElementById('btn-view-history');
-      if(btn) btn.style.display=hasTrips?'':'none';
-    }
   },
 
   showToast(msg,dur=2200){
@@ -1214,7 +1192,7 @@ const App = {
     listEl.innerHTML=html;
   },
 
-  openTrip(id){this.tripId=id; this.tab='expenses'; this._myMemberId=DB.get('myMember_'+id)||null; this.go('trip');},
+  openTrip(id){this.tripId=id; this.tab='expenses'; this.go('trip');},
 
   // ── TRIP PAGE ─────────────────────────────────
   renderTrip(resetScroll=true){
@@ -1222,10 +1200,6 @@ const App = {
     if(!t){this.go('home');return;}
     document.getElementById('trip-name').textContent=t.name;
     document.getElementById('trip-sub').textContent=`${t.members.length} 位成員`;
-    const used=new Set(['TWD']);
-    Object.values(t.expenses||{}).forEach(e=>used.add(e.currency));
-    document.getElementById('trip-currencies').innerHTML=
-      [...used].map(c=>`<span class="chip">${curFlag(c)} ${c}</span>`).join('');
     document.querySelectorAll('#trip-tabs .tab-btn').forEach((b,i)=>{
       b.classList.toggle('on',['expenses','settlement','members'][i]===this.tab);
     });
@@ -1286,7 +1260,7 @@ const App = {
     const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);
     return ps.length>=2;
   },
-  setSummaryView(v){this._summaryView=v;this._showBreakdown=false;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterSelfMode=null;this._filterPartsFor=null;this._jumpOriginMember=null;this.renderTab();},
+  setSummaryView(v){this._summaryView=v;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterSelfMode=null;this._filterPartsFor=null;this._jumpOriginMember=null;this.renderTab();},
   setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);if(this._filterCat)this._filterPending=false;this._filterPartsFor=null;this._jumpOriginMember=null;this.renderTab();},
   setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this._filterPartsFor=null;this._jumpOriginMember=null;this.renderTab();},
   setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterPending=false;this._filterSelfMode=null;this._filterPartsFor=null;this._jumpOriginMember=null;this.renderTab();},
@@ -1393,19 +1367,6 @@ const App = {
     body.innerHTML=filterNotice+html;
     this.openModal('m-breakdown');
   },
-  toggleMyShare(){
-    this._showMyShare=!this._showMyShare;
-    this._reRenderSummary();
-  },
-  toggleBreakdown(){
-    this._showBreakdown=!this._showBreakdown;
-    this._reRenderSummary();
-  },
-  setMyMember(id){
-    this._myMemberId=id;
-    DB.set('myMember_'+this.tripId,id);
-    this._reRenderSummary();
-  },
   _reRenderSummary(){
     const t=loadTrip(this.tripId);
     if(!t) return;
@@ -1414,7 +1375,6 @@ const App = {
   },
   expenseSummaryHTML(t){
     const isGroup=this._summaryView==='group';
-    const showBD=this._showBreakdown;
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const fc=this._filterCat;
     const fm=this._filterMember;
@@ -1754,9 +1714,11 @@ const App = {
     // Currencies actually used in this trip (excluding base)
     const usedExpCurs=[...new Set(Object.values(t.expenses||{}).map(e=>e.currency))].filter(c=>c&&c!==t.baseCurrency);
     const rateRows=usedExpCurs.map(c=>{
-      const rate=t.rates[c]||DEF[c]||1;
+      // 匯率一律以 TWD 儲存;結算貨幣不是 TWD 時要換算成「1 外幣=X 結算貨幣」再顯示,避免掛錯符號
+      const rateInBase=toBase(1,c,t.rates,t.baseCurrency);
+      const rateDisp=rateInBase>=1?+rateInBase.toFixed(2):+rateInBase.toPrecision(4);
       const baseSym=(C[t.baseCurrency]||C.TWD).sym;
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);"><span style="font-size:12px;color:var(--t2);">1 ${c} → ${t.baseCurrency}</span><span style="font-size:12px;font-weight:600;color:var(--t1);">${baseSym}${rate}</span></div>`;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);"><span style="font-size:12px;color:var(--t2);">1 ${c} → ${t.baseCurrency}</span><span style="font-size:12px;font-weight:600;color:var(--t1);">${baseSym}${rateDisp}</span></div>`;
     }).join('');
     const curSelect=`<div class="card" style="padding:14px 16px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;gap:8px;${usedExpCurs.length>0?'margin-bottom:12px;':''}">
@@ -1787,7 +1749,6 @@ const App = {
       },0);
       const remainBase=totalInBase-totalOutBase;
       const regular=t.members.filter(m=>!m.isGroupFund);
-      const perPerson=regular.length>0?remainBase/regular.length:0;
       // 找主要幣別（存入紀錄中出現最多的非基礎幣別）
       const depCurs=deps.map(d=>d.cur||baseCur).filter(c=>c!==baseCur);
       const localCur=depCurs.length>0
@@ -2219,7 +2180,6 @@ const App = {
   toggleMemberExpand(mid){this._expandedMemberSummary[mid]=!this._expandedMemberSummary[mid];this.renderTab();},
   toggleDebtExpand(i){this._expandedDebt[i]=!this._expandedDebt[i];if(!this._expandedDebt[i])this._editingDebt[i]=false;this.renderTab();},
   toggleHistoricExpand(i){this._expandedHistoric[i]=!this._expandedHistoric[i];this.renderTab();},
-  toggleDebtEdit(i){this._editingDebt[i]=!this._editingDebt[i];this.renderTab();},
   togglePayNote(opt){
     const inp=document.getElementById('pay-rec-note');
     if(!inp) return;
@@ -2291,8 +2251,6 @@ const App = {
     t.payRecords=(t.payRecords||[]).filter((_,idx)=>idx!==i);
     saveTrip(t); this.renderTab();
   },
-  markSettled(){this.showConfetti(); this.showToast('🎉 已標記為全部結清！');},
-
   showConfetti(){
     const w=document.getElementById('confetti');
     w.classList.add('show'); w.innerHTML='';
@@ -2323,14 +2281,8 @@ const App = {
     const fundMember=t.members.find(m=>m.isGroupFund)||null;
     // Peer balance：只計算非公款帳費用，邏輯同結算頁
     const peerBal={...calcTrip(t).peerBal};// 共用引擎結算(整數,與 PDF/CSV 同源)
-    // 用純費用 peerBal（未加 payRecs）算未結清成員
+    // 純費用轉帳關係（未加 payRecs），供下方「已平帳」逐卡判斷
     const basePeerTxsM=minimizeTx({...peerBal});
-    const unsettledMembersM=new Set();
-    basePeerTxsM.forEach(ot=>{
-      const _fwd=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-      const _bwd=payRecs.filter(r=>r.from===ot.to&&r.to===ot.from).reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-      if(Math.abs(ot.amt-_fwd+_bwd)>0.5){unsettledMembersM.add(ot.from);unsettledMembersM.add(ot.to);}
-    });
     payRecs.forEach(r=>{
       const a=toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
       if(peerBal[r.from]!==undefined) peerBal[r.from]+=a;
@@ -3195,16 +3147,6 @@ const App = {
     hint.style.color=ok?'var(--accent)':'#EF4444';
   },
 
-  fmtDateInput(el){
-    const pos=el.selectionStart;
-    let d=el.value.replace(/\D/g,'').slice(0,8);
-    let v=d;
-    if(d.length>4) v=d.slice(0,4)+'/'+d.slice(4);
-    if(d.length>6) v=d.slice(0,4)+'/'+d.slice(4,6)+'/'+d.slice(6);
-    el.value=v;
-    const diff=v.length-el.value.length;
-    try{el.setSelectionRange(pos+diff,pos+diff);}catch(e){}
-  },
   _dpTarget:null,_dpYear:null,_dpMonth:null,_dpSelected:null,
   dateWithDay(ds){
     if(!ds||ds.length<10) return ds;
@@ -3299,11 +3241,16 @@ const App = {
     const amt=parseFloat(raw);
     const cur=document.getElementById('in-exp-cur').value;
     const hint=document.getElementById('twd-hint');
-    if(!amt||isNaN(amt)||cur==='TWD'||cur==='OTHER'){hint.textContent='';}
+    const t=loadTrip(this.tripId);
+    const base=t?.baseCurrency||'TWD';
+    if(!amt||isNaN(amt)||cur===base||cur==='OTHER'){hint.textContent='';}
     else{
-      const t=loadTrip(this.tripId);
-      const rate=(t?.rates[cur])||DEF[cur]||1;
-      hint.textContent=`≈ NT$${Math.round(amt*rate).toLocaleString()}（匯率 ${rate}）`;
+      // 換算提示以「結算貨幣」顯示(匯率以 TWD 儲存,經 toBase 換算),結算貨幣非 TWD 時才不會掛錯符號
+      const inBase=toBase(amt,cur,t?.rates||{},base);
+      const rateInBase=toBase(1,cur,t?.rates||{},base);
+      const rateDisp=rateInBase>=1?+rateInBase.toFixed(2):+rateInBase.toPrecision(4);
+      const bSym=(C[base]||C.TWD).sym;
+      hint.textContent=`≈ ${bSym}${Math.round(inBase).toLocaleString()}（匯率 ${rateDisp}）`;
     }
     this.updateSplitPreview();
   },
@@ -3367,7 +3314,8 @@ const App = {
     if(!dateInput||dateInput.length<10){this.showToast('請填寫完整日期（YYYY/MM/DD）');return;}
     const date=dateInput.slice(0,10);
     const exp={category,payMethod,name,amount:isPending?0:amount,currency,paidBy,parts,splitMode:this.splitMode,customAmounts,proportions,note,date,createdAt:Date.now()};
-    if(this.editId){t.expenses[this.editId]={...t.expenses[this.editId],...exp};}
+    // 編輯時保留原 createdAt:它是「多付一元輪流」的種子與同日排序依據,改掉會讓尾差換人、順序跳動
+    if(this.editId){const _old=t.expenses[this.editId];t.expenses[this.editId]={..._old,...exp,createdAt:_old?.createdAt??exp.createdAt};}
     else{t.expenses[uid()]=exp;}
     saveTrip(t); this.closeModal('m-expense');
     this.renderTrip(); this.showToast(this.editId?'已更新支出 ✓':'支出已新增！');
@@ -3384,73 +3332,19 @@ const App = {
     delete this._expandedExp[id];
     this.renderTab(); this.showToast('已刪除支出');
   },
-  openDetail(eid){this.expId=eid; this.go('detail');},
-
-  renderDetail(){
-    const t=loadTrip(this.tripId);
-    if(!t){this.go('trip');return;}
-    const e=t.expenses[this.expId];
-    if(!e){this.go('trip');return;}
-    const sym=C[e.currency]?.sym||((e.currency||'')+' ');
-    const payer=typeof e.paidBy==='object'&&e.paidBy!==null?null:t.members.find(m=>m.id===e.paidBy);
-    const payerLabel=typeof e.paidBy==='object'&&e.paidBy!==null
-      ?Object.entries(e.paidBy).map(([id,amt])=>{const m=t.members.find(m=>m.id===id);return `${m?.name||'?'} ${sym}${fmtNum(amt)}`;}).join('、')
-      :(payer?.name||'?');
-    const twdA=toBase(e.amount,e.currency,t.rates,t.baseCurrency);
-    const bSym=(C[t.baseCurrency]||C.TWD).sym;
-    const ps=e.parts||t.members.map(m=>m.id);
-    const splitLabel=e.splitMode==='self'?'自購':e.splitMode==='custom'?'自訂金額':e.splitMode==='proportion'?'按比例':'平均分攤';
-    const _dShares=calcExp(e,t).shares;// 引擎整數分攤,與 PDF/列表同源
-    const partDivs=ps.map(pid=>{
-      const m=t.members.find(m=>m.id===pid);
-      let sh;
-      if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts) sh=e.customAmounts[pid]||0;
-      else sh=e.amount/ps.length;
-      const shBInt=_dShares[pid]||0;
-      const pctStr=e.splitMode==='proportion'&&e.proportions?` (${e.proportions[pid]||0}%)`:'';
-      return `<div style="text-align:center;min-width:64px;">
-        <div class="avatar" style="margin:0 auto 6px;${avStyle(t,pid)}">${avText(m?.name)}</div>
-        <div class="xs semibold">${m?.name||'?'}${pctStr}</div>
-        <div class="xs bold mt1 dark">${e.currency!==t.baseCurrency?sym+Math.round(sh).toLocaleString():sym+shBInt.toLocaleString()}</div>
-        ${e.currency!==t.baseCurrency?`<div class="xs muted">≈ ${bSym}${shBInt.toLocaleString()}</div>`:''}
-      </div>`;
-    }).join('');
-    const catIcon=CAT_ICON[e.category]||'🎁';
-    const isPending=e.note==='金額待補';
-    document.getElementById('detail-content').innerHTML=`
-      <div style="display:flex;align-items:center;gap:16px;padding:20px 20px 16px;">
-        <div style="width:64px;height:64px;border-radius:16px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:34px;flex-shrink:0;">${catIcon}</div>
-        <div style="min-width:0;">
-          <div style="font-size:20px;font-weight:800;color:var(--primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${e.name}</div>
-          <div style="font-size:26px;font-weight:800;margin-top:4px;">${isPending?'待補':sym+Number(e.amount).toLocaleString()}</div>
-          ${!isPending&&e.currency!==t.baseCurrency?`<div class="sm muted">≈ ${bSym}${Math.round(twdA).toLocaleString()}</div>`:''}
-        </div>
-      </div>
-      <div class="card" style="padding:4px 16px;margin-bottom:12px;">
-        ${[['支付人',payerLabel],['支出日期',e.date||'-'],['分攤方式',splitLabel],['備註',e.note||'-']].map(([l,v])=>`
-          <div class="info-row"><span class="sm muted">${l}</span><span class="sm semibold" style="word-break:break-all;">${v}</span></div>`).join('')}
-      </div>
-      <div class="card" style="padding:16px;">
-        <div class="form-label mb3">分攤成員</div>
-        <div style="display:flex;gap:20px;flex-wrap:wrap;">${partDivs}</div>
-      </div>`;
-  },
-
-  editExpense(){this.go('trip'); this.showAddExpense(this.expId);},
-
-  deleteExpense(){
-    if(!confirm('確定要刪除這筆支出？')) return;
-    const t=loadTrip(this.tripId);
-    if(t&&t.expenses[this.expId]){
-      delete t.expenses[this.expId]; saveTrip(t);
-      this.go('trip'); this.renderTrip(); this.showToast('已刪除支出');
-    }
-  },
+  // (獨立支出詳情頁 s-detail 已於 2026-07-10 移除:支出改用列表卡片展開檢視/編輯/刪除)
 
   // ── RATES ─────────────────────────────────────
+  // 返回鍵防呆:有未儲存的匯率修改時先確認,避免默默丟失
+  leaveRates(){
+    if(this._ratesDirty&&!confirm('匯率修改尚未儲存，直接離開將不會保存。\n確定要離開嗎？')) return;
+    this._ratesDirty=false;
+    this.go('trip');
+  },
   renderRates(){
     const t=loadTrip(this.tripId);
     if(!t){this.go('trip');return;}
+    this._ratesDirty=false;// 進頁面時重設未儲存狀態
     const _pencil='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
     const rows=Object.keys(C).filter(c=>c!=='TWD').map(c=>{
       const isAdj=t.rates[c]!=null&&Math.abs(t.rates[c]-DEF[c])>1e-9;
@@ -3571,13 +3465,16 @@ const App = {
       const res=await fetch('https://open.er-api.com/v6/latest/TWD');
       const data=await res.json();
       const r=data.rates||{};
-      ['JPY','USD','EUR','GBP','KRW','VND','THB','IDR'].forEach(c=>{
+      // 內建幣別+此旅程的自訂幣別(如 OMR)一起更新,不再只限內建清單
+      const _t=loadTrip(this.tripId);
+      const codes=[...Object.keys(DEF).filter(c=>c!=='TWD'),...(_t?.customCurrencies||[]).map(cc=>cc.code)];
+      codes.forEach(c=>{
         const el=document.getElementById(`r-${c}`);
         const rate=r[c];
         if(el&&rate){
           const v=1/rate;
           el.value=v>=1?+(v.toFixed(2)):+(v.toPrecision(4));
-          this.onRateInput(c);
+          this.onRateInput(c,DEF[c]==null);
         }
       });
       this.showToast('即時匯率已更新，記得按儲存 ✓');
@@ -3658,8 +3555,6 @@ const App = {
   },
 
   // ── SHARE / IMPORT ────────────────────────────
-  shareTrip(){this.openModal('m-share');},
-
   _shareUrl(){
     const t=loadTrip(this.tripId);
     return t?`${location.origin}${location.pathname}#join=${t.id}`:null;
@@ -3829,9 +3724,9 @@ const App = {
       ${hasFundPdf?`<th style="${thS}">實際支出<br>(${fundLocalCur})</th><th style="${thS}">對照金額<br>(${baseCur})</th>`:''}
     </tr>`;
     // Separate accumulators: group vs personal
-    const memberGroupShare={};const memberGroupShareNF={};const memberSelfPay={};const memberGroupPaid={};const memberFundDeposit={};
+    const memberGroupShare={};const memberSelfPay={};const memberGroupPaid={};const memberFundDeposit={};
     const memberFundDepositLocal={};
-    members.forEach(m=>{memberGroupShare[m.id]=0;memberGroupShareNF[m.id]=0;memberSelfPay[m.id]=0;memberGroupPaid[m.id]=0;memberFundDeposit[m.id]=0;memberFundDepositLocal[m.id]=0;});
+    members.forEach(m=>{memberGroupShare[m.id]=0;memberSelfPay[m.id]=0;memberGroupPaid[m.id]=0;memberFundDeposit[m.id]=0;memberFundDepositLocal[m.id]=0;});
     fundDeposits.forEach(d=>{
       if(d.fromMemberId&&memberFundDeposit[d.fromMemberId]!==undefined){
         const baseAmt=toBase(d.amt,d.cur||baseCur,t.rates,baseCur);
@@ -3910,13 +3805,6 @@ const App = {
     const personalExps=exps.filter(e=>!isGroupExp(e));
     const groupRows=buildRows(groupExps,true);
     // 非公費群組費用中每人的份額(引擎整數版)
-    regularMembers.forEach(m=>{memberGroupShareNF[m.id]=0;});
-    groupExps.forEach(e=>{
-      const c=ENG.perExp[e._k];if(!c||c.pending) return;
-      const isFP=fundMember&&typeof e.paidBy==='string'&&e.paidBy===fundMember.id;
-      if(isFP) return;
-      Object.entries(c.shares).forEach(([id,v])=>{if(memberGroupShareNF[id]!==undefined)memberGroupShareNF[id]+=v;});
-    });
     // Fund surplus row
     const _fundId=fundMember?.id;
     const fundSpentBase=_fundId?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===_fundId:!!(e.paidBy?.[_fundId]>0)).reduce((s,e)=>{
@@ -3945,7 +3833,6 @@ const App = {
       const s=groupExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);
       return Math.abs(s)>0.5?`<td style="${ttl1n}font-weight:700;"${_grpRs}>${Math.round(s).toLocaleString()}</td>`:`<td style="${ttl1}"${_grpRs}></td>`;
     }).join('');
-    const groupGrandTotal=groupExps.reduce((s,e)=>s+((ENG.perExp[e._k]||{}).baseTotal||0),0);
     // 代付淨額
     const memberProxyPaid={};const memberProxyReceived={};
     members.forEach(m=>{memberProxyPaid[m.id]=0;memberProxyReceived[m.id]=0;});
@@ -4330,7 +4217,7 @@ const App = {
     sectionRow('群組支出明細');
     buildRows(groupExps,memberGroupShareDisplayCsv);
 
-    // 計算 memberShareNF 與 peerBalDetailCsv（與 HTML export 邏輯一致）
+    // 計算 peerBalDetailCsv 等彙總（與 HTML export 邏輯一致）
     const memberGroupPaidCsv={};members.forEach(m=>{memberGroupPaidCsv[m.id]=memberPaid[m.id]||0;});
     // 公款帳存款計算（與 HTML export 一致）
     const fundDepositsCsv=t.fundDeposits||[];
@@ -4364,14 +4251,6 @@ const App = {
     const fundDepositIntCsv=Object.values(_depIntCsv).reduce((s,v)=>s+v,0);
     const fundSurplusRawCsv=Math.max(0,totalFundDepositRawCsv-fundSpentBaseCsv);// 供外幣參考顯示
     const fundSurplusCsv=fundDepositIntCsv-fundSpentIntCsv;// 整數:存入−實際支出=剩餘退款
-    const memberShareNF={};
-    regularMembersCsv.forEach(m=>{memberShareNF[m.id]=0;});
-    groupExps.forEach(e=>{
-      const c=ENG.perExp[e._k];if(!c||c.pending) return;
-      const isFP=fundMemberCsv&&typeof e.paidBy==='string'&&e.paidBy===fundMemberCsv.id;
-      if(isFP) return;
-      Object.entries(c.shares).forEach(([id,v])=>{if(memberShareNF[id]!==undefined)memberShareNF[id]+=v;});
-    });
     // 待付款:直接取用引擎結算(整數,與網頁/PDF 同源)
     const peerBalDetailCsv=ENG.peerBal;
     // memberProxyPaidCsv, _selfOnlyShareCsv
@@ -4399,7 +4278,6 @@ const App = {
       const s=groupExps.filter(e=>(e.currency||baseCur)===c&&e.note!=='金額待補').reduce((a,e)=>a+e.amount,0);
       return s>0.5?Math.round(s):'';
     });
-    const groupGrandTotalRawCsv=groupExps.filter(e=>e.note!=='金額待補').reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0);
     const memberGroupOnlyShareCsv={};members.forEach(m=>{memberGroupOnlyShareCsv[m.id]=memberShare[m.id]||0;});
     // 群組 TTL：直接用顯示累積值，確保欄位加總 = TTL
     const _intGrpTotalCsv=regularMembersCsv.reduce((s,m)=>s+(memberGroupShareDisplayCsv[m.id]||0),0);
