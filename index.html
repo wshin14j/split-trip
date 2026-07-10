@@ -488,7 +488,7 @@ select.input{
     </details>
     <details class="faq-item">
       <summary>我想看目前誰欠誰多少，去哪裡看？</summary>
-      <div class="faq-a">點上方的「結算」分頁，系統會自動算出最精簡的轉帳方式，讓大家用最少筆數結清。想看每個人的花費明細，可以到「成員」分頁點開各成員查看。</div>
+      <div class="faq-a">點上方的「結算」分頁，系統會自動算出最精簡的轉帳方式，讓大家用最少筆數結清。想看每個人的花費明細，在「結算」分頁下方的「成員花費與墊付總覽」點開各成員查看。</div>
     </details>
 
     <div class="faq-group">匯率/結算</div>
@@ -532,7 +532,7 @@ select.input{
     <div class="faq-group">匯出</div>
     <details class="faq-item">
       <summary>可以把帳目匯出保存嗎？</summary>
-      <div class="faq-a">可以。點右上角「⋯」選單，選「匯出支出/結算明細」，可以複製結算文字、列印 PDF 或匯出 CSV 檔案。</div>
+      <div class="faq-a">可以。點右上角「⋯」選單，選「匯出支出/結算明細」，可以列印 PDF 或匯出 CSV 檔案。想把「誰還欠誰多少」貼到群組，到「結算」分頁點「分享結清明細（文字版）」，可以一鍵分享到 LINE 或複製文字。</div>
     </details>
   </div>
 </div>
@@ -745,7 +745,7 @@ select.input{
     </button>
     <button class="share-row" onclick="App.openExportDetail()" style="color:var(--accent);">
       <div class="share-icon" style="color:var(--accent);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
-      <div class="share-text"><div class="sm semibold" style="color:var(--accent);">匯出支出/結算明細</div><div class="xs muted">複製結算結果，方便貼到群組</div></div>
+      <div class="share-text"><div class="sm semibold" style="color:var(--accent);">匯出支出/結算明細</div><div class="xs muted">完整明細表，可列印 PDF 或匯出 CSV</div></div>
     </button>
     <div class="divider" style="margin:4px 0;"></div>
     <button class="share-row" onclick="App.deleteTrip()" style="color:#EF4444;">
@@ -1672,6 +1672,50 @@ const App = {
   },
 
   // ── SETTLEMENT ────────────────────────────────
+  // 債務狀態單一來源:結算頁債務卡片與「轉帳結清明細」文字版都取用這份結果,禁止各自另算
+  // 回傳 origTxs(同伴最簡轉帳+公款債務)與 debtStates(每筆的已付/退還/淨餘額;netBal>0.5 尚欠、<-0.5 反欠、其間=結清)
+  _computeDebtStates(t){
+    const payRecs=t.payRecords||[];
+    const fundMember=t.members.find(m=>m.isGroupFund)||null;
+    // 同伴債務：只計算非公款帳支付的部分（引擎 peerShares），避免 minimizeTx 把 peer debt 繞道公款帳
+    const ENG_S=calcTrip(t);// 共用引擎結算(整數,與 PDF/CSV 同源)
+    const peerTxs=minimizeTx({...ENG_S.peerBal});
+    // 公款債務：每人公費份額(引擎 fundShares,含混合付款的公款部分)，扣掉存款 + 轉帳，只保留未結清的
+    const fundTxs=[];
+    if(fundMember){
+      const fundOwed={};
+      t.members.filter(m=>!m.isGroupFund).forEach(m=>{fundOwed[m.id]=0;});
+      Object.values(ENG_S.perExp).forEach(c=>{
+        if(c.pending) return;
+        Object.entries(c.fundShares||{}).forEach(([id,v])=>{if(fundOwed[id]!==undefined)fundOwed[id]+=v;});
+      });
+      t.members.filter(m=>!m.isGroupFund).forEach(m=>{
+        const rawOwed=fundOwed[m.id]||0;
+        if(rawOwed<0.5) return;
+        const deposited=(t.fundDeposits||[]).filter(d=>d.fromMemberId===m.id)
+          .reduce((s,d)=>s+toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+        const prPaid=payRecs.filter(r=>r.from===m.id&&r.to===fundMember.id)
+          .reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+        if(rawOwed-deposited-prPaid>0.5) fundTxs.push({from:m.id,to:fundMember.id,amt:rawOwed});
+      });
+    }
+    const origTxs=[...peerTxs,...fundTxs];
+    // 以淨餘額（正向付款 − 反向退還）計算各對之間目前狀態，支援無限次來回
+    const debtStates=origTxs.map(ot=>{
+      const fwdMatched=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to);
+      let fwdDeposited=0;
+      let fwdPaid=fwdMatched.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+      if(fundMember&&ot.to===fundMember.id){
+        (t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{fwdDeposited+=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);});
+        fwdPaid+=fwdDeposited;
+      }
+      const bwdMatched=(fundMember&&ot.to===fundMember.id)?[]:payRecs.filter(r=>r.from===ot.to&&r.to===ot.from);
+      const bwdPaid=bwdMatched.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+      const netBal=ot.amt-fwdPaid+bwdPaid;
+      return{ot,fwdMatched,fwdPaid,fwdDeposited,bwdMatched,bwdPaid,netBal};
+    });
+    return {origTxs,debtStates,peerBal:ENG_S.peerBal,fundMember};
+  },
   renderSettlement(t,c){
     const bal=calcBal(t);
     // auto confetti when fully settled
@@ -1835,42 +1879,11 @@ const App = {
       </div>`;
     })();
 
-    // 同伴債務：只計算非公款帳支付的部分（引擎 peerShares），避免 minimizeTx 把 peer debt 繞道公款帳
-    const ENG_S=calcTrip(t);// 共用引擎結算(整數,與 PDF/CSV 同源)
-    const peerBal={...ENG_S.peerBal};
-    const peerTxs=minimizeTx(peerBal);
-    // 公款債務：每人公費份額(引擎 fundShares,含混合付款的公款部分)，扣掉存款 + 轉帳，只保留未結清的
-    const fundTxs=[];
-    if(fundMember){
-      const fundOwed={};
-      t.members.filter(m=>!m.isGroupFund).forEach(m=>{fundOwed[m.id]=0;});
-      Object.values(ENG_S.perExp).forEach(c=>{
-        if(c.pending) return;
-        Object.entries(c.fundShares||{}).forEach(([id,v])=>{if(fundOwed[id]!==undefined)fundOwed[id]+=v;});
-      });
-      t.members.filter(m=>!m.isGroupFund).forEach(m=>{
-        const rawOwed=fundOwed[m.id]||0;
-        if(rawOwed<0.5) return;
-        const deposited=(t.fundDeposits||[]).filter(d=>d.fromMemberId===m.id)
-          .reduce((s,d)=>s+toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-        const prPaid=payRecs.filter(r=>r.from===m.id&&r.to===fundMember.id)
-          .reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-        if(rawOwed-deposited-prPaid>0.5) fundTxs.push({from:m.id,to:fundMember.id,amt:rawOwed});
-      });
-    }
-    const origTxs=[...peerTxs,...fundTxs];
-    // 以淨餘額（正向付款 − 反向退還）計算各對之間目前狀態，支援無限次來回
-    const debtStates=origTxs.map(ot=>{
-      const fwdMatched=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to);
-      let fwdPaid=fwdMatched.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-      if(fundMember&&ot.to===fundMember.id){
-        (t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{fwdPaid+=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);});
-      }
-      const bwdMatched=(fundMember&&ot.to===fundMember.id)?[]:payRecs.filter(r=>r.from===ot.to&&r.to===ot.from);
-      const bwdPaid=bwdMatched.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
-      const netBal=ot.amt-fwdPaid+bwdPaid;
-      return{ot,fwdMatched,fwdPaid,bwdMatched,bwdPaid,netBal};
-    });
+    // 債務計算(卡片與文字結清明細共用,單一來源:_computeDebtStates)
+    const _dstate=this._computeDebtStates(t);
+    const peerBal={..._dstate.peerBal};
+    const origTxs=_dstate.origTxs;
+    const debtStates=_dstate.debtStates;
     // 淨餘額為負時方向反轉（creditor 反欠 debtor），保留 reversals 供 historicCard relNote 使用
     const reversals=debtStates.filter(ds=>ds.netBal<-0.5).map(ds=>({
       from:ds.ot.to,to:ds.ot.from,amt:-ds.netBal,origAmt:ds.ot.amt,origMatched:ds.fwdMatched
@@ -2240,6 +2253,7 @@ const App = {
       ${payRecordCard}
       <div class="sm semibold muted mb3">債務關係</div>
       ${txHtml}
+      ${hasExps?`<button type="button" onclick="App.openSettlementText()" style="width:100%;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);background:none;border:1.5px solid var(--accent);border-radius:999px;padding:8px 16px;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M8 7l4-4 4 4"/><path d="M5 13v6a1 1 0 001 1h12a1 1 0 001-1v-6"/></svg>分享結清明細（文字版）</button>`:''}
       ${historicSection}
       ${memberSummary}
       <div style="padding:56px 0 80px;"></div>
@@ -4617,24 +4631,22 @@ const App = {
     const baseSym=(C[baseCur]||C.TWD).sym;
     const members=t.members||[];
     const mName=id=>{const m=members.find(m=>m.id===id);return m?.name||id;};
-    const bal=calcBal(t);
-    const origTxs=minimizeTx(bal);
-    const payRecs=t.payRecords||[];
+    // 與結算頁債務卡片同一份計算結果(_computeDebtStates),數字保證一致
+    const {debtStates}=this._computeDebtStates(t);
     const fmtAmt=amt=>`${baseSym}${Math.round(amt).toLocaleString()}`;
     let text=`【${t.name} 轉帳結清明細】\n`;
     const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
     text+=`產生時間：${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}\n\n`;
-    if(origTxs.length===0){
+    if(debtStates.length===0){
       text+='大家都平帳了！不需要轉帳 🎉';
     } else {
-      origTxs.forEach(ot=>{
-        const matched=payRecs.filter(r=>r.from===ot.from&&r.to===ot.to);
-        const paidBase=matched.reduce((s,r)=>s+toBase(r.amt,r.cur||baseCur,t.rates,baseCur),0);
-        const remainBase=ot.amt-paidBase;
-        const isSettled=remainBase<=0.5;
+      debtStates.forEach(({ot,fwdMatched,fwdDeposited,bwdMatched,netBal})=>{
+        const isSettled=Math.abs(netBal)<=0.5;
+        const isReversed=netBal<-0.5;
         text+=`${mName(ot.from)} → ${mName(ot.to)}\n`;
-        text+=`　原始欠款：${fmtAmt(ot.amt)}\n`;
-        matched.forEach(r=>{
+        text+=`　應付：${fmtAmt(ot.amt)}\n`;
+        if(fwdDeposited>0.5) text+=`　已存入公費  −${fmtAmt(fwdDeposited)}\n`;
+        fwdMatched.forEach(r=>{
           const rSym=(C[r.cur||baseCur]||C.TWD).sym;
           const parts=[];
           if(r.date) parts.push(r.date);
@@ -4642,10 +4654,16 @@ const App = {
           const label=parts.length?parts.join(' '):'付款';
           text+=`　${label}  −${rSym}${Math.round(r.amt).toLocaleString()}\n`;
         });
+        bwdMatched.forEach(r=>{
+          const rSym=(C[r.cur||baseCur]||C.TWD).sym;
+          text+=`　${r.date||''} ${mName(ot.to)} 退還  +${rSym}${Math.round(r.amt).toLocaleString()}\n`;
+        });
         if(isSettled){
           text+=`　✓ 已全數結清\n`;
-        } else if(matched.length>0){
-          text+=`　剩餘：${fmtAmt(remainBase)}\n`;
+        } else if(isReversed){
+          text+=`　⚠ 已多付：${mName(ot.to)} 應退還 ${mName(ot.from)} ${fmtAmt(-netBal)}\n`;
+        } else if(fwdMatched.length>0||fwdDeposited>0.5){
+          text+=`　剩餘：${fmtAmt(netBal)}\n`;
         } else {
           text+=`　尚未付款\n`;
         }
