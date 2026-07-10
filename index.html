@@ -2664,6 +2664,23 @@ const App = {
     const t=loadTrip(this.tripId);
     if(!t) return;
     const m=t.members.find(m=>m.id===mid);
+    // 防護:成員仍出現在任何紀錄裡就擋下刪除——刪了會讓他付過的錢憑空消失、收支不再歸零
+    const expCount=Object.values(t.expenses||{}).filter(e=>{
+      if(typeof e.paidBy==='string'&&e.paidBy===mid) return true;
+      if(typeof e.paidBy==='object'&&e.paidBy&&e.paidBy[mid]>0) return true;
+      if(!e.parts) return !m?.isGroupFund;// 未指定分攤對象=全員分攤,一般成員都算在內
+      return e.parts.includes(mid);
+    }).length;
+    const depCount=m?.isGroupFund?0:(t.fundDeposits||[]).filter(d=>d.fromMemberId===mid).length;// 公款帳本身的存入紀錄走下方原有流程一併清除
+    const payCount=(t.payRecords||[]).filter(r=>r.from===mid||r.to===mid).length;
+    if(expCount||depCount||payCount){
+      const lines=[];
+      if(expCount) lines.push(`${expCount} 筆支出`);
+      if(depCount) lines.push(`${depCount} 筆公款存入`);
+      if(payCount) lines.push(`${payCount} 筆轉帳紀錄`);
+      alert(`無法刪除「${m?.name}」\n\n${m?.name} 還出現在 ${lines.join('、')} 裡，直接刪除會讓帳目對不起來。\n\n請先把這些紀錄改成別人或刪除，再來移除成員。`);
+      return;
+    }
     const msg=m?.isGroupFund
       ?`確定要刪除「${m.name}」？\n刪除後所有存入公款帳的紀錄也會一併消失，無法復原。`
       :`確定要移除 ${m?.name}？`;
