@@ -528,6 +528,10 @@ select.input{
       <summary>朋友新增的支出，我這邊會自動同步嗎？</summary>
       <div class="faq-a">會。只要朋友是透過你的分享連結開啟行程，之後任何人新增或修改支出，其他人的畫面都會自動更新（需要網路連線）。如果暫時沒看到最新內容，重新整理頁面即可。</div>
     </details>
+    <details class="faq-item">
+      <summary>刪除旅程會影響其他人嗎？</summary>
+      <div class="faq-a">看你選哪一種：「從我的列表移除」只影響自己這台裝置，其他成員照常使用，之後想回來用分享連結重新加入即可；「為所有人永久刪除」會把雲端資料整個刪掉，所有成員都無法再開啟，無法復原，請務必和大家確認過再按。</div>
+    </details>
 
     <div class="faq-group">匯出</div>
     <details class="faq-item">
@@ -750,7 +754,31 @@ select.input{
     <div class="divider" style="margin:4px 0;"></div>
     <button class="share-row" onclick="App.deleteTrip()" style="color:#EF4444;">
       <div class="share-icon" style="color:#EF4444;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
-      <div class="share-text"><div class="sm semibold" style="color:#EF4444;">刪除此旅程</div><div class="xs muted">刪除後無法復原</div></div>
+      <div class="share-text"><div class="sm semibold" style="color:#EF4444;">刪除此旅程</div><div class="xs muted">從我的列表移除，或為所有人刪除</div></div>
+    </button>
+  </div>
+</div>
+
+<!-- DELETE TRIP (兩段式:移除自己的列表 vs 為所有人刪除) -->
+<div class="modal-overlay" id="m-delete-trip">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <button class="modal-x-btn" onclick="App.closeModal('m-delete-trip')">×</button>
+    <div class="modal-title">刪除旅程</div>
+    <div id="delete-trip-name" class="sm muted text-center" style="margin:-10px 0 14px;"></div>
+    <button class="share-row" onclick="App.removeTripLocal()">
+      <div class="share-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
+      <div class="share-text">
+        <div class="sm semibold">從我的列表移除</div>
+        <div class="xs muted">只影響這台裝置，其他成員照常使用；之後可用分享連結重新加入</div>
+      </div>
+    </button>
+    <button class="share-row" onclick="App.deleteTripForAll()" style="color:#EF4444;">
+      <div class="share-icon" style="color:#EF4444;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></div>
+      <div class="share-text">
+        <div class="sm semibold" style="color:#EF4444;">為所有人永久刪除</div>
+        <div class="xs muted">連同雲端資料一起刪除，所有成員都無法再開啟，無法復原</div>
+      </div>
     </button>
   </div>
 </div>
@@ -928,7 +956,8 @@ const DB = {
 const loadAll = ()=>DB.get('st_trips')||{};
 const loadTrip = id=>{const t=(DB.get('st_trips')||{})[id]||null;if(t){t.members=t.members||[];t.expenses=t.expenses||{};}return t;};
 function saveTrip(t){const a=loadAll();a[t.id]=t;DB.set('st_trips',a);fbWrite(t.id,t);fbListen(t.id);}
-function delTrip(id){const a=loadAll();delete a[id];DB.set('st_trips',a);fbDelete(id);if(_es[id]){_es[id].close();delete _es[id];}}
+function delTripLocal(id){const a=loadAll();delete a[id];DB.set('st_trips',a);if(_es[id]){_es[id].close();delete _es[id];}}// 只刪這台裝置的列表,雲端與其他成員不受影響
+function delTrip(id){delTripLocal(id);fbDelete(id);}// 為所有人刪除:連同雲端資料一起刪
 
 // ─── FIREBASE SYNC ───────────────────────────────────────────
 const FBURL='https://split-trip-c2bfa-default-rtdb.asia-southeast1.firebasedatabase.app';
@@ -4690,12 +4719,30 @@ const App = {
     window.open('https://line.me/R/msg/text/?'+encodeURIComponent(text),'_blank');
   },
 
+  // 刪除旅程改兩段式(2026-07-10):先選「移除自己的列表」或「為所有人刪除」,避免誤刪全團雲端資料
   deleteTrip(){
     const t=loadTrip(this.tripId);
-    if(!confirm(`確定要刪除「${t?.name}」？所有資料都會消失。`)) return;
-    delTrip(this.tripId);
+    if(!t) return;
     this.closeModal('m-trip-menu');
-    this.go('home'); this.showToast('旅程已刪除');
+    const el=document.getElementById('delete-trip-name');
+    if(el) el.textContent=`「${t.name}」`;
+    this.openModal('m-delete-trip');
+  },
+  removeTripLocal(){
+    const t=loadTrip(this.tripId);
+    if(!t) return;
+    if(!confirm(`移除後這台裝置就看不到「${t.name}」，之後需要分享連結才能重新加入。\n確定從我的列表移除？`)) return;
+    delTripLocal(this.tripId);
+    this.closeModal('m-delete-trip');
+    this.go('home'); this.showToast('已從我的列表移除');
+  },
+  deleteTripForAll(){
+    const t=loadTrip(this.tripId);
+    if(!t) return;
+    if(!confirm(`確定要為「所有人」永久刪除「${t.name}」？\n雲端資料會一併刪除，其他成員也無法再開啟，無法復原。`)) return;
+    delTrip(this.tripId);
+    this.closeModal('m-delete-trip');
+    this.go('home'); this.showToast('旅程已永久刪除');
   },
 };
 
