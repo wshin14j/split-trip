@@ -155,7 +155,9 @@ select.input{
   max-height:92vh;overflow-y:auto;
   animation:slideUp .3s cubic-bezier(.32,.72,0,1);
 }
-.modal-x-btn{position:absolute;top:39px;right:20px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--t2);line-height:1;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+.modal-x-btn{position:absolute;top:33px;right:14px;background:none;border:none;font-size:26px;cursor:pointer;color:var(--t2);line-height:1;padding:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;-webkit-tap-highlight-color:transparent;}
+.modal-x-btn:active{background:var(--surface);}
+.modal-x-btn.inline{position:static;margin:-10px -14px -10px 0;}/* 放在標題列裡的變體:負邊距讓 44px 可點範圍不撐高版面 */
 .color-swatch{width:30px;height:30px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;outline:none;transition:transform .1s;-webkit-tap-highlight-color:transparent;flex-shrink:0;}
 .color-swatch.picked{box-shadow:0 0 0 2.5px var(--t1);}
 .color-swatch:active{transform:scale(.85);}
@@ -283,12 +285,11 @@ select.input{
 .member-row{display:flex;align-items:center;gap:12px;padding:12px 16px;margin-bottom:10px;}
 .rate-row{display:flex;align-items:center;gap:10px;padding:12px 16px;margin-bottom:10px;}
 .rate-input-wrap{display:flex;align-items:center;gap:4px;border:1.5px solid var(--border);background:#fff;border-radius:9px;padding:0 8px;height:40px;transition:border-color .15s;flex-shrink:0;}
-.rate-input-wrap:focus-within,.rate-input-wrap.adjusted{border-color:var(--accent);}
+.rate-input-wrap:focus-within{border-color:var(--accent);}
 .rate-input-wrap input{border:none;background:transparent;outline:none;text-align:right;font-size:14px;padding:0;height:100%;width:58px;-moz-appearance:textfield;}
 .rate-input-wrap input::-webkit-outer-spin-button,.rate-input-wrap input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-.rate-input-wrap svg{color:var(--t3);flex-shrink:0;transition:color .15s;}
-.rate-input-wrap.adjusted svg{color:var(--accent);}
-.rate-input-wrap.adjusted input{color:var(--accent);font-weight:500;}
+.rate-input-wrap svg{color:var(--t3);flex-shrink:0;}
+.rate-input-wrap.adjusted input{font-weight:500;}
 
 /* ===== INFO ROW ===== */
 .info-row{
@@ -474,6 +475,10 @@ select.input{
       <summary>我想看目前誰欠誰多少，去哪裡看？</summary>
       <div class="faq-a">點上方的「結算」分頁，系統會自動算出最精簡的轉帳方式，讓大家用最少筆數結清。想看每個人的花費明細，在「結算」分頁下方的「成員花費與墊付總覽」點開各成員查看。</div>
     </details>
+    <details class="faq-item">
+      <summary>金額還不確定（要等帳單、找收據），怎麼記才不會忘？</summary>
+      <div class="faq-a">先把項目記下來就好，金額可以之後補。記帳時金額先空著，在備註點「金額待補」標籤直接儲存；等對完信用卡帳單或找到收據，再點開那筆支出補上金額。支出列表會標示還有幾筆待補，也能用「待補金額」篩選一次找出來，不怕漏掉。當下先留下紀錄，是最不容易忘帳的方式。</div>
+    </details>
 
     <div class="faq-group">匯率/結算</div>
     <details class="faq-item">
@@ -625,7 +630,7 @@ select.input{
     <div class="modal-handle"></div>
     <div class="flex items-center justify-between mb4" style="margin-bottom:20px;">
       <div class="modal-title" style="margin:0;" id="exp-modal-title">新增支出</div>
-      <button onclick="App.closeModal('m-expense')" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--t2);line-height:1;">×</button>
+      <button class="modal-x-btn inline" onclick="App.closeModal('m-expense')">×</button>
     </div>
     <div class="flex gap-2 mb3">
       <div style="flex:1;min-width:0;">
@@ -1143,7 +1148,7 @@ function avText(name){ return (name||'?').slice(0,2); }
 const App = {
   screen:'landing', tripId:null, expId:null,
   tab:'expenses', editId:null, splitMode:'equal', pending:null, _payerMode:'single',
-  _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterPartsFor:null, _jumpOriginMember:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false,
+  _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterPartsFor:null, _filterGroupScope:null, _jumpOriginMember:null, _scrollAccum:0, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false,
 
   go(s){
     document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -1212,31 +1217,42 @@ const App = {
     if(_sc){
       _sc.scrollTop=0;setTimeout(()=>{_sc.scrollTop=0;},350);
       _sc.removeEventListener('scroll',_sc._filterCollapseHandler||null);
-      let _lastScrollTop=0;
+      let _lastScrollTop=0,_accumDown=0;
+      App._scrollAccum=0;
       _sc._filterCollapseHandler=()=>{
         const st=_sc.scrollTop;
-        if(st>_lastScrollTop+10&&App._filterExpanded){
+        const d=st-_lastScrollTop;
+        _lastScrollTop=st;
+        // 收合判斷用「累計」捲動距離:手指慢滑時單次 scroll 事件只有幾 px,只看單次永遠達不到門檻
+        App._scrollAccum+=Math.abs(d);
+        _accumDown=d>0?_accumDown+d:0;
+        if(_accumDown>10&&App._filterExpanded){
           App._filterExpanded=false;
           App._reRenderSummary();
         }
-        if(Math.abs(st-_lastScrollTop)>80&&(Object.values(App._expandedDebt).some(Boolean)||App._fundCardExpanded)){
-          App._expandedDebt={};App._editingDebt={};App._fundCardExpanded=false;App.renderTab();
+        if(App._scrollAccum>80){
+          App._scrollAccum=0;
+          let dirty=false;
+          if(Object.values(App._expandedDebt).some(Boolean)||App._fundCardExpanded){App._expandedDebt={};App._editingDebt={};App._fundCardExpanded=false;dirty=true;}
+          if(Object.values(App._expandedExp).some(Boolean)){App._expandedExp={};dirty=true;}
+          if(App._payRecExpanded){App._payRecExpanded=false;dirty=true;}
+          if(dirty) App.renderTab();
         }
-        if(Math.abs(st-_lastScrollTop)>80&&Object.values(App._expandedExp).some(Boolean)){
-          App._expandedExp={};App.renderTab();
-        }
-        if(Math.abs(st-_lastScrollTop)>80&&App._payRecExpanded){
-          App._payRecExpanded=false;App.renderTab();
-        }
-        _lastScrollTop=st;
       };
       _sc.addEventListener('scroll',_sc._filterCollapseHandler,{passive:true});
     }
   },
 
-  switchTab(tab){this.tab=tab; this.renderTrip();},
+  switchTab(tab){
+    // 手動切分頁=離開「從結算跳過來」的檢視:清掉跳轉來源與當時套上的篩選,返回膠囊才不會殘留
+    if(this._jumpOriginMember){
+      this._jumpOriginMember=null;this._filterCat=null;this._filterPending=false;this._filterPayMethod=null;this._filterPartsFor=null;this._filterMember=null;this._filterSelfMode=null;this._filterGroupScope=null;
+    }
+    this.tab=tab; this.renderTrip();
+  },
 
   renderTab(){
+    this._scrollAccum=0;// 每次重繪(含展開卡片)後,收合的捲動距離重新起算
     const t=loadTrip(this.tripId);
     const c=document.getElementById('trip-content');
     if(!t){if(c)c.innerHTML='<div class="muted" style="padding:20px;">找不到旅程資料</div>';return;}
@@ -1261,27 +1277,33 @@ const App = {
     const ps=e.parts||(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);
     return ps.length>=2;
   },
-  setSummaryView(v){this._summaryView=v;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterSelfMode=null;this._filterPartsFor=null;this._jumpOriginMember=null;this.renderTab();},
-  setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);if(this._filterCat)this._filterPending=false;this._filterPartsFor=null;this._jumpOriginMember=null;this.renderTab();},
-  setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this._filterPartsFor=null;this._jumpOriginMember=null;this.renderTab();},
-  setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterPending=false;this._filterSelfMode=null;this._filterPartsFor=null;this._jumpOriginMember=null;this.renderTab();},
-  setFilterSelfMode(m){this._filterSelfMode=this._filterSelfMode===m?null:m;this._filterPayMethod=null;this._filterPending=false;this._filterPartsFor=null;this._jumpOriginMember=null;this.renderTab();},
-  filterProxyFor(memberId){this._summaryView='personal';this._filterSelfMode='proxy';this._filterPartsFor=memberId;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._jumpOriginMember=memberId;this.tab='expenses';this.renderTrip(false);},
+  // 「全員分攤」的唯一判斷來源:所有非公款帳成員都在分攤名單裡(結算總覽與支出篩選共用)
+  _isFullGroupExp(e,t){
+    const ps=e.parts||(t.members||[]).map(m=>m.id);
+    return (t.members||[]).filter(m=>!m.isGroupFund).every(m=>ps.includes(m.id));
+  },
+  setSummaryView(v){this._summaryView=v;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterSelfMode=null;this._filterPartsFor=null;this._filterGroupScope=null;this._jumpOriginMember=null;this.renderTab();},
+  setFilterCat(cat){this._filterCat=cat===null?null:(this._filterCat===cat?null:cat);if(this._filterCat)this._filterPending=false;this._filterPartsFor=null;this._filterGroupScope=null;this._jumpOriginMember=null;this.renderTab();},
+  setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this._filterPartsFor=null;this._filterGroupScope=null;this._jumpOriginMember=null;this.renderTab();},
+  setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterPending=false;this._filterSelfMode=null;this._filterPartsFor=null;this._filterGroupScope=null;this._jumpOriginMember=null;this.renderTab();},
+  setFilterSelfMode(m){this._filterSelfMode=this._filterSelfMode===m?null:m;this._filterPayMethod=null;this._filterPending=false;this._filterPartsFor=null;this._filterGroupScope=null;this._jumpOriginMember=null;this.renderTab();},
+  filterProxyFor(memberId){this._summaryView='personal';this._filterSelfMode='proxy';this._filterPartsFor=memberId;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterGroupScope=null;this._jumpOriginMember=memberId;this.tab='expenses';this.renderTrip(false);},
   jumpToCategory(memberId,cat,fundId){
-    this._filterCat=null;this._filterPending=false;this._filterPayMethod=null;this._filterPartsFor=null;this._filterMember=null;this._filterSelfMode=null;
-    if(cat==='fullgroup'){this._summaryView='group';}
-    else if(cat==='partialgroup'){this._summaryView='group';this._filterPartsFor=memberId;}
+    this._filterCat=null;this._filterPending=false;this._filterPayMethod=null;this._filterPartsFor=null;this._filterMember=null;this._filterSelfMode=null;this._filterGroupScope=null;
+    if(cat==='fullgroup'){this._summaryView='group';this._filterGroupScope='full';}
+    else if(cat==='partialgroup'){this._summaryView='group';this._filterGroupScope='partial';this._filterPartsFor=memberId;}
     else if(cat==='fundgroup'){this._summaryView='group';this._filterMember=fundId||null;}
     else if(cat==='extproxy'){this._summaryView='personal';this._filterSelfMode='extproxy';this._filterMember=memberId;}
     else if(cat==='self'){this._summaryView='personal';this._filterSelfMode='self';this._filterMember=memberId;}
-    else if(cat==='paidgroup'){this._summaryView='group';this._filterMember=memberId;}
+    else if(cat==='paidfullgroup'){this._summaryView='group';this._filterMember=memberId;this._filterGroupScope='full';}
+    else if(cat==='paidpartialgroup'){this._summaryView='group';this._filterMember=memberId;this._filterGroupScope='partial';}
     else if(cat==='paidproxy'){this._summaryView='personal';this._filterSelfMode='proxy';this._filterMember=memberId;}
     this._jumpOriginMember=memberId;
     this.tab='expenses';this.renderTrip(false);
   },
   backToMemberSummary(){
     const mid=this._jumpOriginMember;
-    this._jumpOriginMember=null;this._filterCat=null;this._filterPending=false;this._filterPayMethod=null;this._filterPartsFor=null;this._filterMember=null;this._filterSelfMode=null;
+    this._jumpOriginMember=null;this._filterCat=null;this._filterPending=false;this._filterPayMethod=null;this._filterPartsFor=null;this._filterMember=null;this._filterSelfMode=null;this._filterGroupScope=null;
     if(mid) this._expandedMemberSummary[mid]=true;
     this.tab='settlement';this.renderTrip(false);
     if(mid) setTimeout(()=>{const el=document.getElementById('msrow-'+mid);if(el){const rect=el.getBoundingClientRect();const top=window.pageYOffset+rect.top-80;window.scrollTo({top,behavior:'smooth'});}},200);
@@ -1544,6 +1566,9 @@ const App = {
     else if(fsm==='extproxy') exps=exps.filter(([,e])=>e.splitMode==='extproxy');
     const _fpf=this._filterPartsFor;
     if(_fpf) exps=exps.filter(([,e])=>e.parts?(e.parts.includes(_fpf)):(t.members||[]).filter(m=>!m.isGroupFund).some(m=>m.id===_fpf));
+    // 從結算點「全員分攤/部分分攤」跳來時,只列該範圍的群組支出,清單才對得上點的金額分類
+    const _fgs=this._filterGroupScope;
+    if(_fgs) exps=exps.filter(([,e])=>this._isFullGroupExp(e,t)===(_fgs==='full'));
     const bSym=(C[t.baseCurrency]||C.TWD).sym;
     const mName=id=>{const m=t.members.find(m=>m.id===id);return m?.name||id;};
     let lastDate='';
@@ -1983,7 +2008,7 @@ const App = {
         } else {
           const ps=e.parts||t.members.map(m=>m.id);
           const _fundId=fundMember?fundMember.id:null;
-          const isFullGroup=regularIds.every(id=>ps.includes(id));
+          const isFullGroup=this._isFullGroupExp(e,t);
           const _payerIdSum=typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0];
           const isProxy=!isFullGroup&&ps.length===1&&ps[0]!==_payerIdSum;
           // paid:公款帳實付不算成員「我已先付」,其餘照類型歸類(混合付款各歸各的)
@@ -2086,8 +2111,8 @@ const App = {
             <div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:5px;">跟同伴的帳</div>
             <div style="${_row}"><span style="color:var(--t1);">我該分攤 <span style="font-size:10px;color:var(--t3);">(全員＋部分＋墊付)</span></span><span style="color:var(--accent);font-weight:600;">${fmtS(netShare)}</span></div>
             <div style="${_row}"><span style="color:var(--t1);">減去我已先付</span><span style="font-weight:600;color:var(--t1);">− ${fmtS(netPaid)}</span></div>
-            ${pdGroup>0.5?`<div style="${_sub};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidgroup')"><span>└ 全員分攤·我墊的</span><span>${fmtS(pdGroup)}</span></div>`:''}
-            ${pdPartial>0.5?`<div style="${_sub};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidgroup')"><span>└ 部分分攤·我墊的</span><span>${fmtS(pdPartial)}</span></div>`:''}
+            ${pdGroup>0.5?`<div style="${_sub};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidfullgroup')"><span>└ 全員分攤·我墊的</span><span>${fmtS(pdGroup)}</span></div>`:''}
+            ${pdPartial>0.5?`<div style="${_sub};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidpartialgroup')"><span>└ 部分分攤·我墊的</span><span>${fmtS(pdPartial)}</span></div>`:''}
             ${pdProxy>0.5?`<div style="${_sub};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidproxy')"><span>└ 代付</span><span>${fmtS(pdProxy)}</span></div>`:''}
             ${tp>0.5?`<div style="${_sub}"><span>└ 轉帳支出</span><span>${fmtS(tp)}</span></div>`:''}
             <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--border);margin-top:5px;padding-top:6px;"><span style="font-size:13px;font-weight:600;color:var(--t1);">= ${peerAdj<-0.5?'應付':peerAdj>0.5?'應收':'已平帳'}</span><span style="font-size:17px;font-weight:700;color:${peerAdj>0.5?'#22c55e':peerAdj<-0.5?'#EF4444':'var(--t2)'};">${peerAdj>0.5?fmtS(peerAdj):peerAdj<-0.5?fmtS(-peerAdj):'✓'}</span></div>
@@ -3674,7 +3699,7 @@ const App = {
     saveTrip(t); this.pending=null;
     this.closeModal('m-import');
     this.tripId=t.id; this.tab='expenses';
-    this.go('trip'); this.showToast(`已加入「${t.name}」！`);
+    this.go('trip'); this.showToast(`已加入「${t.name}」！點左上角 ← 可查看所有旅程`,3800);
   },
 
   renameTrip(){
