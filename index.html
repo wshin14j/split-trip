@@ -4619,6 +4619,8 @@ window.addEventListener('load',()=>{
   App.checkShare();
   const _trips=loadAll();
   Object.keys(_trips).forEach(id=>fbListen(id));
+  // 老用戶直達:這台裝置已有旅程就直接進列表,歡迎頁只給第一次使用的人看(分享連結的加入視窗會疊在上面,不受影響)
+  if(Object.values(_trips).some(t=>t&&t.name)) App.go('home');
   if(location.hash==='#selftest') setTimeout(runSelfTest,600);
 });
 </script>
