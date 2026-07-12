@@ -498,7 +498,33 @@ select.input{
     </details>
     <details class="faq-item">
       <summary>公款帳怎麼記帳？</summary>
-      <div class="faq-a">先用「存入公款」記錄每個人繳了多少；之後共同開銷記帳時，付款人選公款帳就好。公款支付的帳不會算進成員之間的互欠，結算時各自和公款帳結清。<br><br>如果公款不夠、臨時由某人補差額，付款人改選「多人」，分別填公款帳和墊錢的人各出多少。公款出的部分會記進每個人「跟公費的帳」，墊錢的部分才算成員互欠。</div>
+      <div class="faq-a">
+        <div style="font-weight:700;color:var(--t1);margin-bottom:2px;">① 設定公款帳</div>
+        <div>到「成員」分頁新增一位成員（例如取名「公款帳」），打開下方的「設為公款帳戶」開關。</div>
+        <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 150" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="成員頁：打開「設為公款帳戶」開關">
+            <rect x="6" y="6" width="308" height="138" rx="16" fill="#FFFFFF" stroke="#C7CEFF" stroke-width="1.5"/>
+            <circle cx="40" cy="44" r="19" fill="#F97316"/>
+            <text x="40" y="48" text-anchor="middle" font-size="11" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">公款</text>
+            <text x="70" y="49" font-size="15" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">公款帳 💰</text>
+            <line x1="22" y1="78" x2="298" y2="78" stroke="#EDEFF3" stroke-width="1"/>
+            <text x="22" y="112" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">💰 設為公款帳戶</text>
+            <text x="22" y="130" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">集中管理旅遊公共費用池</text>
+            <rect x="250" y="100" width="44" height="24" rx="12" fill="#5B6CFF"/>
+            <circle cx="282" cy="112" r="9" fill="#FFFFFF"/>
+            <rect x="240" y="94" width="64" height="36" rx="11" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+          </svg>
+        </div>
+        <div style="font-weight:700;color:var(--t1);margin-bottom:2px;">② 存入公款</div>
+        <div>到「結算」分頁，點公款帳卡片的「＋ 存入公款」，記下每個人各繳了多少。</div>
+        <div style="height:10px;"></div>
+        <div style="font-weight:700;color:var(--t1);margin-bottom:2px;">③ 記錄公款支出</div>
+        <div>在「支出」分頁新增消費時，「由誰支付」選公款帳即可；用公款付的帳都這樣記。</div>
+        <div style="height:10px;"></div>
+        <div style="font-weight:700;color:var(--t1);margin-bottom:2px;">④ 確認公款餘額</div>
+        <div>回「結算」分頁，公款帳卡片會用綠字顯示最新餘額。</div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);"><b style="color:var(--t1);">公款不夠、臨時有人補差額？</b><br>記帳時「由誰支付」改選「多人」，分別填公款帳和墊錢的人各出多少。公款出的部分會記進每個人「跟公費的帳」，墊錢的部分才算成員互欠。</div>
+      </div>
     </details>
     <details class="faq-item">
       <summary>公款用不完或不夠怎麼辦？</summary>
@@ -1232,7 +1258,8 @@ const App = {
           App._filterExpanded=false;
           App._reRenderSummary();
         }
-        if(App._scrollAccum>80){
+        // 一般卡片(債務／支出／公款／轉帳)門檻拉高(400px):想滑進去看修改／刪除時不會馬上被收合
+        if(App._scrollAccum>400){
           App._scrollAccum=0;
           let dirty=false;
           if(Object.values(App._expandedDebt).some(Boolean)||App._fundCardExpanded){App._expandedDebt={};App._editingDebt={};App._fundCardExpanded=false;dirty=true;}
@@ -1240,8 +1267,8 @@ const App = {
           if(App._payRecExpanded){App._payRecExpanded=false;dirty=true;}
           if(dirty) App.renderTab();
         }
-        // 成員花費總覽卡片內容長,門檻拉高(600px),讓使用者滑久一點看完內容才自動收合
-        if(App._msScrollAccum>600){
+        // 成員花費總覽卡片內容長,門檻拉得更高(1200px),讓使用者滑很久看完內容才自動收合
+        if(App._msScrollAccum>1200){
           App._msScrollAccum=0;
           if(Object.values(App._expandedMemberSummary).some(Boolean)){App._expandedMemberSummary={};App.renderTab();}
         }
@@ -1397,6 +1424,7 @@ const App = {
     const filterNotice=_hasFilter?`<div style="font-size:11px;color:var(--t2);background:var(--surface);border-radius:8px;padding:7px 10px;margin-bottom:14px;">＊ 顯示全部支出，不受目前篩選影響</div>`:'';
     body.innerHTML=filterNotice+html;
     this.openModal('m-breakdown');
+    body.scrollTop=0;requestAnimationFrame(()=>{body.scrollTop=0;});// 每次開啟從最上面開始，不停留在上次捲動位置
   },
   _reRenderSummary(){
     const t=loadTrip(this.tripId);
@@ -3999,7 +4027,7 @@ const App = {
     </tr>`;
     // 公費退款:每人存入−每人公款支出份額;正=退回現金(綠),負=應補公款(紅)
     const _hasRefundRow=hasFundPdf&&_regMPdf.some(m=>(_refundInt[m.id]||0)!==0);
-    const _refundNote='＊退款＝存入 − 實際用掉的公費。每筆共同開銷均分後常除不盡，餘數逐筆輪流由不同人多付，所以各人用掉的公費略有不同，退款自然差 1～3 元。';
+    const _refundNote='＊退款＝存入 − 實際使用的公費。均分除不盡的餘數會逐筆輪流分配，各人略有差異，通常僅幾元。';
     const fundRefundRow=_hasRefundRow?`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">公費退款</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const v=_refundInt[m.id]||0;const col=v>0?'#22c55e':v<0?'#EF4444':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}color:${col};">${v>0?v.toLocaleString():v<0?`−${(-v).toLocaleString()}`:'—'}</td>`;}).join('')}
@@ -4413,7 +4441,7 @@ const App = {
     const ttlRow1=['合計','全部支出','',...combinedCurTotals,'',...empties(2),_intCombTotalCsv,'總花費',..._floorCombSharesCsv,...(hasFund?['','']:[])];
     const ttlRow1b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已存入公費',...regularMembersCsv.map(m=>_depIntCsv[m.id]||''),...(hasFund?['','']:[])];
     // 公費退款:正=退回現金,負=應補公款(與 PDF 一致)
-    const _refundNoteCsv='退款＝存入 − 實際用掉的公費。每筆共同開銷均分後常除不盡，餘數逐筆輪流由不同人多付，所以各人用掉的公費略有不同，退款自然差 1～3 元。';
+    const _refundNoteCsv='退款＝存入 − 實際使用的公費。均分除不盡的餘數會逐筆輪流分配，各人略有差異，通常僅幾元。';
     const ttlRow1c=[...empties(fixedLeft+allCurs.length+fixedMid-1),'公費退款',...regularMembersCsv.map(m=>{const v=_refundIntCsv[m.id]||0;return v!==0?v:'';}),...(hasFund?[_refundNoteCsv,'']:[])];
     const ttlRow2=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付群組',...regularMembersCsv.map(m=>memberGroupPaidCsv[m.id]||0),...(hasFund?['','']:[])];
     const ttlRow2b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付他人墊付',...regularMembersCsv.map(m=>{const v=memberProxyPaidCsv[m.id]||0;return v||'';}),...(hasFund?['','']:[])];
