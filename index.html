@@ -1240,8 +1240,8 @@ const App = {
           if(App._payRecExpanded){App._payRecExpanded=false;dirty=true;}
           if(dirty) App.renderTab();
         }
-        // 成員花費總覽卡片內容長,門檻拉高(320px),讓使用者滑久一點看完內容才自動收合
-        if(App._msScrollAccum>320){
+        // 成員花費總覽卡片內容長,門檻拉高(600px),讓使用者滑久一點看完內容才自動收合
+        if(App._msScrollAccum>600){
           App._msScrollAccum=0;
           if(Object.values(App._expandedMemberSummary).some(Boolean)){App._expandedMemberSummary={};App.renderTab();}
         }
@@ -2125,7 +2125,7 @@ const App = {
             ${tp>0.5?`<div style="${_sub}"><span>└ 轉帳支出</span><span>${fmtS(tp)}</span></div>`:''}
             <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--border);margin-top:5px;padding-top:6px;"><span style="font-size:13px;font-weight:600;color:var(--t1);">= ${peerAdj<-0.5?'應付':peerAdj>0.5?'應收':'已平帳'}</span><span style="font-size:17px;font-weight:700;color:${peerAdj>0.5?'#22c55e':peerAdj<-0.5?'#EF4444':'var(--t2)'};">${peerAdj>0.5?fmtS(peerAdj):peerAdj<-0.5?fmtS(-peerAdj):'✓'}</span></div>
           </div>`:''}
-          ${fundMember&&(fp>0.5||fsp>0.5)?`<div style="${_boxLight}display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          ${fundMember&&(fp>0.5||fsp>0.5)?`<div style="${_boxLight}background:#F1F0F5;display:flex;justify-content:space-between;align-items:center;gap:8px;">
             <span style="display:flex;flex-direction:column;font-size:11px;line-height:1.5;"><span style="color:var(--t2);">跟公費的帳</span><span style="color:var(--t3);white-space:nowrap;">存入 ${fmtS(fp)} − 用掉 ${fmtS(fsp)}</span></span>
             <span style="white-space:nowrap;"><span style="font-size:10px;color:var(--t3);">${refund>=0?'可退回 ':'需補繳 '}</span><span style="font-size:14px;font-weight:700;color:${refund>=0?'#22c55e':'#EF4444'};">${fmtS(Math.abs(refund))}</span></span>
           </div>`:''}
