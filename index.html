@@ -1149,7 +1149,7 @@ function avText(name){ return (name||'?').slice(0,2); }
 const App = {
   screen:'landing', tripId:null, expId:null,
   tab:'expenses', editId:null, splitMode:'equal', pending:null, _payerMode:'single',
-  _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterPartsFor:null, _filterGroupScope:null, _jumpOriginMember:null, _scrollAccum:0, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false,
+  _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterPartsFor:null, _filterGroupScope:null, _jumpOriginMember:null, _scrollAccum:0, _msScrollAccum:0, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false,
 
   go(s){
     document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -1219,13 +1219,14 @@ const App = {
       _sc.scrollTop=0;setTimeout(()=>{_sc.scrollTop=0;},350);
       _sc.removeEventListener('scroll',_sc._filterCollapseHandler||null);
       let _lastScrollTop=0,_accumDown=0;
-      App._scrollAccum=0;
+      App._scrollAccum=0;App._msScrollAccum=0;
       _sc._filterCollapseHandler=()=>{
         const st=_sc.scrollTop;
         const d=st-_lastScrollTop;
         _lastScrollTop=st;
         // 收合判斷用「累計」捲動距離:手指慢滑時單次 scroll 事件只有幾 px,只看單次永遠達不到門檻
         App._scrollAccum+=Math.abs(d);
+        App._msScrollAccum+=Math.abs(d);
         _accumDown=d>0?_accumDown+d:0;
         if(_accumDown>10&&App._filterExpanded){
           App._filterExpanded=false;
@@ -1236,9 +1237,13 @@ const App = {
           let dirty=false;
           if(Object.values(App._expandedDebt).some(Boolean)||App._fundCardExpanded){App._expandedDebt={};App._editingDebt={};App._fundCardExpanded=false;dirty=true;}
           if(Object.values(App._expandedExp).some(Boolean)){App._expandedExp={};dirty=true;}
-          if(Object.values(App._expandedMemberSummary).some(Boolean)){App._expandedMemberSummary={};dirty=true;}
           if(App._payRecExpanded){App._payRecExpanded=false;dirty=true;}
           if(dirty) App.renderTab();
+        }
+        // 成員花費總覽卡片內容長,門檻拉高(320px),讓使用者滑久一點看完內容才自動收合
+        if(App._msScrollAccum>320){
+          App._msScrollAccum=0;
+          if(Object.values(App._expandedMemberSummary).some(Boolean)){App._expandedMemberSummary={};App.renderTab();}
         }
       };
       _sc.addEventListener('scroll',_sc._filterCollapseHandler,{passive:true});
