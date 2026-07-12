@@ -1288,7 +1288,7 @@ const App = {
   setFilterMember(id){this._filterMember=this._filterMember===id?null:id;this._filterPartsFor=null;this._filterGroupScope=null;this._jumpOriginMember=null;this.renderTab();},
   setFilterPayMethod(m){this._filterPayMethod=this._filterPayMethod===m?null:m;this._filterPending=false;this._filterSelfMode=null;this._filterPartsFor=null;this._filterGroupScope=null;this._jumpOriginMember=null;this.renderTab();},
   setFilterSelfMode(m){this._filterSelfMode=this._filterSelfMode===m?null:m;this._filterPayMethod=null;this._filterPending=false;this._filterPartsFor=null;this._filterGroupScope=null;this._jumpOriginMember=null;this.renderTab();},
-  filterProxyFor(memberId){this._summaryView='personal';this._filterSelfMode='proxy';this._filterPartsFor=memberId;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterGroupScope=null;this._jumpOriginMember=memberId;this.tab='expenses';this.renderTrip(false);},
+  filterProxyFor(memberId){this._summaryView='personal';this._filterSelfMode='proxy';this._filterPartsFor=memberId;this._filterCat=null;this._filterMember=null;this._filterPending=false;this._filterPayMethod=null;this._filterGroupScope=null;this._jumpOriginMember=memberId;this.tab='expenses';this.renderTrip(true);},
   jumpToCategory(memberId,cat,fundId){
     this._filterCat=null;this._filterPending=false;this._filterPayMethod=null;this._filterPartsFor=null;this._filterMember=null;this._filterSelfMode=null;this._filterGroupScope=null;
     if(cat==='fullgroup'){this._summaryView='group';this._filterGroupScope='full';}
@@ -1300,7 +1300,8 @@ const App = {
     else if(cat==='paidpartialgroup'){this._summaryView='group';this._filterMember=memberId;this._filterGroupScope='partial';}
     else if(cat==='paidproxy'){this._summaryView='personal';this._filterSelfMode='proxy';this._filterMember=memberId;}
     this._jumpOriginMember=memberId;
-    this.tab='expenses';this.renderTrip(false);
+    // 跳到支出頁要捲回頂端(resetScroll=true),否則會沿用結算頁捲到底的位置、一開就停在最後一項
+    this.tab='expenses';this.renderTrip(true);
   },
   backToMemberSummary(){
     const mid=this._jumpOriginMember;
@@ -1905,10 +1906,10 @@ const App = {
       return `<div class="card" style="padding:14px 16px;margin-bottom:10px;${isSettled?'opacity:0.75;':''}${isReversed&&!isSettled?'border:1.5px solid #FED7AA;':''}">
         <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="App.toggleDebtExpand(${di})">
           <div class="avatar" style="${avStyle(t,cardFrom)}">${avText(mName(cardFrom))}</div>
-          <div class="flex-1 min-w-0" style="position:relative;height:24px;">
-            <div style="position:absolute;left:50%;transform:translateX(-50%);top:0;line-height:24px;color:var(--t2);font-size:15px;pointer-events:none;z-index:1;">→</div>
-            <div style="position:absolute;top:0;left:0;right:50%;padding-right:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(cardFrom)}</div>
-            <div style="position:absolute;top:0;left:50%;right:0;padding-left:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:15px;line-height:24px;">${mName(cardTo)}</div>
+          <div class="flex-1 min-w-0" style="display:flex;align-items:center;gap:6px;font-weight:700;font-size:15px;line-height:24px;">
+            <span style="min-width:2.4em;flex-shrink:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${mName(cardFrom)}</span>
+            <span style="color:var(--t2);flex-shrink:0;">→</span>
+            <span style="min-width:2.4em;flex-shrink:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${mName(cardTo)}</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
             <div class="avatar" style="${avStyle(t,cardTo)}">${avText(mName(cardTo))}</div>
