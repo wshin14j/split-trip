@@ -3999,10 +3999,11 @@ const App = {
     </tr>`;
     // 公費退款:每人存入−每人公款支出份額;正=退回現金(綠),負=應補公款(紅)
     const _hasRefundRow=hasFundPdf&&_regMPdf.some(m=>(_refundInt[m.id]||0)!==0);
+    const _refundNote='＊退款＝存入 − 實際用掉的公費。每筆共同開銷均分後常除不盡，餘數逐筆輪流由不同人多付，所以各人用掉的公費略有不同，退款自然差 1～3 元。';
     const fundRefundRow=_hasRefundRow?`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">公費退款</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const v=_refundInt[m.id]||0;const col=v>0?'#22c55e':v<0?'#EF4444':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}color:${col};">${v>0?v.toLocaleString():v<0?`−${(-v).toLocaleString()}`:'—'}</td>`;}).join('')}
-      ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}"></td><td style="${_cttl2n}"></td>`:''}
+      ${hasFundPdf?`<td colspan="2" style="${_cttl2}${mbl(fundDisplayIdx)}white-space:normal;text-align:left;padding:6px 9px;"><div style="max-width:190px;white-space:normal;font-size:9px;font-weight:400;color:#6B7280;line-height:1.45;">${_refundNote}</div></td>`:''}
     </tr>`:'';
     const paidOtherRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支付群組</td>
@@ -4412,7 +4413,8 @@ const App = {
     const ttlRow1=['合計','全部支出','',...combinedCurTotals,'',...empties(2),_intCombTotalCsv,'總花費',..._floorCombSharesCsv,...(hasFund?['','']:[])];
     const ttlRow1b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已存入公費',...regularMembersCsv.map(m=>_depIntCsv[m.id]||''),...(hasFund?['','']:[])];
     // 公費退款:正=退回現金,負=應補公款(與 PDF 一致)
-    const ttlRow1c=[...empties(fixedLeft+allCurs.length+fixedMid-1),'公費退款',...regularMembersCsv.map(m=>{const v=_refundIntCsv[m.id]||0;return v!==0?v:'';}),...(hasFund?['','']:[])];
+    const _refundNoteCsv='退款＝存入 − 實際用掉的公費。每筆共同開銷均分後常除不盡，餘數逐筆輪流由不同人多付，所以各人用掉的公費略有不同，退款自然差 1～3 元。';
+    const ttlRow1c=[...empties(fixedLeft+allCurs.length+fixedMid-1),'公費退款',...regularMembersCsv.map(m=>{const v=_refundIntCsv[m.id]||0;return v!==0?v:'';}),...(hasFund?[_refundNoteCsv,'']:[])];
     const ttlRow2=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付群組',...regularMembersCsv.map(m=>memberGroupPaidCsv[m.id]||0),...(hasFund?['','']:[])];
     const ttlRow2b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付他人墊付',...regularMembersCsv.map(m=>{const v=memberProxyPaidCsv[m.id]||0;return v||'';}),...(hasFund?['','']:[])];
     const ttlRow2c=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支出自購',...regularMembersCsv.map(m=>{const v=_selfOnlyShareCsv[m.id]||0;return v||'';}),...(hasFund?['','']:[])];
