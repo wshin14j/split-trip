@@ -360,7 +360,7 @@ select.input{
         <div id="trip-sub" class="xs muted" style="margin-top:2px;"></div>
       </div>
       <div style="display:flex;flex-shrink:0;width:108px;justify-content:flex-end;">
-        <button class="icon-btn" onclick="App.openModal('m-faq')" title="常見問題">
+        <button class="icon-btn" onclick="App.openFaq()" title="常見問題">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
@@ -477,13 +477,14 @@ select.input{
       <div class="faq-a">
         點上方的「結算」分頁，最上面的「債務關係」就會列出誰要付給誰、各多少——系統已幫你算成最少的轉帳筆數。
         <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
-          <svg viewBox="0 0 320 134" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="結算頁：債務關係列出誰付給誰多少">
+          <svg viewBox="0 0 320 156" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="結算頁：債務關係列出誰付給誰多少">
             <rect x="10" y="8" width="300" height="36" rx="10" fill="#EFEFF2"/>
             <rect x="114" y="12" width="92" height="28" rx="8" fill="#1F2A44"/>
             <text x="60" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="#4B5563" font-family="-apple-system,'Noto Sans TC',sans-serif">支出</text>
             <text x="160" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">結算</text>
             <text x="260" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="#4B5563" font-family="-apple-system,'Noto Sans TC',sans-serif">成員</text>
-            <g transform="translate(0,50)">
+            <text x="16" y="64" font-size="12" font-weight="700" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">債務關係</text>
+            <g transform="translate(0,72)">
               <rect x="6" y="6" width="308" height="72" rx="16" fill="#FFFFFF" stroke="#E9ECFF" stroke-width="1.5"/>
               <circle cx="36" cy="42" r="18" fill="#22A565"/>
               <text x="36" y="46" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">小乖</text>
@@ -1359,6 +1360,14 @@ const App = {
   _esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
 
   openModal(id){document.getElementById(id)?.classList.add('open');},
+  openFaq(){
+    // 每次開啟常見問題:所有題目收合、捲回最上面(不保留上次的展開與捲動位置)
+    const m=document.getElementById('m-faq');
+    if(m) m.querySelectorAll('details[open]').forEach(d=>d.removeAttribute('open'));
+    this.openModal('m-faq');
+    const sheet=m&&m.querySelector('.modal-sheet');
+    if(sheet){sheet.scrollTop=0;requestAnimationFrame(()=>{sheet.scrollTop=0;});}
+  },
   closeModal(id){document.getElementById(id)?.classList.remove('open');},
 
   // ── HOME ──────────────────────────────────────
