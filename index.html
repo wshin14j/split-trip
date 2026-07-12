@@ -2182,7 +2182,7 @@ const App = {
       <div class="card" style="padding:16px;margin-bottom:20px;">
         ${payRecords.length===0
           ?`<div style="text-align:center;padding:8px 0;">
-              <div style="font-size:13px;color:var(--t2);line-height:1.8;"><div style="font-weight:700;">目前尚無轉帳紀錄</div><div>請大家確認下方債務關係，盡快匯款並記錄</div></div>
+              <div style="font-size:13px;color:var(--t2);line-height:1.8;"><div style="font-weight:700;">目前尚無轉帳紀錄</div><div>請大家確認上方債務關係，盡快匯款並記錄</div></div>
             </div>`
           :`${_prShow.map((r,i)=>payRecordRow(r,i)).join('')}`}
         <button type="button" onclick="App.openAddPayRecord()" style="margin-top:12px;font-size:13px;font-weight:600;color:var(--accent);background:none;border:1.5px solid var(--accent);border-radius:999px;padding:6px 16px;cursor:pointer;width:100%;">＋ 新增轉帳紀錄</button>
@@ -2203,13 +2203,14 @@ const App = {
       ${pendingBanner}
       ${curSelect}
       ${fundCard}
-      ${payRecordCard}
       <div class="sm semibold muted mb3">債務關係</div>
       ${txHtml}
       ${hasExps?`<button type="button" onclick="App.openSettlementText()" style="width:100%;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);background:none;border:1.5px solid var(--accent);border-radius:999px;padding:8px 16px;cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M8 7l4-4 4 4"/><path d="M5 13v6a1 1 0 001 1h12a1 1 0 001-1v-6"/></svg>分享結清明細（文字版）</button>`:''}
       ${historicSection}
       ${memberSummary}
-      <div style="padding:56px 0 80px;"></div>
+      <div style="height:24px;"></div>
+      ${payRecordCard}
+      <div style="padding:32px 0 80px;"></div>
       `;
   },
 
