@@ -474,17 +474,88 @@ select.input{
     </details>
     <details class="faq-item">
       <summary>我想看目前誰欠誰多少，去哪裡看？</summary>
-      <div class="faq-a">點上方的「結算」分頁，系統會自動算出最精簡的轉帳方式，讓大家用最少筆數結清。想看每個人的花費明細，在「結算」分頁下方的「成員花費與墊付總覽」點開各成員查看。</div>
+      <div class="faq-a">
+        點上方的「結算」分頁，最上面的「債務關係」就會列出誰要付給誰、各多少——系統已幫你算成最少的轉帳筆數。
+        <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 134" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="結算頁：債務關係列出誰付給誰多少">
+            <rect x="10" y="8" width="300" height="36" rx="10" fill="#EFEFF2"/>
+            <rect x="114" y="12" width="92" height="28" rx="8" fill="#1F2A44"/>
+            <text x="60" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="#4B5563" font-family="-apple-system,'Noto Sans TC',sans-serif">支出</text>
+            <text x="160" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">結算</text>
+            <text x="260" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="#4B5563" font-family="-apple-system,'Noto Sans TC',sans-serif">成員</text>
+            <g transform="translate(0,50)">
+              <rect x="6" y="6" width="308" height="72" rx="16" fill="#FFFFFF" stroke="#E9ECFF" stroke-width="1.5"/>
+              <circle cx="36" cy="42" r="18" fill="#22A565"/>
+              <text x="36" y="46" text-anchor="middle" font-size="10" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">小乖</text>
+              <text x="62" y="47" font-size="14" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">小乖</text>
+              <text x="108" y="47" font-size="15" fill="#9CA3AF" font-family="-apple-system,'Noto Sans TC',sans-serif">→</text>
+              <text x="126" y="47" font-size="14" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">Pas</text>
+              <circle cx="198" cy="42" r="15" fill="#A78BFA"/>
+              <text x="198" y="46" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">Pa</text>
+              <text x="300" y="48" text-anchor="end" font-size="16" font-weight="800" fill="#5B6CFF" font-family="-apple-system,'Noto Sans TC',sans-serif">NT$7,052</text>
+            </g>
+          </svg>
+        </div>
+        想看每個人的花費細項，往下到「成員花費與墊付總覽」，點開各成員就能看。
+      </div>
     </details>
     <details class="faq-item">
       <summary>金額還不確定（要等帳單、找收據），怎麼記才不會忘？</summary>
-      <div class="faq-a">先把項目記下來就好，金額可以之後補。記帳時金額先空著，在備註點「金額待補」標籤直接儲存；等對完信用卡帳單或找到收據，再點開那筆支出補上金額。支出列表會標示還有幾筆待補，也能用「待補金額」篩選一次找出來，不怕漏掉。當下先留下紀錄，是最不容易忘帳的方式。</div>
+      <div class="faq-a">
+        先把項目記下來，金額之後再補就好——當下留下紀錄，是最不容易漏帳的方式。
+        <div style="font-weight:700;color:var(--t1);margin:10px 0 2px;">① 記的時候</div>
+        <div>新增支出時金額先留空，在「備註」點一下「金額待補」標籤，直接儲存。</div>
+        <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 210" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="新增支出：金額留空，備註點「金額待補」標籤">
+            <rect x="10" y="8" width="300" height="36" rx="10" fill="#EFEFF2"/>
+            <rect x="14" y="12" width="92" height="28" rx="8" fill="#1F2A44"/>
+            <text x="60" y="30" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">支出</text>
+            <text x="160" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="#4B5563" font-family="-apple-system,'Noto Sans TC',sans-serif">結算</text>
+            <text x="260" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="#4B5563" font-family="-apple-system,'Noto Sans TC',sans-serif">成員</text>
+            <g transform="translate(0,50)">
+              <rect x="6" y="6" width="308" height="150" rx="16" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+              <text x="24" y="34" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">金額</text>
+              <rect x="24" y="44" width="272" height="34" rx="9" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1.2"/>
+              <text x="38" y="66" font-size="13" fill="#9CA3AF" font-family="-apple-system,'Noto Sans TC',sans-serif">先留空，之後再補</text>
+              <text x="24" y="104" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">備註（選填）</text>
+              <rect x="24" y="116" width="86" height="27" rx="13" fill="#5B6CFF"/>
+              <text x="67" y="134" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">金額待補</text>
+              <rect x="118" y="116" width="86" height="27" rx="13" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1.2"/>
+              <text x="161" y="134" text-anchor="middle" font-size="12" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">代購代付</text>
+              <rect x="212" y="116" width="70" height="27" rx="13" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1.2"/>
+              <text x="247" y="134" text-anchor="middle" font-size="12" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">含小費</text>
+            </g>
+          </svg>
+        </div>
+        <div style="font-weight:700;color:var(--t1);margin:2px 0;">② 補金額時</div>
+        <div>對完信用卡帳單、或找到收據後，點開那筆支出把金額補上即可。</div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--t2);">支出列表會標「還有幾筆待補」，也能用「待補金額」篩選一次找出來，不怕漏掉。</div>
+      </div>
     </details>
 
     <div class="faq-group">匯率/結算</div>
     <details class="faq-item">
       <summary>匯率怎麼調整？</summary>
-      <div class="faq-a">點右上角「⋯」選單，選「匯率設定」，就能新增幣別、修改匯率。記帳時選了外幣，結算會自動按你設定的匯率換算成主幣別。</div>
+      <div class="faq-a">
+        點右上角「⋯」選單，選「匯率設定」，就能新增幣別或修改匯率。
+        <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 172" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="右上角 ⋯ 選單裡的「匯率設定」">
+            <text x="16" y="22" font-size="12" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">從右上角「⋯」開啟：</text>
+            <rect x="6" y="32" width="308" height="132" rx="14" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+            <rect x="12" y="38" width="296" height="46" rx="10" fill="#EEF0FF"/>
+            <text x="28" y="68" font-size="18" font-family="-apple-system,'Noto Sans TC',sans-serif">💱</text>
+            <text x="56" y="58" font-size="14" font-weight="700" fill="#4338CA" font-family="-apple-system,'Noto Sans TC',sans-serif">匯率設定</text>
+            <text x="56" y="74" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">設定各幣別換算匯率</text>
+            <line x1="12" y1="92" x2="308" y2="92" stroke="#F0F0F3" stroke-width="1"/>
+            <text x="28" y="114" font-size="15" font-family="-apple-system,'Noto Sans TC',sans-serif">✏️</text>
+            <text x="56" y="113" font-size="13" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">重新命名</text>
+            <line x1="12" y1="128" x2="308" y2="128" stroke="#F0F0F3" stroke-width="1"/>
+            <text x="28" y="150" font-size="15" font-family="-apple-system,'Noto Sans TC',sans-serif">📤</text>
+            <text x="56" y="149" font-size="13" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">匯出支出／結算明細</text>
+          </svg>
+        </div>
+        記帳時選了外幣，結算會自動按你設定的匯率換算成主要結算貨幣。
+      </div>
     </details>
     <details class="faq-item">
       <summary>分帳金額為什麼有時候差一元？</summary>
@@ -515,7 +586,7 @@ select.input{
               <text x="70" y="49" font-size="15" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">公款帳 💰</text>
               <line x1="22" y1="78" x2="298" y2="78" stroke="#EDEFF3" stroke-width="1"/>
               <text x="22" y="112" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">💰 設為公款帳戶</text>
-              <text x="22" y="130" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">集中管理旅遊公共費用池</text>
+              <text x="22" y="130" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">管理旅遊的公用費用</text>
               <rect x="250" y="100" width="44" height="24" rx="12" fill="#5B6CFF"/>
               <circle cx="282" cy="112" r="9" fill="#FFFFFF"/>
             </g>
@@ -600,7 +671,25 @@ select.input{
     <div class="faq-group">分享與同步</div>
     <details class="faq-item">
       <summary>怎麼把行程分享給朋友？</summary>
-      <div class="faq-a">點右上角的分享按鈕，可以透過 LINE 分享、複製連結或其他方式傳給朋友，對方打開連結就能載入整個行程。</div>
+      <div class="faq-a">
+        點右上角的分享鈕，可以用 LINE 分享、複製連結、或手機內建的分享方式傳給朋友。
+        <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 178" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="點右上角分享鈕，選 LINE 分享、複製連結或其他方式">
+            <text x="16" y="22" font-size="12" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">點右上角分享鈕：</text>
+            <rect x="6" y="32" width="308" height="140" rx="14" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+            <text x="24" y="57" font-size="14" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">分享旅程</text>
+            <circle cx="42" cy="88" r="16" fill="#06C755"/>
+            <text x="42" y="92" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">LINE</text>
+            <text x="68" y="85" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">LINE 分享</text>
+            <text x="68" y="100" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">開啟 LINE 傳送給朋友</text>
+            <circle cx="42" cy="132" r="16" fill="#EEF0F6"/>
+            <text x="42" y="137" text-anchor="middle" font-size="14" font-family="-apple-system,'Noto Sans TC',sans-serif">🔗</text>
+            <text x="68" y="129" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">複製連結</text>
+            <text x="68" y="144" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">貼到任何地方都行</text>
+          </svg>
+        </div>
+        對方打開連結就能載入整個行程，之後大家記帳還會即時同步。
+      </div>
     </details>
     <details class="faq-item">
       <summary>朋友新增的支出，我這邊會自動同步嗎？</summary>
@@ -614,7 +703,21 @@ select.input{
     <div class="faq-group">匯出</div>
     <details class="faq-item">
       <summary>可以把帳目匯出保存嗎？</summary>
-      <div class="faq-a">可以。點右上角「⋯」選單，選「匯出支出/結算明細」，可以列印 PDF 或匯出 CSV 檔案。想把「誰還欠誰多少」貼到群組，到「結算」分頁點「分享結清明細（文字版）」，可以一鍵分享到 LINE 或複製文字。</div>
+      <div class="faq-a">
+        可以。點右上角「⋯」選單，選「匯出支出/結算明細」，能存成／列印 PDF，或匯出 CSV 檔。
+        <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 132" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="匯出：可存 PDF 或 CSV">
+            <text x="16" y="22" font-size="12" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">⋯ 選單 →「匯出支出/結算明細」：</text>
+            <rect x="6" y="32" width="308" height="92" rx="14" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+            <text x="24" y="60" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">選擇匯出格式</text>
+            <rect x="24" y="74" width="132" height="34" rx="10" fill="#FFFFFF" stroke="#5B6CFF" stroke-width="1.5"/>
+            <text x="90" y="96" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6CFF" font-family="-apple-system,'Noto Sans TC',sans-serif">儲存／列印 PDF</text>
+            <rect x="164" y="74" width="126" height="34" rx="10" fill="#5B6CFF"/>
+            <text x="227" y="96" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">匯出 CSV</text>
+          </svg>
+        </div>
+        只想把「誰欠誰多少」貼到群組，到「結算」分頁點「分享結清明細（文字版）」，可一鍵複製或分享到 LINE。
+      </div>
     </details>
   </div>
 </div>
@@ -1237,7 +1340,7 @@ function avText(name){ return (name||'?').slice(0,2); }
 const App = {
   screen:'landing', tripId:null, expId:null,
   tab:'expenses', editId:null, splitMode:'equal', pending:null, _payerMode:'single',
-  _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterPartsFor:null, _filterGroupScope:null, _jumpOriginMember:null, _collapseAnchor:null, _filterExpanded:false, _showAddMember:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false,
+  _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterPartsFor:null, _filterGroupScope:null, _jumpOriginMember:null, _collapseAnchor:null, _filterExpanded:false, _showAddMember:false, _addAsFund:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false,
 
   go(s){
     document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
@@ -1324,16 +1427,16 @@ const App = {
         if(_anyGen||_anyMem){if(App._collapseAnchor===null)App._collapseAnchor=st;}
         else App._collapseAnchor=null;
         const _drift=App._collapseAnchor!==null?Math.abs(st-App._collapseAnchor):0;
-        // 一般卡片(債務／支出／公款／轉帳):滑離展開位置 400px 才收
-        if(_anyGen&&_drift>400){
+        // 一般卡片(債務／支出／公款／轉帳):滑離展開位置 700px 才收
+        if(_anyGen&&_drift>700){
           let dirty=false;
           if(Object.values(App._expandedDebt).some(Boolean)||App._fundCardExpanded){App._expandedDebt={};App._editingDebt={};App._fundCardExpanded=false;dirty=true;}
           if(Object.values(App._expandedExp).some(Boolean)){App._expandedExp={};dirty=true;}
           if(App._payRecExpanded){App._payRecExpanded=false;dirty=true;}
           if(dirty) App.renderTab();
         }
-        // 成員花費總覽卡片內容長:滑離展開位置 1200px 才收
-        if(_anyMem&&_drift>1200){
+        // 成員花費總覽卡片內容長:滑離展開位置 2000px 才收
+        if(_anyMem&&_drift>2000){
           if(Object.values(App._expandedMemberSummary).some(Boolean)){App._expandedMemberSummary={};App.renderTab();}
         }
       };
@@ -2493,7 +2596,7 @@ const App = {
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
             <div>
               <div style="font-size:13px;font-weight:600;color:var(--t1);">💰 設為公款帳戶</div>
-              <div style="font-size:11px;color:var(--t2);margin-top:2px;">集中管理旅遊公共費用池</div>
+              <div style="font-size:11px;color:var(--t2);margin-top:2px;">管理旅遊的公用費用</div>
             </div>
             <button type="button" onclick="App.toggleGroupFund('${m.id}')" style="width:46px;height:26px;border-radius:999px;border:none;cursor:pointer;background:${m.isGroupFund?'var(--accent)':'#D1D5DB'};transition:background .2s;position:relative;">
               <span style="position:absolute;top:3px;left:${m.isGroupFund?'23px':'3px'};width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
@@ -2519,19 +2622,30 @@ const App = {
       this._pickedColor=availColors[0]?.id||'';
     const swatches=availColors.map(c=>`<button class="color-swatch${this._pickedColor===c.id?' picked':''}" data-color="${c.id}" style="background:${c.bg};" onclick="App.pickColor('${c.id}')"></button>`).join('');
     const llavC=AVATAR_COLORS.find(c=>c.id==='llav')||AVATAR_COLORS[AVATAR_COLORS.length-1];
+    const _pcC=AVATAR_COLORS.find(c=>c.id===this._pickedColor)||llavC;
+    const _hasFund=t.members.some(m=>m.isGroupFund);
     const addForm=this._showAddMember?`<div class="card" style="padding:16px;margin-top:4px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <label class="form-label" style="margin-bottom:0;">新增成員</label>
-          <button type="button" onclick="App._showAddMember=false;App.renderTab();" style="background:none;border:none;cursor:pointer;color:var(--t2);font-size:18px;line-height:1;">×</button>
+          <button type="button" onclick="App._showAddMember=false;App._addAsFund=false;App.renderTab();" style="background:none;border:none;cursor:pointer;color:var(--t2);font-size:18px;line-height:1;">×</button>
         </div>
         ${availColors.length>0?`<div class="xs muted mb2">選擇頭像顏色</div><div class="flex gap-2 mb3" style="flex-wrap:wrap;">${swatches}</div>`:''}
         <div class="flex gap-2" style="align-items:center;">
-          <div class="avatar" style="background:${llavC.bg};color:${llavC.text};">A</div>
+          <div id="new-mem-avatar" class="avatar" style="background:${_pcC.bg};color:${_pcC.text};">A</div>
           <input id="in-member" class="input flex-1" placeholder="輸入名字" maxlength="20"
             onkeydown="if(event.key==='Enter')App.addMember()" oninput="App.previewMemberAvatar(this.value)">
           <button class="btn btn-accent" style="height:44px;padding:0 18px;" onclick="App.addMember()">新增</button>
         </div>
-      </div>`:`<button type="button" onclick="App._showAddMember=true;App.renderTab();" style="width:100%;margin-top:16px;font-size:13px;font-weight:600;color:#fff;background:var(--primary);border:none;border-radius:999px;padding:8px 16px;cursor:pointer;">＋ 新增成員</button>`;
+        ${!_hasFund?`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--t1);">💰 設為公款帳戶</div>
+            <div style="font-size:11px;color:var(--t2);margin-top:2px;">管理旅遊的公用費用</div>
+          </div>
+          <button type="button" onclick="App._addAsFund=!App._addAsFund;App.renderTab();" style="width:46px;height:26px;border-radius:999px;border:none;cursor:pointer;background:${this._addAsFund?'var(--accent)':'#D1D5DB'};transition:background .2s;position:relative;flex-shrink:0;">
+            <span style="position:absolute;top:3px;left:${this._addAsFund?'23px':'3px'};width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);"></span>
+          </button>
+        </div>`:''}
+      </div>`:`<button type="button" onclick="App._showAddMember=true;App._addAsFund=false;App.renderTab();" style="width:100%;margin-top:16px;font-size:13px;font-weight:600;color:#fff;background:var(--primary);border:none;border-radius:999px;padding:8px 16px;cursor:pointer;">＋ 新增成員</button>`;
     const _su=this._shareUrl();
     const _sd=_su?_su.replace(/^https?:\/\//,''):'';
     const shareCard=_su?`<div class="card" style="padding:14px 16px;margin-top:24px;background:var(--surface);">
@@ -2560,13 +2674,13 @@ const App = {
     });
     const ac=AVATAR_COLORS.find(c=>c.id===id);
     if(ac){
-      const av=document.querySelector('#tab-content .avatar');
+      const av=document.getElementById('new-mem-avatar');
       if(av){av.style.background=ac.bg;av.style.color=ac.text;}
     }
   },
 
   previewMemberAvatar(val){
-    const av=document.querySelector('#tab-content .avatar');
+    const av=document.getElementById('new-mem-avatar');
     if(av) av.textContent=val?val.slice(0,2):'?';
   },
 
@@ -2704,10 +2818,11 @@ const App = {
     const t=loadTrip(this.tripId);
     if(!t) return;
     if(t.members.some(m=>m.name===name)){this.showToast('這個名字已存在');return;}
-    t.members.push({id:uid(),name,color:this._pickedColor||''});
-    saveTrip(t); inp.value=''; this._pickedColor=''; this._showAddMember=false;
+    const asFund=this._addAsFund && !t.members.some(m=>m.isGroupFund);
+    t.members.push({id:uid(),name,color:this._pickedColor||'',...(asFund?{isGroupFund:true}:{})});
+    saveTrip(t); inp.value=''; this._pickedColor=''; this._showAddMember=false; this._addAsFund=false;
     document.activeElement?.blur();
-    setTimeout(()=>{this.renderTrip(); this.showToast(`已新增 ${name}`);},50);
+    setTimeout(()=>{this.renderTrip(); this.showToast(asFund?`已新增公款帳戶 ${name}`:`已新增 ${name}`);},50);
   },
 
   removeMember(mid){
