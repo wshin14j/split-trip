@@ -1432,7 +1432,26 @@ const App = {
     if(m) m.querySelectorAll('details[open]').forEach(d=>d.removeAttribute('open'));
     this.openModal('m-faq');
     const sheet=m&&m.querySelector('.modal-sheet');
-    if(sheet){sheet.scrollTop=0;requestAnimationFrame(()=>{sheet.scrollTop=0;});}
+    if(sheet){
+      sheet.scrollTop=0;requestAnimationFrame(()=>{sheet.scrollTop=0;});
+      // 滑很長後自動收合:展開的題目整個滑出視窗上方(往下滑過)就收起,並補償捲動避免畫面跳動
+      sheet.removeEventListener('scroll',sheet._faqCollapse||null);
+      sheet._faqCollapse=()=>{
+        const opened=[...m.querySelectorAll('details[open]')];
+        if(!opened.length) return;
+        const sheetTop=sheet.getBoundingClientRect().top;
+        opened.forEach(d=>{
+          const r=d.getBoundingClientRect();
+          if(r.bottom < sheetTop-150){
+            const h0=d.getBoundingClientRect().height;
+            d.removeAttribute('open');
+            const h1=d.getBoundingClientRect().height;
+            sheet.scrollTop-=(h0-h1);
+          }
+        });
+      };
+      sheet.addEventListener('scroll',sheet._faqCollapse,{passive:true});
+    }
   },
   closeModal(id){document.getElementById(id)?.classList.remove('open');},
 
@@ -2793,15 +2812,22 @@ const App = {
     const t=loadTrip(this.tripId); if(!t) return;
     t.members.forEach(m=>{if(m.id!==mid) m.isGroupFund=false;});
     const m=t.members.find(m=>m.id===mid);
+    let _clearedName=false;
     if(m){
       m.isGroupFund=!m.isGroupFund;
+      const inp=document.getElementById(`edit-name-${mid}`);
       if(m.isGroupFund){
         m.name='公款帳';
-        const inp=document.getElementById(`edit-name-${mid}`);
         if(inp) inp.value='公款帳';
+      } else if(m.name==='公款帳'){
+        // 取消公款帳:清空自動命名的「公款帳」,提示使用者輸入新名稱
+        m.name='';
+        if(inp) inp.value='';
+        _clearedName=true;
       }
     }
     saveTrip(t); this.renderTab(); this.renderTrip();
+    if(_clearedName) setTimeout(()=>{const el=document.getElementById(`edit-name-${mid}`);if(el)el.focus();},60);
   },
   openFundDeposit(depId){
     const t=loadTrip(this.tripId); if(!t) return;
@@ -4284,7 +4310,7 @@ const App = {
     </tr>`;
     // 公費退款:每人存入−每人公款支出份額;正=退回現金(綠),負=應補公款(紅)
     const _hasRefundRow=hasFundPdf&&_regMPdf.some(m=>(_refundInt[m.id]||0)!==0);
-    const _refundNote='＊共同開銷均分若有餘數，會輪流由不同人多付，差異多寡視公費支出筆數而定，各人通常僅相差幾元。';
+    const _refundNote='＊共同開銷均分若有餘數，會輪流由不同人多付；各人差異視公費支出筆數而定，通常僅相差幾元。';
     const fundRefundRow=_hasRefundRow?`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">公費退款</td>
       ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const v=_refundInt[m.id]||0;const col=v>0?'#22c55e':v<0?'#EF4444':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}color:${col};">${v>0?v.toLocaleString():v<0?`−${(-v).toLocaleString()}`:'—'}</td>`;}).join('')}
@@ -4698,7 +4724,7 @@ const App = {
     const ttlRow1=['合計','全部支出','',...combinedCurTotals,'',...empties(2),_intCombTotalCsv,'總花費',..._floorCombSharesCsv,...(hasFund?['','']:[])];
     const ttlRow1b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已存入公費',...regularMembersCsv.map(m=>_depIntCsv[m.id]||''),...(hasFund?['','']:[])];
     // 公費退款:正=退回現金,負=應補公款(與 PDF 一致)
-    const _refundNoteCsv='共同開銷均分若有餘數，會輪流由不同人多付，差異多寡視公費支出筆數而定，各人通常僅相差幾元。';
+    const _refundNoteCsv='共同開銷均分若有餘數，會輪流由不同人多付；各人差異視公費支出筆數而定，通常僅相差幾元。';
     const ttlRow1c=[...empties(fixedLeft+allCurs.length+fixedMid-1),'公費退款',...regularMembersCsv.map(m=>{const v=_refundIntCsv[m.id]||0;return v!==0?v:'';}),...(hasFund?[_refundNoteCsv,'']:[])];
     const ttlRow2=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付群組',...regularMembersCsv.map(m=>memberGroupPaidCsv[m.id]||0),...(hasFund?['','']:[])];
     const ttlRow2b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付他人墊付',...regularMembersCsv.map(m=>{const v=memberProxyPaidCsv[m.id]||0;return v||'';}),...(hasFund?['','']:[])];
