@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 專案概述(重要:這個專案有三個名字)
 
 - 產品名:**RoamSplit**(多人旅遊分帳工具)
-- 本機資料夾:`~/Documents/roamsplit`
+- 本機資料夾:`~/Documents/VC專案/roamsplit`
 - GitHub 儲存庫:**wshin14j/split-trip**(2026-07-06 從 heyyysia 帳號過戶到使用者個人帳號 wshin14j)
 
 三個名字指的都是同一個專案,不要混淆。
