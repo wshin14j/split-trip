@@ -1543,6 +1543,8 @@ const App = {
     if(this._jumpOriginMember){
       this._jumpOriginMember=null;this._filterCat=null;this._filterPending=false;this._filterPayMethod=null;this._filterPartsFor=null;this._filterMember=null;this._filterSelfMode=null;this._filterGroupScope=null;
     }
+    // 切分頁時收合展開的卡片(成員總覽／債務／公款／轉帳／支出),回到該頁時從收合狀態開始
+    this._expandedMemberSummary={};this._expandedDebt={};this._editingDebt={};this._fundCardExpanded=false;this._payRecExpanded=false;this._expandedHistoric={};this._expandedExp={};this._collapseAnchor=null;
     this.tab=tab; this.renderTrip();
   },
 
