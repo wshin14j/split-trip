@@ -1,0 +1,5 @@
+# 私人文件（交接文件、使用手冊、帳號表等）— 只留在本機，不上傳 GitHub、不被 Cloudflare 部署
+私人文件/
+
+# macOS 系統檔
+.DS_Store
