@@ -529,7 +529,32 @@ select.input{
           </svg>
         </div>
         <div style="font-weight:700;color:var(--t1);margin:2px 0;">② 補金額時</div>
-        <div>對完信用卡帳單、或找到收據後，點開那筆支出把金額補上即可。</div>
+        <div>對完信用卡帳單、或找到收據後，點開那筆支出，按「修改」把金額補上即可。</div>
+        <div style="margin:8px 0 4px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 200" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="待補支出卡：按「修改」補上金額">
+            <rect x="6" y="6" width="308" height="188" rx="16" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+            <rect x="6" y="18" width="4" height="164" rx="2" fill="#F97316"/>
+            <rect x="22" y="20" width="40" height="40" rx="10" fill="#EEF0F6"/>
+            <text x="42" y="48" text-anchor="middle" font-size="20" font-family="-apple-system,'Noto Sans TC',sans-serif">🛏️</text>
+            <text x="74" y="38" font-size="15" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">airbnb</text>
+            <path d="M132 39 l4 -4 l4 4" stroke="#9CA3AF" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="298" y="40" text-anchor="end" font-size="13" font-weight="700" fill="#EF4444" font-family="-apple-system,'Noto Sans TC',sans-serif">待補</text>
+            <line x1="22" y1="74" x2="298" y2="74" stroke="#EDEFF3" stroke-width="1"/>
+            <text x="22" y="98" font-size="12.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">支付人</text>
+            <text x="298" y="98" text-anchor="end" font-size="12.5" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">Owl</text>
+            <text x="22" y="120" font-size="12.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">分攤方式</text>
+            <text x="298" y="120" text-anchor="end" font-size="12.5" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">平均分攤</text>
+            <text x="22" y="142" font-size="12.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">備註</text>
+            <text x="298" y="142" text-anchor="end" font-size="12.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">金額待補</text>
+            <rect x="22" y="158" width="104" height="34" rx="10" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1.2"/>
+            <g transform="translate(46,166) scale(0.6)" fill="none" stroke="#5B6CFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></g>
+            <text x="68" y="180" font-size="13" font-weight="600" fill="#5B6CFF" font-family="-apple-system,'Noto Sans TC',sans-serif">修改</text>
+            <rect x="136" y="158" width="104" height="34" rx="10" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1.2"/>
+            <g transform="translate(160,166) scale(0.6)" fill="none" stroke="#6B7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></g>
+            <text x="182" y="180" font-size="13" font-weight="600" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">刪除</text>
+            <rect x="17" y="153" width="114" height="44" rx="13" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+          </svg>
+        </div>
         <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);color:var(--t2);">支出列表會標「還有幾筆待補」，也能用「待補金額」篩選一次找出來，不怕漏掉。</div>
       </div>
     </details>
@@ -2292,11 +2317,12 @@ const App = {
         if(fundPaid[d.fromMemberId]!==undefined) fundPaid[d.fromMemberId]+=a;
       });
       // transfer payments per member
-      const outPay={};
-      t.members.forEach(m=>{outPay[m.id]=0;});
+      const outPay={},inPay={};
+      t.members.forEach(m=>{outPay[m.id]=0;inPay[m.id]=0;});
       payRecs.forEach(r=>{
         const a=toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
         if(outPay[r.from]!==undefined) outPay[r.from]+=a;
+        if(inPay[r.to]!==undefined) inPay[r.to]+=a;
       });
       // hasPeerExps：是否有非公款帳支付（或混合付款中同伴出資）的群組費用
       const hasPeerExps=Object.values(t.expenses||{}).some(e=>{
@@ -2320,6 +2346,7 @@ const App = {
         const chevron=`<svg width="10" height="10" viewBox="0 0 10 10" style="margin-left:4px;vertical-align:middle;transition:transform .2s;transform:${isExp?'rotate(180deg)':'rotate(0deg)'};"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>`;
         const fp=fundPaid[m.id]||0;
         const tp=outPay[m.id]||0;
+        const tin=inPay[m.id]||0;
         const pdGroup=paidGroup[m.id]||0;
         const pdPartial=paidPartial[m.id]||0;
         const pdProxy=paidProxy[m.id]||0;
@@ -2338,7 +2365,7 @@ const App = {
         const ppsp=partialPeerSpent[m.id]||0;
         const proxySp=proxySpent[m.id]||0;
         const extProxySp=extProxySpent[m.id]||0;
-        const netPaid=pdGroup+pdPartial+pdProxy+tp;
+        const netPaid=pdGroup+pdPartial+pdProxy+tp-tin;
         const netShare=psp+ppsp+proxySp;
         const personalSp=selfSpent[m.id]||0;
         const refund=Math.round(fp)-Math.round(fsp);
@@ -2363,11 +2390,12 @@ const App = {
           ${hasPeerExps?`<div style="margin-top:8px;padding:10px 11px;background:var(--surface,#fff);border:2px solid var(--accent);border-radius:10px;">
             <div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:5px;">跟同伴的帳</div>
             <div style="${_row}"><span style="color:var(--t1);">我該分攤 <span style="font-size:10px;color:var(--t3);">(全員＋部分＋墊付)</span></span><span style="color:var(--accent);font-weight:600;">${fmtS(netShare)}</span></div>
-            <div style="${_row}"><span style="color:var(--t1);">減去我已先付</span><span style="font-weight:600;color:var(--t1);">− ${fmtS(netPaid)}</span></div>
+            <div style="${_row}"><span style="color:var(--t1);">減去我已先付</span><span style="font-weight:600;color:var(--t1);">${netPaid>=0?'−':'＋'} ${fmtS(Math.abs(netPaid))}</span></div>
             ${pdGroup>0.5?`<div style="${_sub};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidfullgroup')"><span>└ 全員分攤·我墊的</span><span>${fmtS(pdGroup)}</span></div>`:''}
             ${pdPartial>0.5?`<div style="${_sub};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidpartialgroup')"><span>└ 部分分攤·我墊的</span><span>${fmtS(pdPartial)}</span></div>`:''}
             ${pdProxy>0.5?`<div style="${_sub};cursor:pointer;" onclick="event.stopPropagation();App.jumpToCategory('${m.id}','paidproxy')"><span>└ 代付</span><span>${fmtS(pdProxy)}</span></div>`:''}
             ${tp>0.5?`<div style="${_sub}"><span>└ 轉帳支出</span><span>${fmtS(tp)}</span></div>`:''}
+            ${tin>0.5?`<div style="${_sub}"><span>└ 轉帳收入</span><span>− ${fmtS(tin)}</span></div>`:''}
             <div style="display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--border);margin-top:5px;padding-top:6px;"><span style="font-size:13px;font-weight:600;color:var(--t1);">= ${peerAdj<-0.5?'應付':peerAdj>0.5?'應收':'已平帳'}</span><span style="font-size:17px;font-weight:700;color:${peerAdj>0.5?'#22c55e':peerAdj<-0.5?'#EF4444':'var(--t2)'};">${peerAdj>0.5?fmtS(peerAdj):peerAdj<-0.5?fmtS(-peerAdj):'✓'}</span></div>
           </div>`:''}
           ${fundMember&&(fp>0.5||fsp>0.5)?`<div style="${_boxLight}background:#F1F0F5;display:flex;justify-content:space-between;align-items:center;gap:8px;">
