@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">RoamSplit</title>
+  <desc id="desc">深藍色圓框與小篆「分」字的白底圖示</desc>
+  <!-- 角落保持實心白底，圓角由 iOS／Android 安裝時自動裁切，避免出現黑角 -->
+  <rect width="512" height="512" fill="#FFFFFF"/>
+  <circle cx="256" cy="256" r="154" fill="none" stroke="#1F2A44" stroke-width="18"/>
+  <g fill="none" stroke="#1F2A44" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M208 171 C219 210 220 257 193 298"/>
+    <path d="M256 166 C248 205 247 239 261 263"/>
+    <path d="M304 171 C294 213 294 258 320 297"/>
+    <path d="M261 263 C244 290 226 314 208 330"/>
+    <path d="M261 263 C286 299 280 344 239 368"/>
+  </g>
+</svg>
