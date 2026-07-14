@@ -201,6 +201,13 @@ select.input{
 .install-step-num{width:26px;height:26px;border-radius:50%;background:var(--soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
 .install-step-title{font-size:14px;font-weight:700;color:var(--t1);}
 .install-step-text{font-size:12px;line-height:1.6;color:var(--t2);margin-top:2px;}
+.install-entry{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:1px solid #DDE1F4;border-radius:16px;background:rgba(255,255,255,.92);cursor:pointer;text-align:left;box-shadow:0 2px 10px rgba(31,42,68,.07);-webkit-tap-highlight-color:transparent;}
+.install-entry:active{transform:scale(.99);}
+.install-entry img{width:42px;height:42px;border-radius:11px;border:1px solid #E5E7EB;flex-shrink:0;}
+.install-entry-copy{flex:1;min-width:0;}
+.install-entry-title{display:block;font-size:13px;font-weight:800;color:var(--primary);}
+.install-entry-text{display:block;font-size:11px;color:var(--t2);line-height:1.4;margin-top:2px;}
+.install-entry-arrow{font-size:19px;color:var(--accent);flex-shrink:0;}
 
 /* ===== TOAST ===== */
 .toast{
@@ -351,6 +358,11 @@ select.input{
           或開啟已建立的旅程 →
         </button>
       </div>
+      <button type="button" class="install-entry" onclick="App.openPermanentInstall()" style="margin-top:20px;">
+        <img src="./icons/icon-192.png" alt="">
+        <span class="install-entry-copy"><span class="install-entry-title">將 RoamSplit 加到桌面</span><span class="install-entry-text">像 App 一樣從手機主畫面或電腦開啟</span></span>
+        <span class="install-entry-arrow">›</span>
+      </button>
     </div>
     <div class="landing-illus">
       <img src="bg-home.png" alt="">
@@ -365,6 +377,11 @@ select.input{
     <button class="icon-btn" style="background:var(--primary);color:#fff;border-radius:10px;width:34px;height:34px;font-size:22px;" onclick="App.showCreateTrip()">+</button>
   </div>
   <div class="scroll">
+    <button type="button" class="install-entry mb4" onclick="App.openPermanentInstall()">
+      <img src="./icons/icon-192.png" alt="">
+      <span class="install-entry-copy"><span class="install-entry-title">將 RoamSplit 加到桌面</span><span class="install-entry-text">之後像 App 一樣，一點就能開啟</span></span>
+      <span class="install-entry-arrow">›</span>
+    </button>
     <div class="sm semibold muted mb3">最近的旅程</div>
     <div id="trip-list"></div>
     <div id="home-empty" class="empty" style="display:none;">
@@ -762,29 +779,37 @@ select.input{
       <div class="faq-a">
         可以，安裝後會有自己的 icon，點開時也不會顯示瀏覽器網址列。
         <div style="margin:8px 0 14px;padding:12px;background:var(--surface);border-radius:12px;">
-          <svg viewBox="0 0 320 228" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LINE 先用預設瀏覽器開啟，再將 RoamSplit 加到主畫面">
-            <rect x="6" y="6" width="308" height="216" rx="16" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
-            <circle cx="34" cy="39" r="15" fill="#06C755"/>
-            <text x="34" y="43" text-anchor="middle" font-size="8" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">LINE</text>
-            <text x="60" y="35" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">從 LINE 開啟時</text>
-            <text x="60" y="52" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">點 ⋯ → 用預設瀏覽器開啟</text>
-            <circle cx="286" cy="39" r="3" fill="#1F2A44"/><circle cx="296" cy="39" r="3" fill="#1F2A44"/><circle cx="306" cy="39" r="3" fill="#1F2A44"/>
-            <rect x="278" y="26" width="36" height="28" rx="8" fill="none" stroke="#EF4444" stroke-width="2.5"/>
-            <line x1="20" y1="72" x2="300" y2="72" stroke="#E5E7EB"/>
-            <circle cx="34" cy="104" r="14" fill="#EEF0FF"/>
-            <path d="M34 94v15M29 99l5-5 5 5M27 106v7h14v-7" fill="none" stroke="#5B6CFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            <text x="60" y="100" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">iPhone／iPad</text>
-            <text x="60" y="117" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">Safari 分享鈕 → 加入主畫面</text>
-            <line x1="20" y1="137" x2="300" y2="137" stroke="#E5E7EB"/>
-            <circle cx="34" cy="169" r="14" fill="#EEF0FF"/>
-            <circle cx="34" cy="169" r="7" fill="none" stroke="#5B6CFF" stroke-width="1.8"/><circle cx="34" cy="169" r="2" fill="#5B6CFF"/>
-            <text x="60" y="165" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">Android／電腦</text>
-            <text x="60" y="182" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">點頁面提示的「安裝 App」即可</text>
-            <rect x="60" y="194" width="104" height="22" rx="11" fill="#1F2A44"/>
-            <text x="112" y="209" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">安裝 App</text>
+          <svg viewBox="0 0 320 306" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="iPhone 在 Safari 點分享鈕後選加入主畫面；Android 從 LINE 右下角選單改用預設瀏覽器">
+            <rect x="6" y="6" width="308" height="294" rx="16" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
+            <circle cx="34" cy="34" r="14" fill="#EEF0FF"/>
+            <path d="M34 24v15M29 29l5-5 5 5M27 36v7h14v-7" fill="none" stroke="#5B6CFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="58" y="30" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">iPhone／iPad</text>
+            <text x="58" y="47" font-size="10.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">Safari 顯示 RoamSplit 網頁後，點分享鈕</text>
+            <rect x="22" y="62" width="272" height="64" rx="12" fill="#F6F6F8" stroke="#E5E7EB"/>
+            <rect x="34" y="74" width="248" height="40" rx="10" fill="#FFFFFF"/>
+            <rect x="46" y="83" width="22" height="22" rx="6" fill="#EEF0FF"/>
+            <rect x="51" y="88" width="12" height="12" rx="3" fill="none" stroke="#5B6CFF" stroke-width="1.5"/>
+            <path d="M57 86v8M54 89l3-3 3 3" fill="none" stroke="#5B6CFF" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="78" y="90" font-size="9.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">Safari 分享選單</text>
+            <text x="78" y="106" font-size="12" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">加入主畫面</text>
+            <text x="265" y="102" text-anchor="end" font-size="18" fill="#5B6CFF" font-family="-apple-system,'Noto Sans TC',sans-serif">+</text>
+            <rect x="31" y="71" width="254" height="46" rx="12" fill="none" stroke="#EF4444" stroke-width="2.2"/>
+            <text x="160" y="142" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4338CA" font-family="-apple-system,'Noto Sans TC',sans-serif">選「加入主畫面」 →「新增」</text>
+            <line x1="20" y1="158" x2="300" y2="158" stroke="#E5E7EB"/>
+            <circle cx="34" cy="184" r="14" fill="#EEF0FF"/>
+            <text x="34" y="189" text-anchor="middle" font-size="15" fill="#5B6CFF" font-family="-apple-system,'Noto Sans TC',sans-serif">◉</text>
+            <text x="58" y="180" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">Android 從 LINE 開啟時</text>
+            <text x="58" y="197" font-size="10.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">點網頁右下角的「⋯」</text>
+            <rect x="22" y="208" width="272" height="42" rx="10" fill="#F9FAFB" stroke="#E5E7EB"/>
+            <text x="36" y="225" font-size="9.5" fill="#9CA3AF" font-family="-apple-system,'Noto Sans TC',sans-serif">roamsplit.pages.dev</text>
+            <line x1="22" y1="233" x2="294" y2="233" stroke="#E5E7EB"/>
+            <circle cx="260" cy="242" r="2" fill="#1F2A44"/><circle cx="268" cy="242" r="2" fill="#1F2A44"/><circle cx="276" cy="242" r="2" fill="#1F2A44"/>
+            <rect x="250" y="234" width="36" height="16" rx="5" fill="none" stroke="#EF4444" stroke-width="2"/>
+            <rect x="44" y="264" width="232" height="26" rx="10" fill="#EEF0FF" stroke="#C7CEFF"/>
+            <text x="160" y="281" text-anchor="middle" font-size="10.5" font-weight="700" fill="#4338CA" font-family="-apple-system,'Noto Sans TC',sans-serif">使用預設瀏覽器開啟 → 加入主畫面</text>
           </svg>
         </div>
-        在 LINE 內建瀏覽器裡無法直接安裝，要先點「⋯」，選「用預設瀏覽器開啟」。iPhone 請用 Safari 的分享鈕選「加入主畫面」；Android 與電腦版 Chrome／Edge 可直接點「安裝 App」。
+        iPhone／iPad 先用 Safari 開啟 RoamSplit，點分享鈕後選「加入主畫面」，再點「新增」。Android 若停在 LINE 內建瀏覽器，請點網頁右下角的「⋯」，選「使用預設瀏覽器開啟」；回 Chrome 後選「加入主畫面」。
         <br><button type="button" class="faq-action" onclick="App.openInstallHelp('auto')">查看我這台裝置的步驟</button>
       </div>
     </details>
@@ -1491,7 +1516,7 @@ function avText(name){ return (name||'?').slice(0,2); }
 const App = {
   screen:'landing', tripId:null, expId:null,
   tab:'expenses', editId:null, splitMode:'equal', pending:null, _payerMode:'single',
-  _deferredInstall:null,
+  _deferredInstall:null, _appInstalled:false,
   _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterPartsFor:null, _filterGroupScope:null, _jumpOriginMember:null, _collapseAnchor:null, _filterExpanded:false, _showAddMember:false, _addAsFund:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false,
 
   go(s){
@@ -1514,10 +1539,14 @@ const App = {
   _isStandalone(){
     return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
   },
+  _isIOSDevice(){
+    const ua=navigator.userAgent||'';
+    return /iPhone|iPad|iPod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  },
   _installPlatform(){
     const ua=navigator.userAgent||'';
     if(/Line/i.test(ua)) return 'line';
-    if(/iPhone|iPad|iPod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)) return 'ios';
+    if(this._isIOSDevice()) return 'ios';
     if(/Android/i.test(ua)) return 'android';
     return 'desktop';
   },
@@ -1527,7 +1556,12 @@ const App = {
       return at&&Date.now()-at<7*24*60*60*1000;
     }catch{return false;}
   },
+  updateInstallEntries(){
+    const display=(this._isStandalone()||this._appInstalled)?'none':'flex';
+    document.querySelectorAll('.install-entry').forEach(entry=>{entry.style.display=display;});
+  },
   initInstallPrompt(){
+    this.updateInstallEntries();
     if(this._isStandalone()) return;
     window.addEventListener('beforeinstallprompt',event=>{
       event.preventDefault();
@@ -1536,7 +1570,9 @@ const App = {
     });
     window.addEventListener('appinstalled',()=>{
       this._deferredInstall=null;
+      this._appInstalled=true;
       document.getElementById('install-banner')?.classList.remove('show');
+      this.updateInstallEntries();
       this.showToast('RoamSplit 已加到桌面 ✓');
     });
     setTimeout(()=>{
@@ -1555,16 +1591,20 @@ const App = {
     banner.dataset.kind=kind;
     if(kind==='line'){
       title.textContent='先用瀏覽器開啟';
-      text.textContent='LINE 裡無法直接安裝 RoamSplit';
+      text.textContent=this._isIOSDevice()?'目前仍在 LINE 裡，請改用 Safari 開啟':'點網頁右下角 ⋯ 改用預設瀏覽器';
       btn.textContent='查看';
     }else if(kind==='ios'){
       title.textContent='把 RoamSplit 加到主畫面';
       text.textContent='用 Safari 的分享鈕即可加入';
       btn.textContent='查看';
+    }else if(this._installPlatform()==='android'){
+      title.textContent='把 RoamSplit 加到主畫面';
+      text.textContent='之後可直接從手機主畫面開啟';
+      btn.textContent='加入';
     }else{
-      title.textContent='安裝 RoamSplit App';
-      text.textContent='之後像 App 一樣從桌面點開';
-      btn.textContent='安裝';
+      title.textContent='把 RoamSplit 加到桌面';
+      text.textContent='之後可直接從電腦桌面開啟';
+      btn.textContent='加入';
     }
     banner.classList.add('show');
   },
@@ -1584,27 +1624,55 @@ const App = {
     }
     this.openInstallHelp(kind||'auto');
   },
+  async openPermanentInstall(){
+    if(this._isStandalone()){
+      this.updateInstallEntries();
+      return;
+    }
+    if(this._deferredInstall){
+      this._deferredInstall.prompt();
+      const choice=await this._deferredInstall.userChoice;
+      this._deferredInstall=null;
+      if(choice.outcome==='accepted') this._appInstalled=true;
+      this.updateInstallEntries();
+      return;
+    }
+    this.openInstallHelp('auto');
+  },
   openInstallHelp(kind='auto'){
     const platform=kind==='auto'?this._installPlatform():kind;
     const content=document.getElementById('install-help-content');
     if(!content) return;
     let html='';
     if(platform==='line'){
-      html=`
-        <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">在 LINE 點「⋯」</div><div class="install-step-text">按鈕可能在右上角或右下角，視手機版本而定。</div></div></div>
-        <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">選「用預設瀏覽器開啟」</div><div class="install-step-text">iPhone 會開到 Safari，Android 通常會開到 Chrome。</div></div></div>
-        <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">回到瀏覽器完成安裝</div><div class="install-step-text">iPhone 點分享鈕 →「加入主畫面」；Android 點頁面上的「安裝 App」。</div></div></div>`;
+      if(this._isIOSDevice()){
+        html=`
+          <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">用 Safari 顯示 RoamSplit 網頁</div><div class="install-step-text">從 LINE 點連結後，iPhone 會用預設瀏覽器開啟。</div></div></div>
+          <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">點 Safari 的分享鈕</div><div class="install-step-text">圖示是一個向上箭頭跑出方框的按鈕。</div></div></div>
+          <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認名稱後點「新增」，RoamSplit icon 就會出現在主畫面。</div></div></div>`;
+      }else{
+        html=`
+          <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">點網頁右下角的「⋯」</div><div class="install-step-text">這是 Android 版 LINE 內建瀏覽器的選單。</div></div></div>
+          <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">選「使用預設瀏覽器開啟」</div><div class="install-step-text">網頁通常會改用 Chrome 開啟。</div></div></div>
+          <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">完成後 RoamSplit icon 就會出現在主畫面。</div></div></div>`;
+      }
     }else if(platform==='ios'){
       html=`
-        <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">用 Safari 開啟 RoamSplit</div><div class="install-step-text">如果現在在 LINE 裡，請先用「⋯」改用預設瀏覽器開啟。</div></div></div>
+        <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">用 Safari 開啟 RoamSplit</div><div class="install-step-text">確認畫面上有 Safari 的網址列，而不是 LINE 的內建瀏覽器。</div></div></div>
         <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">點 Safari 的分享鈕</div><div class="install-step-text">圖示是一個向上箭頭跑出方框的按鈕。</div></div></div>
         <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認名稱後點「新增」，RoamSplit icon 就會出現在主畫面。</div></div></div>`;
+    }else if(platform==='android'){
+      html=`
+        <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">用 Chrome 開啟</div><div class="install-step-text">請不要停留在 LINE 的內建瀏覽器。</div></div></div>
+        <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">如果頁面沒有顯示按鈕，可打開 Chrome 選單尋找。</div></div></div>
+        <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">確認加入</div><div class="install-step-text">RoamSplit icon 會出現在手機主畫面。</div></div></div>`;
+      if(this._deferredInstall) html+=`<button type="button" class="btn btn-primary btn-full mt4" onclick="App.closeModal('m-install-help');App.showInstallBanner('native');App.handleInstallAction();">現在加入主畫面</button>`;
     }else{
       html=`
         <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">用 Chrome 或 Edge 開啟</div><div class="install-step-text">請不要停留在 LINE 的內建瀏覽器。</div></div></div>
-        <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">點「安裝 App」</div><div class="install-step-text">如果頁面沒有顯示按鈕，可打開瀏覽器選單，找「安裝 RoamSplit」或「加入主畫面」。</div></div></div>
-        <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">確認安裝</div><div class="install-step-text">手機主畫面、電腦 Dock 或工作列會出現 RoamSplit icon。</div></div></div>`;
-      if(this._deferredInstall) html+=`<button type="button" class="btn btn-primary btn-full mt4" onclick="App.closeModal('m-install-help');App.showInstallBanner('native');App.handleInstallAction();">現在安裝 App</button>`;
+        <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">選「加到桌面」</div><div class="install-step-text">如果頁面沒有顯示按鈕，可打開瀏覽器選單，找「安裝 RoamSplit」。</div></div></div>
+        <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">確認加入</div><div class="install-step-text">電腦 Dock 或工作列會出現 RoamSplit icon。</div></div></div>`;
+      if(this._deferredInstall) html+=`<button type="button" class="btn btn-primary btn-full mt4" onclick="App.closeModal('m-install-help');App.showInstallBanner('native');App.handleInstallAction();">現在加到桌面</button>`;
     }
     content.innerHTML=html;
     document.getElementById('install-banner')?.classList.remove('show');
