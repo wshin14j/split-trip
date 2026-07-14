@@ -199,8 +199,11 @@ select.input{
 .install-step{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);}
 .install-step:last-child{border-bottom:none;}
 .install-step-num{width:26px;height:26px;border-radius:50%;background:var(--soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
+.install-step-copy{flex:1;min-width:0;}
 .install-step-title{font-size:14px;font-weight:700;color:var(--t1);}
 .install-step-text{font-size:12px;line-height:1.6;color:var(--t2);margin-top:2px;}
+.install-step-icon{width:42px;height:42px;border-radius:12px;background:var(--soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:auto;}
+.install-step-icon svg{width:24px;height:24px;display:block;}
 .install-entry{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:1px solid #DDE1F4;border-radius:16px;background:rgba(255,255,255,.92);cursor:pointer;text-align:left;box-shadow:0 2px 10px rgba(31,42,68,.07);-webkit-tap-highlight-color:transparent;}
 .install-entry:active{transform:scale(.99);}
 .install-entry img{width:42px;height:42px;border-radius:11px;border:1px solid #E5E7EB;flex-shrink:0;}
@@ -208,6 +211,10 @@ select.input{
 .install-entry-title{display:block;font-size:13px;font-weight:800;color:var(--primary);}
 .install-entry-text{display:block;font-size:11px;color:var(--t2);line-height:1.4;margin-top:2px;}
 .install-entry-arrow{font-size:19px;color:var(--accent);flex-shrink:0;}
+.install-entry-landing{width:max-content;max-width:100%;margin:12px auto 0;padding:6px 8px;border:none;background:transparent;box-shadow:none;border-radius:999px;gap:8px;}
+.install-entry-landing img{width:28px;height:28px;border:none;border-radius:8px;}
+.install-entry-landing .install-entry-title{font-size:12px;font-weight:700;color:var(--t2);text-decoration:underline;text-underline-offset:3px;}
+.install-entry-landing .install-entry-arrow{font-size:16px;color:var(--t2);}
 
 /* ===== TOAST ===== */
 .toast{
@@ -358,9 +365,9 @@ select.input{
           或開啟已建立的旅程 →
         </button>
       </div>
-      <button type="button" class="install-entry" onclick="App.openPermanentInstall()" style="margin-top:20px;">
+      <button type="button" class="install-entry install-entry-landing" onclick="App.openPermanentInstall()">
         <img src="./icons/icon-192.png" alt="">
-        <span class="install-entry-copy"><span class="install-entry-title">將 RoamSplit 加到桌面</span><span class="install-entry-text">像 App 一樣從手機主畫面或電腦開啟</span></span>
+        <span class="install-entry-copy"><span class="install-entry-title" data-mobile-title="將 RoamSplit 加到主畫面" data-desktop-title="將 RoamSplit 加到電腦桌面">將 RoamSplit 加到主畫面</span></span>
         <span class="install-entry-arrow">›</span>
       </button>
     </div>
@@ -379,7 +386,7 @@ select.input{
   <div class="scroll">
     <button type="button" class="install-entry mb4" onclick="App.openPermanentInstall()">
       <img src="./icons/icon-192.png" alt="">
-      <span class="install-entry-copy"><span class="install-entry-title">將 RoamSplit 加到桌面</span><span class="install-entry-text">之後像 App 一樣，一點就能開啟</span></span>
+      <span class="install-entry-copy"><span class="install-entry-title" data-mobile-title="將 RoamSplit 加到主畫面" data-desktop-title="將 RoamSplit 加到電腦桌面">將 RoamSplit 加到主畫面</span><span class="install-entry-text" data-mobile-text="之後可直接從手機主畫面開啟" data-desktop-text="之後可直接從電腦桌面開啟">之後可直接從手機主畫面開啟</span></span>
       <span class="install-entry-arrow">›</span>
     </button>
     <div class="sm semibold muted mb3">最近的旅程</div>
@@ -511,7 +518,7 @@ select.input{
   <div class="modal-sheet" style="max-height:88vh;">
     <div class="modal-handle"></div>
     <button class="modal-x-btn" onclick="App.closeModal('m-install-help')">×</button>
-    <div class="modal-title">把 RoamSplit 加到桌面</div>
+    <div class="modal-title" id="install-help-title">把 RoamSplit 加到主畫面</div>
     <div id="install-help-content"></div>
   </div>
 </div>
@@ -777,7 +784,7 @@ select.input{
     <details class="faq-item">
       <summary>怎麼把 RoamSplit 加到手機或電腦桌面？</summary>
       <div class="faq-a">
-        可以，安裝後會有自己的 icon，點開時也不會顯示瀏覽器網址列。
+        可以，加入後會有自己的 icon，點開時也不會顯示瀏覽器網址列。
         <div style="margin:8px 0 14px;padding:12px;background:var(--surface);border-radius:12px;">
           <svg viewBox="0 0 320 306" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="iPhone 在 Safari 點分享鈕後選加入主畫面；Android 從 LINE 右下角選單改用預設瀏覽器">
             <rect x="6" y="6" width="308" height="294" rx="16" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1.5"/>
@@ -812,6 +819,10 @@ select.input{
         iPhone／iPad 先用 Safari 開啟 RoamSplit，點分享鈕後選「加入主畫面」，再點「新增」。Android 若停在 LINE 內建瀏覽器，請點網頁右下角的「⋯」，選「使用預設瀏覽器開啟」；回 Chrome 後選「加入主畫面」。
         <br><button type="button" class="faq-action" onclick="App.openInstallHelp('auto')">查看我這台裝置的步驟</button>
       </div>
+    </details>
+    <details class="faq-item">
+      <summary>加入主畫面後，為什麼看不到原本旅程？</summary>
+      <div class="faq-a">新版會自動帶入 Safari 裡已有的旅程，第一次從主畫面開啟時請保持網路連線。若仍顯示空白，可能是先前加入的舊版捷徑：請刪除捷徑，用 Safari 開啟 RoamSplit 並確認原本旅程還在，再重新選一次「加入主畫面」。原本的帳目不會因此被刪除。</div>
     </details>
     <details class="faq-item">
       <summary>沒網路時也能開啟和看帳目嗎？</summary>
@@ -1313,9 +1324,42 @@ const DB = {
 };
 const loadAll = ()=>DB.get('st_trips')||{};
 const loadTrip = id=>{const t=(DB.get('st_trips')||{})[id]||null;if(t){t.members=t.members||[];t.expenses=t.expenses||{};}return t;};
-function saveTrip(t){const a=loadAll();a[t.id]=t;DB.set('st_trips',a);fbWrite(t.id,t);fbListen(t.id);}
-function delTripLocal(id){const a=loadAll();delete a[id];DB.set('st_trips',a);if(_es[id]){_es[id].close();delete _es[id];}}// 只刪這台裝置的列表,雲端與其他成員不受影響
+function saveTrip(t){const a=loadAll();a[t.id]=t;DB.set('st_trips',a);syncTripIndexCookie();fbWrite(t.id,t);fbListen(t.id);}
+function delTripLocal(id){const a=loadAll();delete a[id];DB.set('st_trips',a);syncTripIndexCookie();if(_es[id]){_es[id].close();delete _es[id];}}// 只刪這台裝置的列表,雲端與其他成員不受影響
 function delTrip(id){delTripLocal(id);fbDelete(id);}// 為所有人刪除:連同雲端資料一起刪
+
+// iPhone 加入主畫面後會使用獨立儲存空間；用安裝時會被複製的 cookie 帶入旅程 id，再從雲端還原清單。
+const TRIP_INDEX_COOKIE='rs_trip_ids';
+function readTripIndexCookie(){
+  try{
+    const row=document.cookie.split('; ').find(v=>v.startsWith(TRIP_INDEX_COOKIE+'='));
+    if(!row) return [];
+    const ids=JSON.parse(decodeURIComponent(row.slice(row.indexOf('=')+1)));
+    return Array.isArray(ids)?ids.filter(id=>typeof id==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(id)):[];
+  }catch{return [];}
+}
+function syncTripIndexCookie(){
+  try{
+    const ids=Object.keys(loadAll()).filter(id=>/^[a-zA-Z0-9_-]{1,80}$/.test(id)).slice(-100);
+    document.cookie=`${TRIP_INDEX_COOKIE}=${encodeURIComponent(JSON.stringify(ids))}; Max-Age=31536000; Path=/; SameSite=Lax`;
+  }catch{}
+}
+async function restoreTripsFromInstallCookie(){
+  if(Object.values(loadAll()).some(t=>t&&t.name)) return 0;
+  const ids=readTripIndexCookie();
+  if(!ids.length) return 0;
+  const restored={};
+  await Promise.all(ids.map(async id=>{
+    try{
+      const r=await fetch(`${FBURL}/trips/${id}.json`);
+      const trip=await r.json();
+      if(trip&&trip.name) restored[id]=trip;
+    }catch{}
+  }));
+  const count=Object.keys(restored).length;
+  if(count) DB.set('st_trips',restored);
+  return count;
+}
 
 // ─── FIREBASE SYNC ───────────────────────────────────────────
 const FBURL='https://split-trip-c2bfa-default-rtdb.asia-southeast1.firebasedatabase.app';
@@ -1558,7 +1602,14 @@ const App = {
   },
   updateInstallEntries(){
     const display=(this._isStandalone()||this._appInstalled)?'none':'flex';
-    document.querySelectorAll('.install-entry').forEach(entry=>{entry.style.display=display;});
+    const mobile=this._isIOSDevice()||/Android/i.test(navigator.userAgent||'');
+    document.querySelectorAll('.install-entry').forEach(entry=>{
+      entry.style.display=display;
+      const title=entry.querySelector('.install-entry-title');
+      const text=entry.querySelector('.install-entry-text');
+      if(title) title.textContent=mobile?title.dataset.mobileTitle:title.dataset.desktopTitle;
+      if(text) text.textContent=mobile?text.dataset.mobileText:text.dataset.desktopText;
+    });
   },
   initInstallPrompt(){
     this.updateInstallEntries();
@@ -1582,7 +1633,7 @@ const App = {
     },1200);
   },
   showInstallBanner(kind){
-    if(this._isStandalone()||this._installDismissedRecently()) return;
+    if(this._isStandalone()||this._installDismissedRecently()||this.screen==='landing'||this.screen==='home') return;
     const banner=document.getElementById('install-banner');
     const title=document.getElementById('install-banner-title');
     const text=document.getElementById('install-banner-text');
@@ -1639,39 +1690,54 @@ const App = {
     }
     this.openInstallHelp('auto');
   },
+  _installStepIcon(type){
+    const icons={
+      safari:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.8 9.2l-1.7 3.9-3.9 1.7 1.7-3.9 3.9-1.7z"/><path d="M12 3v1.5M12 19.5V21M3 12h1.5M19.5 12H21"/></svg>`,
+      share:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10v9a2 2 0 002 2h8a2 2 0 002-2v-9"/><path d="M12 15V3M8 7l4-4 4 4"/></svg>`,
+      homeAdd:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M12 12.5v5M9.5 15h5"/></svg>`,
+      more:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><circle cx="8" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
+      external:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="15" height="15" rx="3"/><path d="M13 3h8v8M21 3l-10 10"/></svg>`,
+      chrome:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M4.2 7.5H12M16.5 19.8l-4-6.8M19.8 7.5l-7.3 4.2"/></svg>`,
+      desktop:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2.5"/><path d="M8 21h8M12 17v4M12 8v5M9.5 10.5h5"/></svg>`,
+      check:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.2l2.6 2.6L16.5 9"/></svg>`
+    };
+    return `<div class="install-step-icon" aria-hidden="true">${icons[type]||icons.check}</div>`;
+  },
   openInstallHelp(kind='auto'){
     const platform=kind==='auto'?this._installPlatform():kind;
     const content=document.getElementById('install-help-content');
+    const modalTitle=document.getElementById('install-help-title');
     if(!content) return;
+    if(modalTitle) modalTitle.textContent=platform==='desktop'?'把 RoamSplit 放到電腦桌面':'把 RoamSplit 加到主畫面';
     let html='';
     if(platform==='line'){
       if(this._isIOSDevice()){
         html=`
-          <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">用 Safari 顯示 RoamSplit 網頁</div><div class="install-step-text">從 LINE 點連結後，iPhone 會用預設瀏覽器開啟。</div></div></div>
-          <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">點 Safari 的分享鈕</div><div class="install-step-text">圖示是一個向上箭頭跑出方框的按鈕。</div></div></div>
-          <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認名稱後點「新增」，RoamSplit icon 就會出現在主畫面。</div></div></div>`;
+          <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Safari 顯示 RoamSplit 網頁</div><div class="install-step-text">從 LINE 點連結後，iPhone 會用預設瀏覽器開啟。</div></div>${this._installStepIcon('safari')}</div>
+          <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">點 Safari 的分享鈕</div><div class="install-step-text">圖示是一個向上箭頭跑出方框的按鈕。</div></div>${this._installStepIcon('share')}</div>
+          <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認名稱後點「新增」，RoamSplit icon 就會出現在主畫面。</div></div>${this._installStepIcon('homeAdd')}</div>`;
       }else{
         html=`
-          <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">點網頁右下角的「⋯」</div><div class="install-step-text">這是 Android 版 LINE 內建瀏覽器的選單。</div></div></div>
-          <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">選「使用預設瀏覽器開啟」</div><div class="install-step-text">網頁通常會改用 Chrome 開啟。</div></div></div>
-          <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">完成後 RoamSplit icon 就會出現在主畫面。</div></div></div>`;
+          <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">點網頁右下角的「⋯」</div><div class="install-step-text">這是 Android 版 LINE 內建瀏覽器的選單。</div></div>${this._installStepIcon('more')}</div>
+          <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">選「使用預設瀏覽器開啟」</div><div class="install-step-text">網頁通常會改用 Chrome 開啟。</div></div>${this._installStepIcon('external')}</div>
+          <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">完成後 RoamSplit icon 就會出現在主畫面。</div></div>${this._installStepIcon('homeAdd')}</div>`;
       }
     }else if(platform==='ios'){
       html=`
-        <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">用 Safari 開啟 RoamSplit</div><div class="install-step-text">確認畫面上有 Safari 的網址列，而不是 LINE 的內建瀏覽器。</div></div></div>
-        <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">點 Safari 的分享鈕</div><div class="install-step-text">圖示是一個向上箭頭跑出方框的按鈕。</div></div></div>
-        <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認名稱後點「新增」，RoamSplit icon 就會出現在主畫面。</div></div></div>`;
+        <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Safari 開啟 RoamSplit</div><div class="install-step-text">確認畫面上有 Safari 的網址列，而不是 LINE 的內建瀏覽器。</div></div>${this._installStepIcon('safari')}</div>
+        <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">點 Safari 的分享鈕</div><div class="install-step-text">圖示是一個向上箭頭跑出方框的按鈕。</div></div>${this._installStepIcon('share')}</div>
+        <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認名稱後點「新增」，RoamSplit icon 就會出現在主畫面。</div></div>${this._installStepIcon('homeAdd')}</div>`;
     }else if(platform==='android'){
       html=`
-        <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">用 Chrome 開啟</div><div class="install-step-text">請不要停留在 LINE 的內建瀏覽器。</div></div></div>
-        <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">如果頁面沒有顯示按鈕，可打開 Chrome 選單尋找。</div></div></div>
-        <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">確認加入</div><div class="install-step-text">RoamSplit icon 會出現在手機主畫面。</div></div></div>`;
+        <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Chrome 開啟 RoamSplit</div><div class="install-step-text">確認畫面上有 Chrome 的網址列。</div></div>${this._installStepIcon('chrome')}</div>
+        <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">打開 Chrome 選單</div><div class="install-step-text">點右上角的「⋮」選單。</div></div>${this._installStepIcon('more')}</div>
+        <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認後，RoamSplit icon 就會出現在手機主畫面。</div></div>${this._installStepIcon('homeAdd')}</div>`;
       if(this._deferredInstall) html+=`<button type="button" class="btn btn-primary btn-full mt4" onclick="App.closeModal('m-install-help');App.showInstallBanner('native');App.handleInstallAction();">現在加入主畫面</button>`;
     }else{
       html=`
-        <div class="install-step"><div class="install-step-num">1</div><div><div class="install-step-title">用 Chrome 或 Edge 開啟</div><div class="install-step-text">請不要停留在 LINE 的內建瀏覽器。</div></div></div>
-        <div class="install-step"><div class="install-step-num">2</div><div><div class="install-step-title">選「加到桌面」</div><div class="install-step-text">如果頁面沒有顯示按鈕，可打開瀏覽器選單，找「安裝 RoamSplit」。</div></div></div>
-        <div class="install-step"><div class="install-step-num">3</div><div><div class="install-step-title">確認加入</div><div class="install-step-text">電腦 Dock 或工作列會出現 RoamSplit icon。</div></div></div>`;
+        <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Chrome 或 Edge 開啟 RoamSplit</div><div class="install-step-text">確認畫面上有瀏覽器的網址列。</div></div>${this._installStepIcon('chrome')}</div>
+        <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">點網址列旁的安裝圖示</div><div class="install-step-text">找不到時，可打開瀏覽器選單，選「安裝 RoamSplit」。</div></div>${this._installStepIcon('desktop')}</div>
+        <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">按「安裝」完成</div><div class="install-step-text">之後可從電腦桌面、Dock 或工作列直接開啟。</div></div>${this._installStepIcon('check')}</div>`;
       if(this._deferredInstall) html+=`<button type="button" class="btn btn-primary btn-full mt4" onclick="App.closeModal('m-install-help');App.showInstallBanner('native');App.handleInstallAction();">現在加到桌面</button>`;
     }
     content.innerHTML=html;
@@ -5217,7 +5283,7 @@ function runSelfTest(){
 }
 
 // ─── INIT ────────────────────────────────────────────────────
-window.addEventListener('load',()=>{
+window.addEventListener('load',async()=>{
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }
@@ -5226,10 +5292,17 @@ window.addEventListener('load',()=>{
     el.addEventListener('click',e=>{if(e.target===el) el.classList.remove('open');});
   });
   App.checkShare();
-  const _trips=loadAll();
+  let _trips=loadAll();
+  let restoredCount=0;
+  if(!Object.values(_trips).some(t=>t&&t.name)){
+    restoredCount=await restoreTripsFromInstallCookie();
+    _trips=loadAll();
+  }
+  if(Object.values(_trips).some(t=>t&&t.name)) syncTripIndexCookie();
   Object.keys(_trips).forEach(id=>fbListen(id));
   // 老用戶直達:這台裝置已有旅程就直接進列表,歡迎頁只給第一次使用的人看(分享連結的加入視窗會疊在上面,不受影響)
   if(Object.values(_trips).some(t=>t&&t.name)) App.go('home');
+  if(restoredCount) setTimeout(()=>App.showToast(`已帶入 ${restoredCount} 個旅程 ✓`,3000),300);
   if(location.hash==='#selftest') setTimeout(runSelfTest,600);
 });
 </script>
