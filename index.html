@@ -341,9 +341,6 @@ select.input{
 .rate-input-wrap input::-webkit-outer-spin-button,.rate-input-wrap input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .rate-input-wrap svg{color:var(--t3);flex-shrink:0;}
 .rate-input-wrap.adjusted input{font-weight:500;}
-.rates-base-line{display:flex;align-items:center;gap:7px;margin:0 2px 14px;color:var(--t2);font-size:12px;}
-.rates-base-line strong{color:var(--t1);font-size:13px;}
-.rates-base-line .rates-inline-action{margin-left:auto;}
 .rates-mode-switch{margin-bottom:18px;}
 .rates-mode-switch .tab-btn{font-size:13px;}
 .rates-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 4px;}
@@ -366,8 +363,10 @@ select.input{
 .rates-more-body{padding:8px 4px 0;text-align:center;color:var(--t2);font-size:10.5px;line-height:1.6;}
 .rates-more-body .btn{margin-top:10px;}
 .settle-currency-row{min-height:40px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 8px;color:var(--t2);font-size:12px;font-weight:500;}
-.settle-currency-control{display:flex;align-items:center;gap:8px;min-width:108px;justify-content:flex-end;color:var(--t2);}
-.settle-currency-control select{appearance:none;-webkit-appearance:none;border:none;background:none;outline:none;color:var(--t1);font:inherit;font-size:13px;font-weight:600;text-align:right;text-align-last:right;padding:6px 0;cursor:pointer;}
+.settle-currency-picker{position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.settle-currency-picker:focus-within{color:var(--t1);}
+.settle-currency-value{display:flex;align-items:center;gap:8px;min-width:108px;justify-content:flex-end;color:var(--t1);font-size:13px;font-weight:600;}
+.settle-currency-native{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;}
 .settle-rate-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;border:none;border-top:1px solid var(--border);background:none;color:var(--t2);font-size:12px;font-weight:500;padding:11px 0 2px;cursor:pointer;}
 .settle-rate-toggle[aria-expanded="true"] .rates-chevron{transform:rotate(225deg);margin-top:4px;}
 .rates-save-bar{display:none;position:sticky;bottom:-16px;z-index:25;margin:8px -20px -16px;padding:10px 20px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid var(--border);box-shadow:0 -6px 20px rgba(31,42,68,.08);align-items:center;gap:8px;}
@@ -732,6 +731,10 @@ select.input{
     <details class="faq-item">
       <summary>需要註冊帳號嗎？要付費嗎？</summary>
       <div class="faq-a">都不用。打開網頁就能直接使用，完全免費。</div>
+    </details>
+    <details class="faq-item">
+      <summary>一個人也可以使用嗎？</summary>
+      <div class="faq-a">可以。到「成員」頁新增自己 1 位，就能開始記帳；有 2 位以上一般成員時，系統才會進行多人分攤與債務結算。</div>
     </details>
     <details class="faq-item">
       <summary>這個會記住我記的帳嗎？</summary>
@@ -2652,15 +2655,16 @@ const App = {
       </div>`;
     }).join('');
     const curSelect=`<div class="card" style="padding:14px 16px;margin-bottom:16px;">
-      <div class="settle-currency-row">
+      <label class="settle-currency-row settle-currency-picker">
         <span>結算幣別</span>
-        <label class="settle-currency-control">
-          <select aria-label="結算幣別" onchange="App._settleCur=this.value;App.renderTab();">
-            ${allCurs.map(cur=>`<option value="${cur}"${dispCur===cur?' selected':''}>${cur} ${(C[cur]||{}).sym||''}</option>`).join('')}
-          </select>
+        <span class="settle-currency-value" aria-hidden="true">
+          <span>${dispCur} ${(C[dispCur]||{}).sym||''}</span>
           <span class="rates-chevron" aria-hidden="true"></span>
-        </label>
-      </div>
+        </span>
+        <select class="settle-currency-native" aria-label="結算幣別" onchange="App._settleCur=this.value;App.renderTab();">
+          ${allCurs.map(cur=>`<option value="${cur}"${dispCur===cur?' selected':''}>${cur} ${(C[cur]||{}).sym||''}</option>`).join('')}
+        </select>
+      </label>
       ${usedExpCurs.length>0?`<button type="button" class="settle-rate-toggle" aria-expanded="${!!this._showSettleRateDetails}" onclick="App._showSettleRateDetails=!App._showSettleRateDetails;App.renderTab();"><span>匯率詳情</span><span class="rates-chevron" aria-hidden="true"></span></button>
         ${this._showSettleRateDetails?`<div style="padding-top:4px;">${rateRows}<div style="margin-top:9px;text-align:right;"><button type="button" onclick="App.go('rates')" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;">修改匯率 →</button></div></div>`:''}`:''}
     </div>`;
@@ -3647,8 +3651,9 @@ const App = {
   showAddExpense(eid=null){
     const t=loadTrip(this.tripId);
     if(!t) return;
-    if(t.members.length<2){
-      this.showToast('請先在「成員」頁新增至少 2 位成員');
+    const regularMemberCount=t.members.filter(m=>!m.isGroupFund).length;
+    if(regularMemberCount<1){
+      this.showToast('請先在「成員」頁新增 1 位成員');
       this.switchTab('members'); return;
     }
     this.editId=eid; this.splitMode='equal';
@@ -4322,12 +4327,6 @@ const App = {
     this._ratesDirty=false;
     this.go('trip');
   },
-  openSettlementFromRates(){
-    if(this._ratesDirty&&!confirm('匯率修改尚未儲存，直接離開將不會保存。\n確定要離開嗎？')) return;
-    this._ratesDirty=false;
-    this.tab='settlement';
-    this.go('trip');
-  },
   renderRates(){
     const t=loadTrip(this.tripId);
     if(!t){this.go('trip');return;}
@@ -4380,12 +4379,7 @@ const App = {
     const firstRateRows=rateItems.slice(0,3).map(rateRow).join('');
     const extraRateItems=rateItems.slice(3);
     const extraRateRows=extraRateItems.map(rateRow).join('');
-    const settleDisplayCur=this._settleCur||t.baseCurrency;
     document.getElementById('rates-content').innerHTML=`
-      <div class="rates-base-line">
-        <span>結算幣別</span><strong>${settleDisplayCur} ${C[settleDisplayCur]?.name||CUR_ZH[settleDisplayCur]||''}</strong>
-        <button type="button" class="rates-inline-action" onclick="App.openSettlementFromRates()">修改幣別</button>
-      </div>
       <div class="tab-switch rates-mode-switch" role="tablist" aria-label="匯率類型">
         <button id="rates-tab-general" class="tab-btn${ratesView==='general'?' on':''}" type="button" role="tab" aria-selected="${ratesView==='general'}" onclick="App.switchRatesView('general')">一般匯率</button>
         <button id="rates-tab-cash" class="tab-btn${ratesView==='cash'?' on':''}" type="button" role="tab" aria-selected="${ratesView==='cash'}" onclick="App.switchRatesView('cash')">第三貨幣換匯</button>
