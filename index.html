@@ -28,7 +28,7 @@ html{-webkit-text-size-adjust:100%;}
 body{
   font-family:-apple-system,BlinkMacSystemFont,'Noto Sans TC','PingFang TC',sans-serif;
   background:#F9FAFB;color:#111827;min-height:100vh;
-  max-width:390px;margin:0 auto;overflow-x:hidden;position:relative;
+  margin:0;overflow-x:hidden;position:relative;
 }
 button,input,select{font-family:inherit;touch-action:manipulation;}
 input[type=number]::-webkit-inner-spin-button,
@@ -42,12 +42,14 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
   --r-card:20px;--r-btn:14px;
   --shadow:0 2px 12px rgba(0,0,0,0.10),0 1px 3px rgba(0,0,0,0.08);
   --shadow-modal:0 -8px 32px rgba(0,0,0,0.08);
+  --app-side:0px;
 }
+@media(min-width:600px){:root{--app-side:calc((100vw - 390px)/2);}}
 
 /* ===== SCREENS ===== */
 .screen{min-height:100vh;background:#fff;display:none;flex-direction:column;}
 .screen.active{display:flex;height:100vh;height:100dvh;min-height:unset;overflow:hidden;}
-#s-trip.active,#s-rates.active,#s-home.active,#s-landing.active{position:fixed;top:0;left:max(0px,calc((100vw - 390px)/2));right:max(0px,calc((100vw - 390px)/2));bottom:0;height:auto;}
+#s-trip.active,#s-rates.active,#s-home.active,#s-landing.active{position:fixed;top:0;left:var(--app-side);right:var(--app-side);bottom:0;height:auto;}
 
 /* ===== TOP BAR ===== */
 .top-bar{
@@ -90,7 +92,7 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
 
 /* FAB */
 .fab{
-  position:fixed;bottom:32px;right:max(20px,calc((100vw - 390px)/2 + 20px));width:60px;height:60px;border-radius:999px;
+  position:fixed;bottom:32px;right:calc(var(--app-side) + 20px);width:60px;height:60px;border-radius:999px;
   background:var(--primary);color:#fff;font-size:28px;border:none;cursor:pointer;
   box-shadow:0 4px 20px rgba(91,108,255,.45);
   display:flex;align-items:center;justify-content:center;
@@ -186,7 +188,7 @@ select.input{
 
 /* ===== PWA INSTALL ===== */
 .install-banner{
-  display:none;position:fixed;left:max(12px,calc((100vw - 390px)/2 + 12px));right:max(12px,calc((100vw - 390px)/2 + 12px));bottom:calc(14px + env(safe-area-inset-bottom));
+  display:none;position:fixed;left:calc(var(--app-side) + 12px);right:calc(var(--app-side) + 12px);bottom:calc(14px + env(safe-area-inset-bottom));
   z-index:90;align-items:center;gap:10px;padding:12px 12px 12px 14px;background:#fff;border:1px solid #DDE1F4;border-radius:18px;box-shadow:0 8px 28px rgba(31,42,68,.18);
 }
 .install-banner.show{display:flex;}
@@ -202,8 +204,6 @@ select.input{
 .install-step-copy{flex:1;min-width:0;}
 .install-step-title{font-size:14px;font-weight:700;color:var(--t1);}
 .install-step-text{font-size:12px;line-height:1.6;color:var(--t2);margin-top:2px;}
-.install-step-icon{width:42px;height:42px;border-radius:12px;background:var(--soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:auto;}
-.install-step-icon svg{width:24px;height:24px;display:block;}
 .install-entry{display:flex;align-items:center;gap:12px;width:100%;padding:12px 14px;border:1px solid #DDE1F4;border-radius:16px;background:rgba(255,255,255,.92);cursor:pointer;text-align:left;box-shadow:0 2px 10px rgba(31,42,68,.07);-webkit-tap-highlight-color:transparent;}
 .install-entry:active{transform:scale(.99);}
 .install-entry img{width:42px;height:42px;border-radius:11px;border:1px solid #E5E7EB;flex-shrink:0;}
@@ -438,7 +438,7 @@ select.input{
   <div id="trip-filter-outer" style="display:none;flex-shrink:0;padding:8px 20px;background:var(--bg);border-bottom:1px solid var(--border);"></div>
   <div class="scroll pb-fab" id="trip-content"></div>
   <button class="fab" id="fab" onclick="App.showAddExpense()">+</button>
-  <div id="back-to-summary-bar" style="display:none;position:fixed;bottom:32px;left:max(20px,calc((100vw - 390px)/2 + 20px));z-index:998;"><button type="button" onclick="App.backToMemberSummary()" style="height:44px;border-radius:999px;background:#fff;color:var(--accent);border:1.5px solid var(--accent);cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.15);display:flex;align-items:center;gap:6px;padding:0 16px;max-width:250px;" title="返回花費總覽"><span style="font-size:17px;font-weight:700;flex-shrink:0;">←</span><span id="back-to-summary-label" style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span></button></div>
+  <div id="back-to-summary-bar" style="display:none;position:fixed;bottom:32px;left:calc(var(--app-side) + 20px);z-index:998;"><button type="button" onclick="App.backToMemberSummary()" style="height:44px;border-radius:999px;background:#fff;color:var(--accent);border:1.5px solid var(--accent);cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.15);display:flex;align-items:center;gap:6px;padding:0 16px;max-width:250px;" title="返回花費總覽"><span style="font-size:17px;font-weight:700;flex-shrink:0;">←</span><span id="back-to-summary-label" style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span></button></div>
   <div id="footer-slogan">
     <div style="flex:1;height:1px;background:#E6E8EC;"></div>
     <div style="width:8px;height:8px;background:#C4C7CE;transform:rotate(45deg);flex-shrink:0;margin:0 8px;"></div>
@@ -520,6 +520,60 @@ select.input{
     <button class="modal-x-btn" onclick="App.closeModal('m-install-help')">×</button>
     <div class="modal-title" id="install-help-title">把 RoamSplit 加到主畫面</div>
     <div id="install-help-content"></div>
+  </div>
+</div>
+
+<!-- CASH EXCHANGE RECORDS -->
+<div class="modal-overlay" id="m-fx-exchange">
+  <div class="modal-sheet" style="max-height:90vh;">
+    <div class="modal-handle"></div>
+    <button class="modal-x-btn" onclick="App.closeModal('m-fx-exchange')">×</button>
+    <div class="modal-title">中繼換算／實際換匯</div>
+    <div class="card" style="padding:12px 14px;margin-bottom:14px;background:#FFFBEB;border-color:#FDE68A;">
+      <div style="font-size:12px;line-height:1.65;color:#78350F;">直接記「用多少中繼幣，換到多少當地貨幣」。系統會自動算出現金的加權平均匯率。</div>
+    </div>
+    <input type="hidden" id="fx-edit-id">
+    <div class="mb3">
+      <label class="form-label">換匯日期</label>
+      <input id="fx-date" class="input" type="date">
+    </div>
+    <div class="flex gap-2 mb3" style="align-items:flex-end;">
+      <div class="flex-1">
+        <label class="form-label">用這個幣別換出</label>
+        <select id="fx-from-cur" class="input" onchange="App.onFxCurrencyChange(true)"></select>
+      </div>
+      <div class="flex-1">
+        <label class="form-label">換出金額</label>
+        <input id="fx-from-amt" class="input" type="text" inputmode="decimal" placeholder="例如 100" oninput="App.fmtAmtInput(this);App.updateFxPreview()">
+      </div>
+    </div>
+    <div class="flex gap-2 mb3" style="align-items:flex-end;">
+      <div class="flex-1">
+        <label class="form-label">換得這個幣別</label>
+        <select id="fx-to-cur" class="input" onchange="App.onFxCurrencyChange(false)"></select>
+      </div>
+      <div class="flex-1">
+        <label class="form-label">換得金額</label>
+        <input id="fx-to-amt" class="input" type="text" inputmode="decimal" placeholder="例如 38.4" oninput="App.fmtAmtInput(this);App.updateFxPreview()">
+      </div>
+    </div>
+    <div class="mb3">
+      <label class="form-label" id="fx-source-rate-label">當時中繼幣匯率</label>
+      <div class="flex gap-2 items-center">
+        <span class="xs muted" id="fx-source-rate-prefix">1 USD =</span>
+        <input id="fx-source-rate" class="input flex-1" type="number" min="0" step="any" oninput="App.updateFxPreview()">
+        <span class="xs muted">TWD</span>
+      </div>
+      <div class="form-hint">會自動帶入目前可用匯率；如果中繼幣也有實際換匯紀錄，會優先帶入它的加權成本。也可手動修改，儲存後就會固定。</div>
+    </div>
+    <div id="fx-preview" style="min-height:48px;padding:12px 14px;background:var(--soft);border-radius:12px;margin-bottom:14px;font-size:13px;line-height:1.6;color:var(--t2);">輸入金額後，這裡會顯示這次換匯成本。</div>
+    <div class="flex gap-2">
+      <button id="fx-cancel-edit" class="btn btn-ghost flex-1" type="button" onclick="App.resetFxForm()" style="display:none;">取消修改</button>
+      <button id="fx-save-btn" class="btn btn-accent flex-1" type="button" onclick="App.saveFxExchange()">加入換匯紀錄</button>
+    </div>
+    <div class="divider" style="margin:20px 0 12px;"></div>
+    <div class="sm semibold" style="margin-bottom:8px;">已記錄的換匯</div>
+    <div id="fx-exchange-history"></div>
   </div>
 </div>
 
@@ -666,7 +720,20 @@ select.input{
             <text x="66" y="243" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">完整明細表，可列印 PDF 或匯出 CSV</text>
           </svg>
         </div>
-        記帳時選了外幣，結算會自動按你設定的匯率換算成主要結算貨幣。
+        「一般匯率」可按「取得即時匯率」由系統自動帶入，也可自己修改後儲存。記帳時選了外幣，結算會自動換算成主要結算貨幣。
+      </div>
+    </details>
+    <details class="faq-item">
+      <summary>現金和信用卡會用哪一種匯率？</summary>
+      <div class="faq-a">
+        系統會依每筆支出的「支付方式」自動選擇，不用每次再設定。
+        <div style="margin-top:10px;padding:12px 14px;background:var(--surface);border-radius:12px;line-height:1.75;">
+          <div><strong style="color:var(--t1);">一般匯率：</strong>系統可自動抓取，也能手動修改。</div>
+          <div><strong style="color:var(--t1);">現金支出：</strong>有實際換匯紀錄時，自動使用加權平均匯率。</div>
+          <div><strong style="color:var(--t1);">信用卡支出：</strong>使用一般匯率。</div>
+          <div><strong style="color:var(--t1);">尚無換匯紀錄：</strong>現金支出也會先使用一般匯率。</div>
+        </div>
+        <div style="margin-top:10px;">如果是先用美金或歐元換當地貨幣，到「匯率設定」點「＋ 記錄換匯」，直接填寫「用多少換到多少」。換了多次也可全部記下，系統會依各次金額算出整體的加權平均成本。</div>
       </div>
     </details>
     <details class="faq-item">
@@ -871,7 +938,7 @@ select.input{
     <details class="faq-item">
       <summary>可以把帳目匯出保存嗎？</summary>
       <div class="faq-a">
-        可以。點右上角「⋯」選單，選「匯出支出/結算明細」，能存成／列印 PDF，或匯出 CSV 檔。
+        可以。點右上角「⋯」選單，選「匯出支出/結算明細」，能存成／列印 PDF，或匯出 CSV 檔。如果有記錄實際換匯，PDF 和 CSV 都會一併附上完整換匯紀錄與加權平均匯率。
         <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
           <svg viewBox="0 0 320 264" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="右上角「⋯」選單裡的「匯出支出/結算明細」">
             <text x="14" y="32" font-size="22" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">←</text>
@@ -1048,7 +1115,7 @@ select.input{
     </div>
     <div class="mb3">
       <label class="form-label">支付方式</label>
-      <select id="in-exp-pay-method" class="input">
+      <select id="in-exp-pay-method" class="input" onchange="App.previewTWD()">
         <option value="現金">💵 現金</option>
         <option value="信用卡">💳 信用卡</option>
       </select>
@@ -1323,7 +1390,7 @@ const DB = {
   set(k,v){localStorage.setItem(k,JSON.stringify(v));},
 };
 const loadAll = ()=>DB.get('st_trips')||{};
-const loadTrip = id=>{const t=(DB.get('st_trips')||{})[id]||null;if(t){t.members=t.members||[];t.expenses=t.expenses||{};}return t;};
+const loadTrip = id=>{const t=(DB.get('st_trips')||{})[id]||null;if(t){t.members=t.members||[];t.expenses=t.expenses||{};t.rates=t.rates||{...DEF};t.fxExchanges=t.fxExchanges||[];}return t;};
 function saveTrip(t){const a=loadAll();a[t.id]=t;DB.set('st_trips',a);syncTripIndexCookie();fbWrite(t.id,t);fbListen(t.id);}
 function delTripLocal(id){const a=loadAll();delete a[id];DB.set('st_trips',a);syncTripIndexCookie();if(_es[id]){_es[id].close();delete _es[id];}}// 只刪這台裝置的列表,雲端與其他成員不受影響
 function delTrip(id){delTripLocal(id);fbDelete(id);}// 為所有人刪除:連同雲端資料一起刪
@@ -1431,6 +1498,47 @@ function toBase(amt,from,rates,base){
   if(base==='TWD') return inTWD;
   return inTWD/(rates[base]||DEF[base]||1);
 }
+// 實際換匯紀錄的現金加權平均：累計台幣成本 ÷ 累計換得當地貨幣。
+// 每筆紀錄保存當時中繼幣的 TWD 匯率快照，之後更新一般匯率也不會改寫舊成本。
+function cashRateInfo(t,targetCurrency){
+  const records=(t?.fxExchanges||[]).filter(r=>
+    r&&r.toCurrency===targetCurrency&&Number(r.fromAmount)>0&&Number(r.toAmount)>0&&Number(r.sourceRateTwd)>0
+  );
+  if(!records.length) return null;
+  const totalTwd=records.reduce((s,r)=>s+Number(r.fromAmount)*Number(r.sourceRateTwd),0);
+  const totalReceived=records.reduce((s,r)=>s+Number(r.toAmount),0);
+  if(!(totalTwd>0&&totalReceived>0)) return null;
+  return {rate:totalTwd/totalReceived,count:records.length,totalTwd,totalReceived,records};
+}
+function generalRateTwd(t,currency){
+  if(currency==='TWD') return 1;
+  return t?.rates?.[currency]||DEF[currency]||1;
+}
+function cashRateTwd(t,currency){
+  if(currency==='TWD') return 1;
+  return cashRateInfo(t,currency)?.rate||generalRateTwd(t,currency);
+}
+function _toBaseAtRate(amt,fromRateTwd,t,base){
+  const inTWD=Number(amt||0)*fromRateTwd;
+  if(base==='TWD') return inTWD;
+  return inTWD/generalRateTwd(t,base);
+}
+function expenseRateInfo(e,t){
+  const cur=e?.currency||t?.baseCurrency||'TWD';
+  const isCash=(e?.payMethod||'現金')==='現金';
+  const weighted=isCash?cashRateInfo(t,cur):null;
+  return {rateTwd:weighted?.rate||generalRateTwd(t,cur),source:weighted?'現金加權平均':'一般匯率',weighted};
+}
+function expenseToBase(amt,e,t){
+  const base=t?.baseCurrency||'TWD';
+  const cur=e?.currency||base;
+  if(cur===base) return Number(amt||0);
+  return _toBaseAtRate(amt,expenseRateInfo(e,t).rateTwd,t,base);
+}
+function cashToBase(amt,from,t,base=t?.baseCurrency||'TWD'){
+  if(from===base) return Number(amt||0);
+  return _toBaseAtRate(amt,cashRateTwd(t,from),t,base);
+}
 // (舊的 calcBal 浮點結算已於 2026-07-10 移除:結清判斷/文字明細/卡片全部改用 calcTrip peerBal + _computeDebtStates 單一來源)
 function minimizeTx(bal){
   const cr=[],db=[];
@@ -1475,7 +1583,7 @@ function calcExp(e,t){
   const base=t.baseCurrency||'TWD';
   const cur=e.currency||base;
   const pending=e.note==='金額待補';
-  const baseTotal=pending?0:Math.round(toBase(e.amount,cur,t.rates,base));
+  const baseTotal=pending?0:Math.round(expenseToBase(e.amount,e,t));
   // 分攤對象一律限一般成員:公款帳只能當付款人,不參與分攤(與結算頁原始語意一致)
   const regIds=(t.members||[]).filter(m=>!m.isGroupFund).map(m=>m.id);
   const ps=(e.parts||regIds).filter(id=>regIds.includes(id));
@@ -1483,9 +1591,9 @@ function calcExp(e,t){
   if(!pending&&ps.length&&baseTotal!==0){
     const raw={};
     if((e.splitMode==='custom'||e.splitMode==='proportion')&&e.customAmounts){
-      let cSum=0;ps.forEach(p=>{cSum+=toBase(e.customAmounts[p]||0,cur,t.rates,base);});
+      let cSum=0;ps.forEach(p=>{cSum+=expenseToBase(e.customAmounts[p]||0,e,t);});
       const k=cSum>0?baseTotal/cSum:0;
-      ps.forEach(p=>{raw[p]=toBase(e.customAmounts[p]||0,cur,t.rates,base)*k;});
+      ps.forEach(p=>{raw[p]=expenseToBase(e.customAmounts[p]||0,e,t)*k;});
     }else{
       ps.forEach(p=>{raw[p]=baseTotal/ps.length;});
     }
@@ -1494,7 +1602,7 @@ function calcExp(e,t){
   let paid={};
   if(!pending&&baseTotal!==0){
     if(typeof e.paidBy==='object'&&e.paidBy){
-      const rawP={};Object.entries(e.paidBy).forEach(([id,v])=>{if(v>0)rawP[id]=toBase(v,cur,t.rates,base);});
+      const rawP={};Object.entries(e.paidBy).forEach(([id,v])=>{if(v>0)rawP[id]=expenseToBase(v,e,t);});
       paid=lrmRound(rawP,baseTotal);
     }else if(e.paidBy){paid={[e.paidBy]:baseTotal};}
   }
@@ -1512,7 +1620,7 @@ function calcExp(e,t){
       fundShares={};Object.keys(shares).forEach(id=>{fundShares[id]=shares[id]-(peerShares[id]||0);});
     }
   }
-  return {baseTotal,shares,paid,pending,ps,cur,fundPaid,peerShares,fundShares};
+  return {baseTotal,shares,paid,pending,ps,cur,fundPaid,peerShares,fundShares,rateInfo:expenseRateInfo(e,t)};
 }
 // 整趟旅程的彙總(全部由 calcExp 的整數結果累加,不再各處自行計算):
 // groupTotal/personalTotal、每人 groupShare/selfPay/groupPaid、peerBal(結算用,排除公款支付)
@@ -1549,6 +1657,7 @@ function calcTrip(t){
 }
 function fmt(v,cur){return fmtCur(Math.round(v),cur);}
 function fmtNum(n){return n%1===0?n.toLocaleString():Number(n.toFixed(2)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fmtFxNum(n){return Number(n).toLocaleString(undefined,{maximumFractionDigits:8});}
 function avStyle(t,mid){
   const m=t?.members?.find(m=>m.id===mid);
   const c=AVATAR_COLORS.find(c=>c.id===m?.color);
@@ -1690,19 +1799,6 @@ const App = {
     }
     this.openInstallHelp('auto');
   },
-  _installStepIcon(type){
-    const icons={
-      safari:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.8 9.2l-1.7 3.9-3.9 1.7 1.7-3.9 3.9-1.7z"/><path d="M12 3v1.5M12 19.5V21M3 12h1.5M19.5 12H21"/></svg>`,
-      share:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10v9a2 2 0 002 2h8a2 2 0 002-2v-9"/><path d="M12 15V3M8 7l4-4 4 4"/></svg>`,
-      homeAdd:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5L12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M12 12.5v5M9.5 15h5"/></svg>`,
-      more:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><circle cx="8" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1" fill="currentColor" stroke="none"/></svg>`,
-      external:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="15" height="15" rx="3"/><path d="M13 3h8v8M21 3l-10 10"/></svg>`,
-      chrome:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M4.2 7.5H12M16.5 19.8l-4-6.8M19.8 7.5l-7.3 4.2"/></svg>`,
-      desktop:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2.5"/><path d="M8 21h8M12 17v4M12 8v5M9.5 10.5h5"/></svg>`,
-      check:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.2l2.6 2.6L16.5 9"/></svg>`
-    };
-    return `<div class="install-step-icon" aria-hidden="true">${icons[type]||icons.check}</div>`;
-  },
   openInstallHelp(kind='auto'){
     const platform=kind==='auto'?this._installPlatform():kind;
     const content=document.getElementById('install-help-content');
@@ -1713,31 +1809,31 @@ const App = {
     if(platform==='line'){
       if(this._isIOSDevice()){
         html=`
-          <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Safari 顯示 RoamSplit 網頁</div><div class="install-step-text">從 LINE 點連結後，iPhone 會用預設瀏覽器開啟。</div></div>${this._installStepIcon('safari')}</div>
-          <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">點 Safari 的分享鈕</div><div class="install-step-text">圖示是一個向上箭頭跑出方框的按鈕。</div></div>${this._installStepIcon('share')}</div>
-          <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認名稱後點「新增」，RoamSplit icon 就會出現在主畫面。</div></div>${this._installStepIcon('homeAdd')}</div>`;
+          <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Safari 顯示 RoamSplit 網頁</div><div class="install-step-text">從 LINE 點連結後，iPhone 會用預設瀏覽器開啟。</div></div></div>
+          <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">點 Safari 的分享鈕</div><div class="install-step-text">圖示是一個向上箭頭跑出方框的按鈕。</div></div></div>
+          <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認名稱後點「新增」，RoamSplit icon 就會出現在主畫面。</div></div></div>`;
       }else{
         html=`
-          <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">點網頁右下角的「⋯」</div><div class="install-step-text">這是 Android 版 LINE 內建瀏覽器的選單。</div></div>${this._installStepIcon('more')}</div>
-          <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">選「使用預設瀏覽器開啟」</div><div class="install-step-text">網頁通常會改用 Chrome 開啟。</div></div>${this._installStepIcon('external')}</div>
-          <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">完成後 RoamSplit icon 就會出現在主畫面。</div></div>${this._installStepIcon('homeAdd')}</div>`;
+          <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">點網頁右下角的「⋯」</div><div class="install-step-text">這是 Android 版 LINE 內建瀏覽器的選單。</div></div></div>
+          <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">選「使用預設瀏覽器開啟」</div><div class="install-step-text">網頁通常會改用 Chrome 開啟。</div></div></div>
+          <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">完成後 RoamSplit icon 就會出現在主畫面。</div></div></div>`;
       }
     }else if(platform==='ios'){
       html=`
-        <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Safari 開啟 RoamSplit</div><div class="install-step-text">確認畫面上有 Safari 的網址列，而不是 LINE 的內建瀏覽器。</div></div>${this._installStepIcon('safari')}</div>
-        <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">點 Safari 的分享鈕</div><div class="install-step-text">圖示是一個向上箭頭跑出方框的按鈕。</div></div>${this._installStepIcon('share')}</div>
-        <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認名稱後點「新增」，RoamSplit icon 就會出現在主畫面。</div></div>${this._installStepIcon('homeAdd')}</div>`;
+        <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Safari 開啟 RoamSplit</div><div class="install-step-text">確認畫面上有 Safari 的網址列，而不是 LINE 的內建瀏覽器。</div></div></div>
+        <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">點 Safari 的分享鈕</div><div class="install-step-text">圖示是一個向上箭頭跑出方框的按鈕。</div></div></div>
+        <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認名稱後點「新增」，RoamSplit icon 就會出現在主畫面。</div></div></div>`;
     }else if(platform==='android'){
       html=`
-        <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Chrome 開啟 RoamSplit</div><div class="install-step-text">確認畫面上有 Chrome 的網址列。</div></div>${this._installStepIcon('chrome')}</div>
-        <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">打開 Chrome 選單</div><div class="install-step-text">點右上角的「⋮」選單。</div></div>${this._installStepIcon('more')}</div>
-        <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認後，RoamSplit icon 就會出現在手機主畫面。</div></div>${this._installStepIcon('homeAdd')}</div>`;
+        <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Chrome 開啟 RoamSplit</div><div class="install-step-text">確認畫面上有 Chrome 的網址列。</div></div></div>
+        <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">打開 Chrome 選單</div><div class="install-step-text">點右上角的「⋮」選單。</div></div></div>
+        <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">選「加入主畫面」</div><div class="install-step-text">確認後，RoamSplit icon 就會出現在手機主畫面。</div></div></div>`;
       if(this._deferredInstall) html+=`<button type="button" class="btn btn-primary btn-full mt4" onclick="App.closeModal('m-install-help');App.showInstallBanner('native');App.handleInstallAction();">現在加入主畫面</button>`;
     }else{
       html=`
-        <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Chrome 或 Edge 開啟 RoamSplit</div><div class="install-step-text">確認畫面上有瀏覽器的網址列。</div></div>${this._installStepIcon('chrome')}</div>
-        <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">點網址列旁的安裝圖示</div><div class="install-step-text">找不到時，可打開瀏覽器選單，選「安裝 RoamSplit」。</div></div>${this._installStepIcon('desktop')}</div>
-        <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">按「安裝」完成</div><div class="install-step-text">之後可從電腦桌面、Dock 或工作列直接開啟。</div></div>${this._installStepIcon('check')}</div>`;
+        <div class="install-step"><div class="install-step-num">1</div><div class="install-step-copy"><div class="install-step-title">用 Chrome、Edge 或 Mac Safari 開啟</div><div class="install-step-text">Mac Safari 需使用 macOS Sonoma 14 或以上版本。</div></div></div>
+        <div class="install-step"><div class="install-step-num">2</div><div class="install-step-copy"><div class="install-step-title">依瀏覽器選擇加入方式</div><div class="install-step-text">Chrome／Edge：點網址列旁的安裝圖示。<br>Mac Safari：點分享鈕 →「加入 Dock」。</div></div></div>
+        <div class="install-step"><div class="install-step-num">3</div><div class="install-step-copy"><div class="install-step-title">依畫面指示確認</div><div class="install-step-text">Chrome／Edge 按「安裝」；Safari 按「加入」。完成後可從桌面、Dock 或工作列直接開啟。</div></div></div>`;
       if(this._deferredInstall) html+=`<button type="button" class="btn btn-primary btn-full mt4" onclick="App.closeModal('m-install-help');App.showInstallBanner('native');App.handleInstallAction();">現在加到桌面</button>`;
     }
     content.innerHTML=html;
@@ -1951,9 +2047,9 @@ const App = {
       if(showRatio){
         const mp={};t.members.forEach(m=>{mp[m.id]=0;});
         allExps.forEach(e=>{
-          const tot=toBase(e.note==='金額待補'?0:e.amount,e.currency,t.rates,base);
-          if(typeof e.paidBy==='object'&&e.paidBy!==null) Object.entries(e.paidBy).forEach(([id,v])=>{if(mp[id]!==undefined)mp[id]+=toBase(v,e.currency,t.rates,base);});
-          else if(mp[e.paidBy]!==undefined) mp[e.paidBy]+=tot;
+          const c=calcExp(e,t);
+          if(typeof e.paidBy==='object'&&e.paidBy!==null) Object.entries(c.paid).forEach(([id,v])=>{if(mp[id]!==undefined)mp[id]+=v;});
+          else if(mp[e.paidBy]!==undefined) mp[e.paidBy]+=c.baseTotal;
         });
         const allT=Object.values(mp).reduce((s,v)=>s+v,0);
         const mCol=m=>{const c=AVATAR_COLORS.find(c=>c.id===m.color);return c?c.bg:'#6366F1';};
@@ -2048,7 +2144,7 @@ const App = {
       if(e.splitMode==='self') return false;
       const ps=e.parts||_rIds;
       return _rIds.length>0&&_rIds.every(id=>ps.includes(id))&&e.note!=='金額待補';
-    }).reduce((s,e)=>s+toBase(e.amount,e.currency,t.rates,t.baseCurrency),0);
+    }).reduce((s,e)=>s+calcExp(e,t).baseTotal,0);
     // Funnel icon (computed early for use in tabs row)
     const hasAnyExpsEarly=Object.values(t.expenses||{}).some(e=>isGroup?this._isGroupExp(e,t):!this._isGroupExp(e,t));
     const isFiltered2Early=fc||fp||!!fm||!!fpm||!!fsm;
@@ -2212,7 +2308,7 @@ const App = {
       const sym=curSym(e.currency);
       const symFmt=amt=>fmtCur(amt,e.currency);
       const dispAmt=fm&&typeof e.paidBy==='object'&&e.paidBy!==null?(e.paidBy[fm]||0):e.amount;
-      const twdA=toBase(dispAmt,e.currency,t.rates,t.baseCurrency);
+      const twdA=expenseToBase(dispAmt,e,t);
       const ps=e.parts||t.members.map(m=>m.id);
       const nonFundCount=t.members.filter(m=>!m.isGroupFund).length;
       let partsLabel;
@@ -2313,7 +2409,7 @@ const App = {
         const rawOwed=fundOwed[m.id]||0;
         if(rawOwed<0.5) return;
         const deposited=(t.fundDeposits||[]).filter(d=>d.fromMemberId===m.id)
-          .reduce((s,d)=>s+toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+          .reduce((s,d)=>s+cashToBase(d.amt,d.cur||t.baseCurrency||'TWD',t,t.baseCurrency),0);
         const prPaid=payRecs.filter(r=>r.from===m.id&&r.to===fundMember.id)
           .reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
         if(rawOwed-deposited-prPaid>0.5) fundTxs.push({from:m.id,to:fundMember.id,amt:rawOwed});
@@ -2326,7 +2422,7 @@ const App = {
       let fwdDeposited=0;
       let fwdPaid=fwdMatched.reduce((s,r)=>s+toBase(r.amt,r.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
       if(fundMember&&ot.to===fundMember.id){
-        (t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{fwdDeposited+=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);});
+        (t.fundDeposits||[]).filter(d=>d.fromMemberId===ot.from).forEach(d=>{fwdDeposited+=cashToBase(d.amt,d.cur||t.baseCurrency||'TWD',t,t.baseCurrency);});
         fwdPaid+=fwdDeposited;
       }
       const bwdMatched=(fundMember&&ot.to===fundMember.id)?[]:payRecs.filter(r=>r.from===ot.to&&r.to===ot.from);
@@ -2367,11 +2463,16 @@ const App = {
     // Currencies actually used in this trip (excluding base)
     const usedExpCurs=[...new Set(Object.values(t.expenses||{}).map(e=>e.currency))].filter(c=>c&&c!==t.baseCurrency);
     const rateRows=usedExpCurs.map(c=>{
-      // 匯率一律以 TWD 儲存;結算貨幣不是 TWD 時要換算成「1 外幣=X 結算貨幣」再顯示,避免掛錯符號
-      const rateInBase=toBase(1,c,t.rates,t.baseCurrency);
-      const rateDisp=rateInBase>=1?+rateInBase.toFixed(2):+rateInBase.toPrecision(4);
+      const generalInBase=expenseToBase(1,{currency:c,payMethod:'信用卡'},t);
+      const generalDisp=generalInBase>=1?+generalInBase.toFixed(2):+generalInBase.toPrecision(4);
       const baseSym=(C[t.baseCurrency]||C.TWD).sym;
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);"><span style="font-size:12px;color:var(--t2);">1 ${c} → ${t.baseCurrency}</span><span style="font-size:12px;font-weight:600;color:var(--t1);">${baseSym}${rateDisp}</span></div>`;
+      const cash=cashRateInfo(t,c);
+      const cashInBase=cash?expenseToBase(1,{currency:c,payMethod:'現金'},t):null;
+      const cashDisp=cashInBase==null?'':(cashInBase>=1?+cashInBase.toFixed(2):+cashInBase.toPrecision(4));
+      return `<div style="padding:5px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:12px;color:var(--t2);">1 ${c} → ${t.baseCurrency}（一般）</span><span style="font-size:12px;font-weight:600;color:var(--t1);">${baseSym}${generalDisp}</span></div>
+        ${cash?`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;"><span style="font-size:12px;color:var(--t2);">1 ${c} → ${t.baseCurrency}（現金加權）</span><span style="font-size:12px;font-weight:700;color:var(--accent);">${baseSym}${cashDisp}</span></div>`:''}
+      </div>`;
     }).join('');
     const curSelect=`<div class="card" style="padding:14px 16px;margin-bottom:16px;">
       <div style="display:flex;align-items:center;gap:8px;${usedExpCurs.length>0?'margin-bottom:12px;':''}">
@@ -2390,7 +2491,7 @@ const App = {
       const deps=t.fundDeposits||[];
       const baseCur=t.baseCurrency||'TWD';
       const bSym=(C[baseCur]||C.TWD).sym;
-      const totalInBase=deps.reduce((s,d)=>s+toBase(d.amt,d.cur||baseCur,t.rates,baseCur),0);
+      const totalInBase=deps.reduce((s,d)=>s+cashToBase(d.amt,d.cur||baseCur,t,baseCur),0);
       const fundExps=Object.values(t.expenses||{}).filter(e=>{
         if(typeof e.paidBy==='string') return e.paidBy===fundMember.id;
         return e.paidBy?.[fundMember.id]>0;
@@ -2398,7 +2499,7 @@ const App = {
       const totalOutBase=fundExps.reduce((s,e)=>{
         if(e.note==='金額待補') return s;
         const amt=typeof e.paidBy==='object'?(e.paidBy[fundMember.id]||0):e.amount;// 混合付款只計公款實付部分
-        return s+toBase(amt,e.currency,t.rates,baseCur);
+        return s+expenseToBase(amt,e,t);
       },0);
       const remainBase=totalInBase-totalOutBase;
       const regular=t.members.filter(m=>!m.isGroupFund);
@@ -2407,7 +2508,7 @@ const App = {
       const localCur=depCurs.length>0
         ?depCurs.sort((a,b)=>depCurs.filter(c=>c===b).length-depCurs.filter(c=>c===a).length)[0]
         :baseCur;
-      const localRate=localCur===baseCur?1:(t.rates[localCur]||DEF[localCur]||1);
+      const localRate=localCur===baseCur?1:cashRateTwd(t,localCur);
       const toLocal=twdAmt=>twdAmt/localRate;
       const localSym=C[localCur]?.sym||'';
       const fmtLocal=v=>{const r=parseFloat(Math.abs(toLocal(v)).toFixed(3));const n=r.toLocaleString(undefined,{maximumFractionDigits:3});return localSym?`${localSym}${n}`:`${n} ${localCur}`;};
@@ -2431,7 +2532,7 @@ const App = {
       const isEditFund=!!this._editingFundDeposits;
       const mergedRows=regular.map(m=>{
         const mDeps=deps.filter(d=>d.fromMemberId===m.id);
-        const mBaseTotal=mDeps.reduce((s,d)=>s+toBase(d.amt,d.cur||baseCur,t.rates,baseCur),0);
+        const mBaseTotal=mDeps.reduce((s,d)=>s+cashToBase(d.amt,d.cur||baseCur,t,baseCur),0);
         const subRows=isEditFund?mDeps.map(d=>`
           <div style="padding:4px 0 4px 8px;font-size:11px;color:var(--t2);">
             <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;">
@@ -2653,7 +2754,7 @@ const App = {
       const fundPaid={};
       t.members.forEach(m=>{fundPaid[m.id]=0;});
       (t.fundDeposits||[]).forEach(d=>{
-        const a=toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency);
+        const a=cashToBase(d.amt,d.cur||t.baseCurrency||'TWD',t,t.baseCurrency);
         if(fundPaid[d.fromMemberId]!==undefined) fundPaid[d.fromMemberId]+=a;
       });
       // transfer payments per member
@@ -2952,12 +3053,12 @@ const App = {
     let fundFmtLocal=null;
     let fundShowBase=false;
     if(fundMember){
-      const totalIn=(t.fundDeposits||[]).reduce((s,d)=>s+toBase(d.amt,d.cur||t.baseCurrency||'TWD',t.rates,t.baseCurrency),0);
+      const totalIn=(t.fundDeposits||[]).reduce((s,d)=>s+cashToBase(d.amt,d.cur||t.baseCurrency||'TWD',t,t.baseCurrency),0);
       const totalOut=Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===fundMember.id:!!(e.paidBy&&e.paidBy[fundMember.id]>0))
         .reduce((s,e)=>{
           if(e.note==='金額待補') return s;
           const amt=typeof e.paidBy==='object'?(e.paidBy[fundMember.id]||0):e.amount;// 混合付款只計公款實付部分
-          return s+toBase(amt,e.currency,t.rates,t.baseCurrency);
+          return s+expenseToBase(amt,e,t);
         },0);
       fundRemain=totalIn-totalOut;
       hasFundActivity=(t.fundDeposits||[]).length>0||totalOut>0;
@@ -3354,7 +3455,7 @@ const App = {
       id:uid(), name,
       baseCurrency:document.getElementById('in-trip-base').value,
       emoji:this._createAvatar||EMOJIS[Math.floor(Math.random()*EMOJIS.length)],
-      members:[], expenses:{}, rates:{...DEF}, customCurrencies:[], createdAt:Date.now(),
+      members:[], expenses:{}, rates:{...DEF}, customCurrencies:[], fxExchanges:[], createdAt:Date.now(),
     };
     saveTrip(trip); this.closeModal('m-create');
     this.tripId=trip.id; this.tab='members';
@@ -3610,7 +3711,8 @@ const App = {
       const bSym=(C[t.baseCurrency]||C.TWD).sym;
       const showTWD=cur!==t.baseCurrency;
       const rows=parts.map(pid=>{
-        const shTWD=toBase(sh,cur,t.rates,t.baseCurrency);
+        const draft={currency:cur,payMethod:document.getElementById('in-exp-pay-method')?.value||'現金'};
+        const shTWD=expenseToBase(sh,draft,t);
         return `<div class="flex justify-between items-center" style="padding:6px 0;border-bottom:1px solid var(--border);">
           <span style="font-size:14px;font-weight:600;">${mName(pid)}</span>
           <div style="text-align:right;">
@@ -3626,7 +3728,7 @@ const App = {
           <span style="font-size:12px;color:var(--t2);">合計</span>
           <div style="text-align:right;">
             <div style="font-size:13px;font-weight:700;">${sym}${fmtNum(amt)}</div>
-            ${showTWD?`<div style="font-size:11px;color:var(--t2);">≈ ${bSym}${Math.round(toBase(amt,cur,t.rates,t.baseCurrency)).toLocaleString()}</div>`:''}
+            ${showTWD?`<div style="font-size:11px;color:var(--t2);">≈ ${bSym}${Math.round(expenseToBase(amt,{currency:cur,payMethod:document.getElementById('in-exp-pay-method')?.value||'現金'},t)).toLocaleString()}</div>`:''}
           </div>
         </div>
       </div>`;
@@ -3797,7 +3899,7 @@ const App = {
         el.textContent=pct===0?'未分攤':`${sym}${fmtNum(share)}`;
         el.style.color=pct===0?'#EF4444':'var(--t1)';
         if(elTWD&&showTWD2&&t2){
-          const shTWD=toBase(share,cur,t2.rates,t2.baseCurrency);
+          const shTWD=expenseToBase(share,{currency:cur,payMethod:document.getElementById('in-exp-pay-method')?.value||'現金'},t2);
           elTWD.textContent=`≈ ${bSym2}${Math.round(shTWD).toLocaleString()}`;
         } else if(elTWD) elTWD.textContent='';
       } else {
@@ -3823,7 +3925,7 @@ const App = {
       total+=v;
       const elTWD=document.getElementById(`ctwd-${pid}`);
       if(elTWD&&showTWD&&t&&v>0){
-        const vTWD=toBase(v,cur,t.rates,t.baseCurrency);
+        const vTWD=expenseToBase(v,{currency:cur,payMethod:document.getElementById('in-exp-pay-method')?.value||'現金'},t);
         elTWD.textContent=`≈ ${bSym}${Math.round(vTWD).toLocaleString()}`;
       } else if(elTWD) elTWD.textContent='';
     });
@@ -3932,12 +4034,13 @@ const App = {
     const base=t?.baseCurrency||'TWD';
     if(!amt||isNaN(amt)||cur===base||cur==='OTHER'){hint.textContent='';}
     else{
-      // 換算提示以「結算貨幣」顯示(匯率以 TWD 儲存,經 toBase 換算),結算貨幣非 TWD 時才不會掛錯符號
-      const inBase=toBase(amt,cur,t?.rates||{},base);
-      const rateInBase=toBase(1,cur,t?.rates||{},base);
+      const draft={currency:cur,payMethod:document.getElementById('in-exp-pay-method')?.value||'現金'};
+      const info=expenseRateInfo(draft,t);
+      const inBase=expenseToBase(amt,draft,t);
+      const rateInBase=expenseToBase(1,draft,t);
       const rateDisp=rateInBase>=1?+rateInBase.toFixed(2):+rateInBase.toPrecision(4);
       const bSym=(C[base]||C.TWD).sym;
-      hint.textContent=`≈ ${bSym}${Math.round(inBase).toLocaleString()}（匯率 ${rateDisp}）`;
+      hint.textContent=`≈ ${bSym}${Math.round(inBase).toLocaleString()}（${info.source} ${rateDisp}）`;
     }
     this.updateSplitPreview();
   },
@@ -4043,6 +4146,18 @@ const App = {
     if(!t){this.go('trip');return;}
     this._ratesDirty=false;// 進頁面時重設未儲存狀態
     const _pencil='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
+    const fxTargets=[...new Set((t.fxExchanges||[]).map(r=>r.toCurrency).filter(Boolean))];
+    const fxSummary=fxTargets.map(code=>{
+      const info=cashRateInfo(t,code);
+      if(!info) return '';
+      const name=C[code]?.name||(t.customCurrencies||[]).find(c=>c.code===code)?.name||code;
+      const rate=info.rate>=1?+info.rate.toFixed(2):+info.rate.toPrecision(5);
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+        <div style="font-size:22px;">${curFlag(code)}</div>
+        <div style="flex:1;min-width:0;"><div class="sm semibold">${code} ${name}</div><div class="xs muted">${info.count} 筆換匯 · 共換得 ${fmtFxNum(info.totalReceived)} ${code}</div></div>
+        <div style="text-align:right;"><div class="xs muted">現金加權</div><div class="sm semibold accent">${rate} TWD</div></div>
+      </div>`;
+    }).join('');
     const rows=Object.keys(C).filter(c=>c!=='TWD').map(c=>{
       const isAdj=t.rates[c]!=null&&Math.abs(t.rates[c]-DEF[c])>1e-9;
       return `
@@ -4076,8 +4191,16 @@ const App = {
       </div>
       <div class="card" style="padding:14px 16px;margin-bottom:8px;background:var(--soft);border-color:var(--soft);">
         <div class="sm accent semibold">主要結算貨幣：${t.baseCurrency} - ${C[t.baseCurrency]?.name||'台幣'}</div>
-        <div class="xs muted mt1">匯率影響所有支出的換算結果</div>
+        <div class="xs muted mt1" style="line-height:1.6;">現金會優先用實際換匯的加權平均；信用卡用一般匯率。沒有換匯紀錄時，現金也會先用一般匯率。</div>
       </div>
+      <div class="card" style="padding:14px 16px;margin-bottom:16px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:${fxSummary?'4px':'10px'};">
+          <div><div class="sm semibold">實際換匯（現金）</div><div class="xs muted mt1">適合 TWD → USD／EUR → 當地貨幣</div></div>
+          <button type="button" onclick="App.openFxExchange()" style="border:none;background:var(--soft);color:var(--accent);font-size:12px;font-weight:700;border-radius:999px;padding:7px 10px;cursor:pointer;white-space:nowrap;">＋ 記錄換匯</button>
+        </div>
+        ${fxSummary||`<div class="xs muted" style="line-height:1.6;">目前還沒有換匯紀錄。加入後，現金支出會自動改用實際成本。</div>`}
+      </div>
+      <div class="sm semibold" style="margin:4px 2px 10px;">一般匯率（信用卡／無換匯紀錄時）</div>
       <div class="card" style="padding:14px 16px;margin-bottom:16px;background:#FFFBEB;border-color:#FDE68A;">
         <div class="xs semibold" style="color:#92400E;margin-bottom:4px;">⚠️ 預設匯率為參考值</div>
         <div class="xs" style="color:#78350F;line-height:1.6;">以 2026 年 7 月市場匯率為基準手動填入，<strong>非即時匯率</strong>。<br>可按下方「取得即時匯率」自動填入當日行情。</div>
@@ -4105,6 +4228,156 @@ const App = {
       </div>
       <button class="btn btn-ghost btn-full" onclick="App.addCustomCurrency()">＋ 新增貨幣</button>
       <div style="height:20px;"></div>`;
+  },
+
+  _fxCurrencyCodes(t){
+    return [...new Set([
+      'TWD',...Object.keys(C),...Object.keys(t?.rates||{}),
+      ...(t?.customCurrencies||[]).map(c=>c.code),
+      ...(t?.fxExchanges||[]).flatMap(r=>[r.fromCurrency,r.toCurrency])
+    ].filter(Boolean))];
+  },
+  _fxCurrencyName(t,code){
+    return C[code]?.name||(t?.customCurrencies||[]).find(c=>c.code===code)?.name||CUR_ZH[code]||code;
+  },
+  openFxExchange(id=null){
+    if(this._ratesDirty){this.showToast('請先儲存一般匯率，再記錄實際換匯');return;}
+    const t=loadTrip(this.tripId);
+    if(!t) return;
+    const rec=id?(t.fxExchanges||[]).find(r=>r.id===id):null;
+    this._editingFxId=rec?.id||null;
+    const codes=this._fxCurrencyCodes(t);
+    const usedLocal=[...new Set(Object.values(t.expenses||{}).map(e=>e.currency).filter(c=>c&&c!==t.baseCurrency))];
+    const last=(t.fxExchanges||[]).slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))[0];
+    let toCur=rec?.toCurrency||last?.toCurrency||usedLocal[0]||(t.customCurrencies||[])[0]?.code||'USD';
+    let fromCur=rec?.fromCurrency||(toCur!=='USD'&&codes.includes('USD')?'USD':toCur!=='EUR'&&codes.includes('EUR')?'EUR':'TWD');
+    if(fromCur===toCur) fromCur=toCur==='TWD'?'USD':'TWD';
+    const opt=code=>`<option value="${code}">${curFlag(code)} ${code} ${this._fxCurrencyName(t,code)}</option>`;
+    const fromEl=document.getElementById('fx-from-cur');
+    const toEl=document.getElementById('fx-to-cur');
+    if(!fromEl||!toEl) return;
+    fromEl.innerHTML=codes.map(opt).join('');
+    toEl.innerHTML=codes.map(opt).join('');
+    fromEl.value=fromCur;toEl.value=toCur;
+    const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
+    const today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    document.getElementById('fx-date').value=rec?.date?.replace(/\//g,'-')||today;
+    document.getElementById('fx-from-amt').value=rec?fmtFxNum(Number(rec.fromAmount)):'';
+    document.getElementById('fx-to-amt').value=rec?fmtFxNum(Number(rec.toAmount)):'';
+    document.getElementById('fx-source-rate').value=rec?.sourceRateTwd||cashRateTwd(t,fromCur);
+    document.getElementById('fx-edit-id').value=rec?.id||'';
+    const saveBtn=document.getElementById('fx-save-btn');
+    const cancelBtn=document.getElementById('fx-cancel-edit');
+    if(saveBtn) saveBtn.textContent=rec?'儲存修改':'加入換匯紀錄';
+    if(cancelBtn) cancelBtn.style.display=rec?'block':'none';
+    this._syncFxRateField(false);
+    this.renderFxExchangeHistory();
+    this.updateFxPreview();
+    this.openModal('m-fx-exchange');
+  },
+  _syncFxRateField(resetValue=true){
+    const t=loadTrip(this.tripId);
+    const code=document.getElementById('fx-from-cur')?.value||'USD';
+    const rateEl=document.getElementById('fx-source-rate');
+    const prefix=document.getElementById('fx-source-rate-prefix');
+    if(prefix) prefix.textContent=`1 ${code} =`;
+    if(rateEl){
+      if(resetValue) rateEl.value=cashRateTwd(t,code);
+      rateEl.readOnly=code==='TWD';
+      rateEl.style.background=code==='TWD'?'var(--surface)':'';
+      if(code==='TWD') rateEl.value=1;
+    }
+  },
+  onFxCurrencyChange(sourceChanged){
+    const fromEl=document.getElementById('fx-from-cur');
+    const toEl=document.getElementById('fx-to-cur');
+    if(!fromEl||!toEl) return;
+    let changedSource=!!sourceChanged;
+    if(fromEl.value===toEl.value){
+      const t=loadTrip(this.tripId);
+      const alt=this._fxCurrencyCodes(t).find(c=>c!==toEl.value);
+      if(sourceChanged&&alt) toEl.value=alt;
+      else if(alt){fromEl.value=alt;changedSource=true;}
+    }
+    this._syncFxRateField(changedSource);
+    this.updateFxPreview();
+  },
+  updateFxPreview(){
+    const t=loadTrip(this.tripId);
+    const box=document.getElementById('fx-preview');
+    if(!t||!box) return;
+    const fromCur=document.getElementById('fx-from-cur')?.value;
+    const toCur=document.getElementById('fx-to-cur')?.value;
+    const fromAmt=parseFloat((document.getElementById('fx-from-amt')?.value||'').replace(/,/g,''));
+    const toAmt=parseFloat((document.getElementById('fx-to-amt')?.value||'').replace(/,/g,''));
+    const sourceRate=parseFloat(document.getElementById('fx-source-rate')?.value);
+    if(fromCur===toCur){box.innerHTML='<span style="color:#EF4444;font-weight:600;">換出和換得幣別不能相同。</span>';return;}
+    if(!(fromAmt>0&&toAmt>0&&sourceRate>0)){
+      box.textContent='輸入金額後，這裡會顯示這次換匯成本。';return;
+    }
+    const batchTwd=fromAmt*sourceRate;
+    const batchRate=batchTwd/toAmt;
+    const editId=document.getElementById('fx-edit-id')?.value;
+    const old=(t.fxExchanges||[]).filter(r=>r.id!==editId&&r.toCurrency===toCur&&Number(r.fromAmount)>0&&Number(r.toAmount)>0&&Number(r.sourceRateTwd)>0);
+    const oldTwd=old.reduce((s,r)=>s+Number(r.fromAmount)*Number(r.sourceRateTwd),0);
+    const oldReceived=old.reduce((s,r)=>s+Number(r.toAmount),0);
+    const weighted=(oldTwd+batchTwd)/(oldReceived+toAmt);
+    const f=n=>n>=1?Number(n.toFixed(2)).toLocaleString():Number(n.toPrecision(5)).toLocaleString();
+    box.innerHTML=`<div style="color:var(--t1);font-weight:700;">這次：1 ${toCur} = ${f(batchRate)} TWD</div>
+      <div style="margin-top:3px;">儲存後的現金加權平均：<strong style="color:var(--accent);">1 ${toCur} = ${f(weighted)} TWD</strong>${old.length?` （共 ${old.length+1} 筆）`:''}</div>`;
+  },
+  resetFxForm(){
+    this.openFxExchange();
+  },
+  saveFxExchange(){
+    const t=loadTrip(this.tripId);
+    if(!t) return;
+    const id=document.getElementById('fx-edit-id')?.value||uid();
+    const fromCurrency=document.getElementById('fx-from-cur')?.value;
+    const toCurrency=document.getElementById('fx-to-cur')?.value;
+    const fromAmount=parseFloat((document.getElementById('fx-from-amt')?.value||'').replace(/,/g,''));
+    const toAmount=parseFloat((document.getElementById('fx-to-amt')?.value||'').replace(/,/g,''));
+    const sourceRateTwd=parseFloat(document.getElementById('fx-source-rate')?.value);
+    const date=(document.getElementById('fx-date')?.value||'').replace(/-/g,'/');
+    if(!date){this.showToast('請選擇換匯日期');return;}
+    if(!fromCurrency||!toCurrency||fromCurrency===toCurrency){this.showToast('請選擇不同的換出與換得幣別');return;}
+    if(!(fromAmount>0&&toAmount>0&&sourceRateTwd>0)){this.showToast('請填寫完整的換匯金額與匯率');return;}
+    t.fxExchanges=t.fxExchanges||[];
+    const idx=t.fxExchanges.findIndex(r=>r.id===id);
+    const old=idx>=0?t.fxExchanges[idx]:null;
+    const rec={id,date,fromCurrency,fromAmount,toCurrency,toAmount,sourceRateTwd,createdAt:old?.createdAt||Date.now()};
+    if(idx>=0)t.fxExchanges[idx]=rec;else t.fxExchanges.push(rec);
+    saveTrip(t);
+    this.renderRates();
+    this.showToast(old?'換匯紀錄已更新 ✓':'已加入換匯紀錄 ✓');
+    this.openFxExchange();
+  },
+  renderFxExchangeHistory(){
+    const t=loadTrip(this.tripId);
+    const box=document.getElementById('fx-exchange-history');
+    if(!t||!box) return;
+    const rows=[...(t.fxExchanges||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||0)-(a.createdAt||0));
+    if(!rows.length){box.innerHTML='<div class="xs muted" style="padding:8px 0 18px;">還沒有記錄。</div>';return;}
+    box.innerHTML=rows.map(r=>{
+      const batchRate=Number(r.fromAmount)*Number(r.sourceRateTwd)/Number(r.toAmount);
+      const rate=batchRate>=1?+batchRate.toFixed(2):+batchRate.toPrecision(5);
+      return `<div class="card" style="padding:12px 14px;margin-bottom:8px;">
+        <div style="display:flex;align-items:flex-start;gap:8px;">
+          <div style="flex:1;min-width:0;"><div class="sm semibold">${fmtFxNum(Number(r.fromAmount))} ${r.fromCurrency} → ${fmtFxNum(Number(r.toAmount))} ${r.toCurrency}</div>
+          <div class="xs muted" style="margin-top:4px;line-height:1.55;">${r.date||''} · 1 ${r.toCurrency} = ${rate} TWD<br>${r.fromCurrency} 匯率快照：${r.sourceRateTwd} TWD</div></div>
+          <button type="button" onclick="App.openFxExchange('${r.id}')" class="btn btn-text btn-sm" style="padding:2px 5px;">修改</button>
+          <button type="button" onclick="App.deleteFxExchange('${r.id}')" class="btn btn-text btn-sm" style="padding:2px 5px;color:#EF4444;">刪除</button>
+        </div>
+      </div>`;
+    }).join('');
+  },
+  deleteFxExchange(id){
+    if(!confirm('確定刪除這筆換匯紀錄？\n現金加權匯率與結算金額會一起重新計算。')) return;
+    const t=loadTrip(this.tripId);
+    if(!t) return;
+    t.fxExchanges=(t.fxExchanges||[]).filter(r=>r.id!==id);
+    saveTrip(t);this.renderRates();this.renderFxExchangeHistory();this.showToast('已刪除換匯紀錄');
+    if(this._editingFxId===id)this.openFxExchange();
   },
 
   searchCurrency(q){
@@ -4243,9 +4516,12 @@ const App = {
   },
 
   deleteCustomCurrency(code){
-    if(!confirm(`確定要刪除幣別「${code}」？`)) return;
     const t=loadTrip(this.tripId);
     if(!t) return;
+    if((t.fxExchanges||[]).some(r=>r.fromCurrency===code||r.toCurrency===code)){
+      this.showToast(`${code} 已有換匯紀錄，請先刪除相關紀錄`);return;
+    }
+    if(!confirm(`確定要刪除幣別「${code}」？`)) return;
     t.customCurrencies=(t.customCurrencies||[]).filter(c=>c.code!==code);
     delete t.rates[code];
     saveTrip(t); this.showToast(`已刪除 ${code}`); this.renderRates();
@@ -4379,7 +4655,7 @@ const App = {
     const fundDeposits=t.fundDeposits||[];
     const _fDepCurs=fundDeposits.map(d=>d.cur||baseCur).filter(c=>c!==baseCur);
     const fundLocalCur=_fDepCurs.length>0?_fDepCurs.sort((a,b)=>_fDepCurs.filter(c=>c===b).length-_fDepCurs.filter(c=>c===a).length)[0]:baseCur;
-    const fundLocalRate=fundLocalCur===baseCur?1:(t.rates[fundLocalCur]||DEF[fundLocalCur]||1);
+    const fundLocalRate=fundLocalCur===baseCur?1:cashRateTwd(t,fundLocalCur);
     const fmtFundLocal=v=>{const n=parseFloat((Math.abs(v)/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});const s=(C[fundLocalCur]||{}).sym||'';return s?`${s}${n}`:`${n} ${fundLocalCur}`;};
     const fmtFundNum=v=>parseFloat((Math.abs(v)/fundLocalRate).toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
     const baseSym=(C[baseCur]||C.TWD).sym;
@@ -4404,10 +4680,14 @@ const App = {
     const tblank1=`<td style="${ttl1}"></td>`;
     const tblank2=`<td style="${ttl2}"></td>`;
     // Rate rows
-    const rateRows=otherCurs.map(c=>{
-      const rate=t.rates[c]||DEF[c]||1;
+    const rateCurs=[...new Set([...otherCurs,...(t.fxExchanges||[]).map(r=>r.toCurrency).filter(c=>c&&c!==baseCur)])];
+    const rateRows=rateCurs.map(c=>{
+      const rate=generalRateTwd(t,c);
       const after=totalCols-2;
-      return `<tr><td style="${tdS}font-size:10px;color:#6B7280;">${c} rate</td><td style="padding:6px 9px;font-size:11px;font-weight:700;background:#FDE68A;border:1px solid #D1D5DB;text-align:right;">${rate}</td>${Array(after).fill(blank).join('')}</tr>`;
+      const general=`<tr><td style="${tdS}font-size:10px;color:#6B7280;">${c} 一般匯率</td><td style="padding:6px 9px;font-size:11px;font-weight:700;background:#FDE68A;border:1px solid #D1D5DB;text-align:right;">${rate}</td>${Array(after).fill(blank).join('')}</tr>`;
+      const cash=cashRateInfo(t,c);
+      const cashRow=cash?`<tr><td style="${tdS}font-size:10px;color:#6B7280;">${c} 現金加權平均</td><td style="padding:6px 9px;font-size:11px;font-weight:700;background:#DCFCE7;border:1px solid #D1D5DB;text-align:right;">${cash.rate>=1?+cash.rate.toFixed(2):+cash.rate.toPrecision(5)}</td>${Array(after).fill(blank).join('')}</tr>`:'';
+      return general+cashRow;
     }).join('');
     // Header: two rows
     const mainHeader=`<tr>
@@ -4429,12 +4709,12 @@ const App = {
     members.forEach(m=>{memberGroupShare[m.id]=0;memberSelfPay[m.id]=0;memberGroupPaid[m.id]=0;memberFundDeposit[m.id]=0;memberFundDepositLocal[m.id]=0;});
     fundDeposits.forEach(d=>{
       if(d.fromMemberId&&memberFundDeposit[d.fromMemberId]!==undefined){
-        const baseAmt=toBase(d.amt,d.cur||baseCur,t.rates,baseCur);
+        const baseAmt=cashToBase(d.amt,d.cur||baseCur,t,baseCur);
         memberFundDeposit[d.fromMemberId]+=baseAmt;
         memberFundDepositLocal[d.fromMemberId]+=(d.cur||baseCur)===fundLocalCur?(d.amt||0):baseAmt/fundLocalRate;
       }
     });
-    const totalFundDepositRaw=fundDeposits.reduce((s,d)=>s+toBase(d.amt,d.cur||baseCur,t.rates,baseCur),0);
+    const totalFundDepositRaw=fundDeposits.reduce((s,d)=>s+cashToBase(d.amt,d.cur||baseCur,t,baseCur),0);
     const totalFundDeposit=Math.round(totalFundDepositRaw);
     const totalFundDepositLocal=Object.values(memberFundDepositLocal).reduce((s,v)=>s+v,0);
     const fmtLocal=v=>parseFloat(v.toFixed(3)).toLocaleString(undefined,{maximumFractionDigits:3});
@@ -4510,7 +4790,7 @@ const App = {
     const fundSpentBase=_fundId?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===_fundId:!!(e.paidBy?.[_fundId]>0)).reduce((s,e)=>{
       if(e.note==='金額待補') return s;
       const amt=typeof e.paidBy==='object'?(e.paidBy[_fundId]||0):e.amount;// 混合付款只計公款實付部分
-      return s+toBase(amt,e.currency,t.rates,baseCur);
+      return s+expenseToBase(amt,e,t);
     },0):0;
     const fundSurplusRaw=totalFundDepositRaw-fundSpentBase;// 供外幣參考顯示
     // 引擎整數版公款帳:每人公款支出份額(引擎 fundShares,含混合付款公款部分,與 peerBal 排除口徑一致)、每人存入、每人退款
@@ -4755,6 +5035,19 @@ const App = {
       </div>
       ${payerSections}
     </div>`;
+    const fxRecords=[...(t.fxExchanges||[])].sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.createdAt||0)-(b.createdAt||0));
+    const fxHistoryHTML=fxRecords.length?`<div style="margin-top:24px;page-break-before:auto;">
+      <div style="font-size:15px;font-weight:800;margin-bottom:4px;">完整換匯紀錄</div>
+      <div style="font-size:10px;color:#6B7280;line-height:1.55;margin-bottom:8px;">每筆「當時匯率」是儲存時的快照；之後更新一般匯率不會改動舊紀錄。</div>
+      <table style="border-collapse:collapse;min-width:760px;page-break-inside:auto;">
+        <thead><tr><th style="${thS}">日期</th><th style="${thS}">換出</th><th style="${thS}">換得</th><th style="${thS}">中繼幣當時匯率</th><th style="${thS}">台幣成本</th><th style="${thS}">這次換匯成本</th></tr></thead>
+        <tbody>${fxRecords.map(r=>{
+          const twd=Number(r.fromAmount)*Number(r.sourceRateTwd);
+          const batch=twd/Number(r.toAmount);
+          return `<tr style="page-break-inside:avoid;"><td style="${tdS}">${r.date||''}</td><td style="${numS}">${fmtFxNum(Number(r.fromAmount))} ${r.fromCurrency}</td><td style="${numS}">${fmtFxNum(Number(r.toAmount))} ${r.toCurrency}</td><td style="${numS}">1 ${r.fromCurrency} = ${r.sourceRateTwd} TWD</td><td style="${numS}">${fmtFxNum(twd)} TWD</td><td style="${numS}">1 ${r.toCurrency} = ${batch>=1?+batch.toFixed(2):+batch.toPrecision(5)} TWD</td></tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>`:'';
     return `
       <div style="margin-bottom:8px;">
         <div style="font-size:13px;font-weight:700;white-space:nowrap;margin-bottom:3px;">支出明細</div>
@@ -4764,6 +5057,7 @@ const App = {
       <div class="tbl-scroll" style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px;">
         <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
       </div>
+      ${fxHistoryHTML}
       ${analysisHTML}`;
   },
 
@@ -4837,12 +5131,27 @@ const App = {
 
     let csv='﻿'; // BOM
 
-    // Rate rows
-    otherCurs.forEach(c=>{
-      const rate=t.rates[c]||DEF[c]||1;
-      const row=[`${c} rate`,rate,...empties(totalCols-2)];
+    // 一般匯率 + 現金加權平均（與 PDF 同步）
+    const rateCursCsv=[...new Set([...otherCurs,...(t.fxExchanges||[]).map(r=>r.toCurrency).filter(c=>c&&c!==baseCur)])];
+    rateCursCsv.forEach(c=>{
+      const row=[`${c} 一般匯率`,generalRateTwd(t,c),...empties(totalCols-2)];
       csv+=row.map(esc).join(',')+'\n';
+      const cash=cashRateInfo(t,c);
+      if(cash) csv+=[`${c} 現金加權平均`,cash.rate,...empties(totalCols-2)].map(esc).join(',')+'\n';
     });
+
+    // 完整換匯紀錄：每筆保留當時中繼幣匯率快照與計算後成本
+    const fxRecordsCsv=[...(t.fxExchanges||[])].sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.createdAt||0)-(b.createdAt||0));
+    if(fxRecordsCsv.length){
+      csv+='\n'+['完整換匯紀錄'].map(esc).join(',')+'\n';
+      csv+=['日期','換出幣別','換出金額','換得幣別','換得金額','中繼幣當時匯率(TWD)','台幣成本','這次換匯成本(TWD)'].map(esc).join(',')+'\n';
+      fxRecordsCsv.forEach(r=>{
+        const twd=Number(r.fromAmount)*Number(r.sourceRateTwd);
+        const batch=twd/Number(r.toAmount);
+        csv+=[r.date||'',r.fromCurrency,Number(r.fromAmount),r.toCurrency,Number(r.toAmount),Number(r.sourceRateTwd),twd,batch].map(esc).join(',')+'\n';
+      });
+      csv+='\n';
+    }
 
     // 備註(與 PDF 明細表上方的兩行同步)
     csv+=['＊ 原始計算結果，不含轉帳還款紀錄'].map(esc).join(',')+'\n';
@@ -4860,7 +5169,7 @@ const App = {
     // 追蹤每人群組份額的「實際顯示整數值」，確保 TTL = 欄位加總
     const memberGroupShareDisplayCsv={};regularMembersCsv.forEach(m=>{memberGroupShareDisplayCsv[m.id]=0;});
     const fundMemberCsv=members.find(m=>m.isGroupFund);
-    const fundLocalRateCsv=t.rates?.[fundLocalCurCsv]||1;
+    const fundLocalRateCsv=cashRateTwd(t,fundLocalCurCsv);
 
     const buildRows=(list,shareAcc)=>{
       list.forEach(e=>{
@@ -4927,7 +5236,7 @@ const App = {
     let totalFundDepositLocalCsv=0;
     fundDepositsCsv.forEach(d=>{
       if(d.fromMemberId&&memberFundDepositCsv[d.fromMemberId]!==undefined){
-        const baseAmt=toBase(d.amt,d.cur||baseCur,t.rates,baseCur);
+        const baseAmt=cashToBase(d.amt,d.cur||baseCur,t,baseCur);
         memberFundDepositCsv[d.fromMemberId]+=baseAmt;
         const isLocal=(d.cur||baseCur)===fundLocalCurCsv;
         const localAmt=isLocal?(d.amt||0):baseAmt/fundLocalRateCsv;
@@ -4939,7 +5248,7 @@ const App = {
     const fundSpentBaseCsv=fundMemberCsv?Object.values(t.expenses||{}).filter(e=>typeof e.paidBy==='string'?e.paidBy===fundMemberCsv.id:!!(e.paidBy?.[fundMemberCsv.id]>0)).reduce((s,e)=>{
       if(e.note==='金額待補') return s;
       const amt=typeof e.paidBy==='object'?(e.paidBy[fundMemberCsv.id]||0):e.amount;// 混合付款只計公款實付部分
-      return s+toBase(amt,e.currency,t.rates,baseCur);
+      return s+expenseToBase(amt,e,t);
     },0):0;
     // 引擎整數版公款帳(與 PDF 一致):每人公款支出份額(引擎 fundShares,含混合付款公款部分)、每人存入、每人退款
     const _fundShareIntCsv={};regularMembersCsv.forEach(m=>{_fundShareIntCsv[m.id]=0;});
@@ -5088,11 +5397,10 @@ const App = {
     // 成員已支出%
     const memberPaidGroupCsv={};regularMembersCsv.forEach(m=>{memberPaidGroupCsv[m.id]=0;});
     groupExps.filter(e=>e.note!=='金額待補').forEach(e=>{
-      const amt=toBase(e.amount,e.currency||baseCur,t.rates,baseCur);
-      if(typeof e.paidBy==='string'){if(memberPaidGroupCsv[e.paidBy]!==undefined)memberPaidGroupCsv[e.paidBy]+=amt;}
-      else if(typeof e.paidBy==='object'&&e.paidBy)Object.entries(e.paidBy).forEach(([id,v])=>{if(memberPaidGroupCsv[id]!==undefined)memberPaidGroupCsv[id]+=toBase(v,e.currency||baseCur,t.rates,baseCur);});
+      const c=ENG.perExp[e._k]||calcExp(e,t);
+      Object.entries(c.paid).forEach(([id,v])=>{if(memberPaidGroupCsv[id]!==undefined)memberPaidGroupCsv[id]+=v;});
     });
-    if(hasFund&&fundMemberCsv) memberPaidGroupCsv[fundMemberCsv.id]=Math.round(groupExps.filter(e=>e.note!=='金額待補'&&(typeof e.paidBy==='string'?e.paidBy===fundMemberCsv.id:!!(e.paidBy?.[fundMemberCsv.id]>0))).reduce((s,e)=>s+toBase(e.amount,e.currency||baseCur,t.rates,baseCur),0));
+    if(hasFund&&fundMemberCsv) memberPaidGroupCsv[fundMemberCsv.id]=groupExps.reduce((s,e)=>s+((ENG.perExp[e._k]||calcExp(e,t)).paid[fundMemberCsv.id]||0),0);
     const allPaidMembers=[...(hasFund&&fundMemberCsv?[fundMemberCsv]:[]),...regularMembersCsv];
     const totalMemberPaidCsv=allPaidMembers.reduce((s,m)=>s+(memberPaidGroupCsv[m.id]||0),0);
     csv+='\n'+['成員已支出%','成員','金額','佔比'].map(esc).join(',')+'\n';
@@ -5214,12 +5522,21 @@ function runSelfTest(){
     ok('100 元 3 人均分,加總=100',Object.values(s1).reduce((a,b)=>a+b,0)===100);
     const s2=calcExp({amount:1000,currency:'TWD',paidBy:'B',parts:['A','B','C'],splitMode:'proportion',customAmounts:{A:333.3,B:333.3,C:333.4},createdAt:2},t0).shares;
     ok('比例分帳,加總=1000',Object.values(s2).reduce((a,b)=>a+b,0)===1000);
-    const t1={...t0,rates:{OMR:85.5}};
-    const s3=calcExp({amount:12.5,currency:'OMR',paidBy:'A',parts:['A','B','C'],splitMode:'equal',createdAt:3},t1);
-    ok('多幣別分攤,加總=整數總額',Object.values(s3.shares).reduce((a,b)=>a+b,0)===s3.baseTotal);
+    const t1={...t0,rates:{USD:32.5,OMR:85.5},fxExchanges:[
+      {id:'x0',date:'2025/12/31',fromCurrency:'TWD',fromAmount:3200,toCurrency:'USD',toAmount:100,sourceRateTwd:1,createdAt:0},
+      {id:'x1',date:'2026/01/01',fromCurrency:'USD',fromAmount:100,toCurrency:'OMR',toAmount:38.4,sourceRateTwd:32,createdAt:1},
+      {id:'x2',date:'2026/01/02',fromCurrency:'USD',fromAmount:50,toCurrency:'OMR',toAmount:19.2,sourceRateTwd:31,createdAt:2}
+    ]};
+    const _fxRate=(100*32+50*31)/(38.4+19.2);
+    const s3=calcExp({amount:12.5,currency:'OMR',payMethod:'現金',paidBy:'A',parts:['A','B','C'],splitMode:'equal',createdAt:3},t1);
+    const s3Card=calcExp({amount:12.5,currency:'OMR',payMethod:'信用卡',paidBy:'A',parts:['A','B','C'],splitMode:'equal',createdAt:3},t1);
+    const s3Fallback=calcExp({amount:12.5,currency:'OMR',payMethod:'現金',paidBy:'A',parts:['A','B','C'],splitMode:'equal',createdAt:3},{...t1,fxExchanges:[]});
+    const _snapshotStillSame=cashRateInfo({...t1,rates:{...t1.rates,USD:99}},'OMR').rate===cashRateInfo(t1,'OMR').rate;
+    ok('中繼換算:現金加權/信用卡一般/無紀錄回退/快照不變',s3.baseTotal===Math.round(12.5*_fxRate)&&s3Card.baseTotal===Math.round(12.5*85.5)&&s3Fallback.baseTotal===s3Card.baseTotal&&cashRateTwd(t1,'USD')===32&&Object.values(s3.shares).reduce((a,b)=>a+b,0)===s3.baseTotal&&_snapshotStillSame);
     const w=ts=>{const s=calcExp({amount:100,currency:'TWD',paidBy:'A',parts:['A','B','C'],splitMode:'equal',createdAt:ts},t0).shares;return Object.entries(s).find(([,v])=>v===34)[0];};
     ok('尾差輪流分配(逐筆換人)',new Set([w(10),w(11),w(12)]).size>1);
-    const fx={id:'__st',name:'驗收',baseCurrency:'TWD',rates:{},payRecords:[],
+    const fx={id:'__st',name:'驗收',baseCurrency:'TWD',rates:{OMR:85.5},payRecords:[],
+      fxExchanges:[{id:'fx1',date:'2026/01/01',fromCurrency:'USD',fromAmount:100,toCurrency:'OMR',toAmount:38.4,sourceRateTwd:32,createdAt:1}],
       fundDeposits:[{fromMemberId:'A',amt:200,cur:'TWD'},{fromMemberId:'B',amt:200,cur:'TWD'}],
       members:[{id:'A',name:'甲'},{id:'B',name:'乙'},{id:'C',name:'丙'},{id:'F',name:'公款',isGroupFund:true}],
       expenses:{
@@ -5248,7 +5565,8 @@ function runSelfTest(){
       checked++;
       if((num(tds[9])||0)+(num(tds[10])||0)+(num(tds[11])||0)!==tot)bad++;
     });
-    ok(`PDF 逐列驗算(${checked} 列)`,checked>5&&bad===0,bad?`${bad} 列不一致`:'');
+    const _pdfHasFx=doc.body.textContent.includes('完整換匯紀錄')&&doc.body.textContent.includes('100 USD')&&doc.body.textContent.includes('38.4 OMR');
+    ok(`PDF 逐列驗算(${checked} 列)+換匯紀錄`,checked>5&&bad===0&&_pdfHasFx,bad?`${bad} 列不一致`:(!_pdfHasFx?'缺少換匯紀錄':''));
     const _orig=localStorage.getItem('st_trips');
     let csvText=null;const _B=window.Blob;const _click=HTMLAnchorElement.prototype.click;
     try{
@@ -5270,7 +5588,8 @@ function runSelfTest(){
       cChecked++;
       if((n(c[9])||0)+(n(c[10])||0)+(n(c[11])||0)!==tot)cBad++;
     });
-    ok(`CSV 逐列驗算(${cChecked} 列)`,cChecked>5&&cBad===0,cBad?`${cBad} 列不一致`:'');
+    const _csvHasFx=(csvText||'').includes('完整換匯紀錄')&&(csvText||'').includes('"2026/01/01","USD",100,"OMR",38.4,32,3200');
+    ok(`CSV 逐列驗算(${cChecked} 列)+換匯紀錄`,cChecked>5&&cBad===0&&_csvHasFx,cBad?`${cBad} 列不一致`:(!_csvHasFx?'缺少換匯紀錄':''));
   }catch(err){ok('執行過程發生錯誤',false,String(err));}
   const allPass=R.every(r=>r.pass);
   const el=document.createElement('div');
