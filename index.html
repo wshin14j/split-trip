@@ -688,9 +688,11 @@ select.input{
     <details class="faq-item">
       <summary>現金和信用卡用哪一種匯率？</summary>
       <div class="faq-a">
-        <div><strong style="color:var(--t1);">信用卡支出：</strong>由系統自動帶入參考匯率，但可以手動調整。</div>
-        <div style="margin-top:6px;"><strong style="color:var(--t1);">現金支出：</strong>該幣別有記錄「第三貨幣換匯」時，使用「第三貨幣換匯（平均）」。</div>
-        <div style="margin-top:6px;"><strong style="color:var(--t1);">尚未記錄第三貨幣換匯：</strong>現金支出先使用一般匯率。</div>
+        系統會依記帳時選擇的「支付方式」自動套用匯率。
+        <div style="margin-top:10px;"><strong style="color:var(--t1);">信用卡支出：</strong>由系統自動帶入「一般匯率」。</div>
+        <div style="margin-top:10px;"><strong style="color:var(--t1);">現金支出：</strong></div>
+        <div style="margin-top:4px;">・該幣別已有「第三貨幣換匯」紀錄：使用「第三貨幣換匯（平均）」。</div>
+        <div style="margin-top:4px;">・還沒有換匯紀錄：先使用「一般匯率」。</div>
       </div>
     </details>
     <details class="faq-item">
@@ -866,7 +868,7 @@ select.input{
 
     <div class="faq-group">匯率/結算</div>
     <details class="faq-item">
-      <summary>匯率怎麼調整？</summary>
+      <summary>一般匯率怎麼設定？</summary>
       <div class="faq-a">
         點右上角「⋯」選單，選「匯率設定」，就能新增幣別或修改匯率。
         <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
@@ -904,16 +906,52 @@ select.input{
       </div>
     </details>
     <details class="faq-item">
-      <summary>現金和信用卡會用哪一種匯率？</summary>
+      <summary>現金和信用卡用哪一種匯率？</summary>
       <div class="faq-a">
-        系統會依每筆支出的「支付方式」自動選擇，不用每次再設定。
+        系統會依記帳時選擇的「支付方式」自動套用匯率，不用每次設定。
         <div style="margin-top:10px;padding:12px 14px;background:var(--surface);border-radius:12px;line-height:1.75;">
-          <div><strong style="color:var(--t1);">一般匯率：</strong>由系統自動帶入參考值，也能手動修改。</div>
-          <div><strong style="color:var(--t1);">信用卡支出：</strong>由系統自動帶入參考匯率，但可以手動調整。</div>
-          <div><strong style="color:var(--t1);">現金支出：</strong>該幣別有記錄「第三貨幣換匯」時，使用「第三貨幣換匯（平均）」。</div>
-          <div><strong style="color:var(--t1);">尚未記錄第三貨幣換匯：</strong>現金支出先使用一般匯率。</div>
+          <div><strong style="color:var(--t1);">信用卡支出：</strong>由系統自動帶入「一般匯率」。</div>
+          <div style="margin-top:8px;"><strong style="color:var(--t1);">現金支出：</strong></div>
+          <div>・該幣別已有「第三貨幣換匯」紀錄：使用「第三貨幣換匯（平均）」。</div>
+          <div>・還沒有換匯紀錄：先使用「一般匯率」。</div>
         </div>
-        <div style="margin-top:10px;">如果是台幣 (TWD) ➔ 美金／歐元 ➔ 當地貨幣，到「匯率設定」的「第三貨幣換匯」點「＋ 記錄換匯」，填入實際換出與換得金額。美金／歐元當時兌台幣的匯率可以手動修正；「台幣 ➔ 當地貨幣」的換匯成本則由系統自動計算。換了多次也可全部記下，系統會依各次金額算出「第三貨幣換匯（平均）」。</div>
+        <div style="margin-top:14px;font-weight:700;color:var(--t1);">兩段式現金換匯怎麼記？</div>
+        <div style="margin-top:6px;">如果先用台幣換美金／歐元，再換成當地貨幣，請到「匯率設定」→「第三貨幣換匯」→「＋ 記錄換匯」，填入實際換出與換得金額。每次換匯都可以分別記錄，系統會自動算出平均換匯成本。</div>
+        <div style="margin:14px auto 2px;max-width:320px;">
+          <svg viewBox="0 0 320 205" width="100%" role="img" aria-label="第三貨幣換匯操作流程：台幣換美金或歐元，再換成當地貨幣，並到匯率設定記錄換匯">
+            <rect x="1" y="1" width="318" height="203" rx="18" fill="#F8F9FC" stroke="#E1E4EC"/>
+            <text x="160" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="#172033" font-family="-apple-system,'Noto Sans TC',sans-serif">兩段式現金換匯</text>
+
+            <rect x="16" y="45" width="78" height="54" rx="12" fill="#FFFFFF" stroke="#D5D9E3"/>
+            <text x="55" y="67" text-anchor="middle" font-size="13" font-weight="700" fill="#172033" font-family="-apple-system,'Noto Sans TC',sans-serif">TWD</text>
+            <text x="55" y="86" text-anchor="middle" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">台幣</text>
+            <path d="M101 72h15m-5-5 5 5-5 5" fill="none" stroke="#5B6CFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <rect x="123" y="45" width="78" height="54" rx="12" fill="#FFFFFF" stroke="#D5D9E3"/>
+            <text x="162" y="67" text-anchor="middle" font-size="13" font-weight="700" fill="#172033" font-family="-apple-system,'Noto Sans TC',sans-serif">USD / EUR</text>
+            <text x="162" y="86" text-anchor="middle" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">美金／歐元</text>
+            <path d="M208 72h15m-5-5 5 5-5 5" fill="none" stroke="#5B6CFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <rect x="230" y="45" width="74" height="54" rx="12" fill="#FFFFFF" stroke="#D5D9E3"/>
+            <text x="267" y="67" text-anchor="middle" font-size="13" font-weight="700" fill="#172033" font-family="-apple-system,'Noto Sans TC',sans-serif">OMR</text>
+            <text x="267" y="86" text-anchor="middle" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">當地貨幣</text>
+
+            <path d="M160 108v12" fill="none" stroke="#9CA3AF" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M156 116l4 4 4-4" fill="none" stroke="#9CA3AF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="18" y="130" width="284" height="48" rx="12" fill="#EEF0FF"/>
+            <text x="160" y="150" text-anchor="middle" font-size="12" font-weight="700" fill="#172033" font-family="-apple-system,'Noto Sans TC',sans-serif">匯率設定 → 第三貨幣換匯</text>
+            <text x="160" y="168" text-anchor="middle" font-size="11.5" fill="#5B6CFF" font-family="-apple-system,'Noto Sans TC',sans-serif">點「＋ 記錄換匯」填入實際金額</text>
+            <text x="160" y="194" text-anchor="middle" font-size="10.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">換了多次也能逐筆記錄，系統會自動平均</text>
+          </svg>
+        </div>
+      </div>
+    </details>
+    <details class="faq-item">
+      <summary>什麼是「第三貨幣換匯」？</summary>
+      <div class="faq-a">
+        適合兩段式現金換匯。
+        <div style="margin-top:8px;">例如：先用<strong style="color:var(--t1);">台幣換美金／歐元</strong>，抵達當地後，再<strong style="color:var(--t1);">用美金／歐元兌換為當地貨幣</strong>。</div>
+        <div style="margin-top:8px;">到「匯率設定」→「第三貨幣換匯」點「＋ 記錄換匯」，填入實際換出與換得金額。系統會自動算出「台幣 → 當地貨幣」的換匯成本。</div>
       </div>
     </details>
     <details class="faq-item">
@@ -4409,12 +4447,10 @@ const App = {
       const info=cashRateInfo(t,code);
       const name=C[code]?.name||(t.customCurrencies||[]).find(c=>c.code===code)?.name||code;
       const rate=info.rate>=1?+info.rate.toFixed(2):+info.rate.toPrecision(5);
-      return `<button type="button" onclick="App.openFxExchangeHistory('${code}')" style="width:100%;padding:12px 0;border:none;border-bottom:${index===fxTargets.length-1?'none':'1px solid var(--border)'};background:transparent;display:flex;align-items:center;gap:9px;text-align:left;font:inherit;cursor:pointer;color:var(--t1);">
+      return `<button type="button" onclick="App.openFxExchangeHistory('${code}')" style="width:100%;padding:12px 0;border:none;border-bottom:${index===fxTargets.length-1?'none':'1px solid var(--border)'};background:transparent;display:flex;align-items:center;gap:10px;text-align:left;font:inherit;cursor:pointer;color:var(--t1);">
         <div style="font-size:22px;">${curFlag(code)}</div>
-        <div style="flex:1;min-width:0;"><div class="sm semibold">1 ${code}</div><div class="xs muted">${name}</div><div class="xs muted" style="line-height:1.45;margin-top:3px;">換了 ${info.count} 次 · 共換得<br>${fmtFxNum(info.totalReceived)} ${code}</div></div>
-        <span class="xs muted" aria-hidden="true">=</span>
-        <div style="text-align:right;flex-shrink:0;max-width:43%;"><div class="sm semibold" style="color:var(--t1);overflow-wrap:anywhere;">${rate} TWD</div><div class="xs muted">換匯平均</div></div>
-        <span style="color:var(--t2);font-size:20px;font-weight:400;line-height:1;" aria-hidden="true">›</span>
+        <div style="flex:1;min-width:0;"><div class="sm semibold" style="color:var(--t1);">${code} ${name}</div><div class="xs muted" style="line-height:1.45;">換了 ${info.count} 次，共換得<br>${fmtFxNum(info.totalReceived)} ${code}</div></div>
+        <div style="text-align:right;flex-shrink:0;max-width:52%;"><div class="xs muted">平均換匯成本</div><div class="sm semibold" style="color:var(--t1);overflow-wrap:anywhere;">1 ${code} = ${rate} TWD</div></div>
       </button>`;
     }).join('');
     const usedAt={};
