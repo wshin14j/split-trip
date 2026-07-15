@@ -453,7 +453,13 @@ select.input{
   <div class="top-bar">
     <button class="icon-btn" onclick="App.leaveRates()" style="font-size:22px;">←</button>
     <span class="top-bar-title">匯率設定</span>
-    <div style="width:36px;"></div>
+    <button class="icon-btn" onclick="App.openRatesHelp()" title="匯率設定常見問題" aria-label="匯率設定常見問題">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+    </button>
   </div>
   <div class="scroll" id="rates-content"></div>
 </div>
@@ -530,7 +536,7 @@ select.input{
     <button class="modal-x-btn" onclick="App.closeModal('m-fx-exchange')">×</button>
     <div class="modal-title">中繼換算／實際換匯</div>
     <div class="card" style="padding:12px 14px;margin-bottom:14px;background:#FFFBEB;border-color:#FDE68A;">
-      <div style="font-size:12px;line-height:1.65;color:#78350F;">直接記「用多少中繼幣，換到多少當地貨幣」。系統會自動算出現金的加權平均匯率。</div>
+      <div style="font-size:12px;line-height:1.65;color:#78350F;">直接記「用多少中繼幣，換到多少當地貨幣」。系統會依每次換匯金額，自動算出現金的平均換匯成本。</div>
     </div>
     <input type="hidden" id="fx-edit-id">
     <div class="mb3">
@@ -566,7 +572,7 @@ select.input{
       </div>
       <div class="form-hint">會自動帶入目前可用匯率；如果中繼幣也有實際換匯紀錄，會優先帶入它的加權成本。也可手動修改，儲存後就會固定。</div>
     </div>
-    <div id="fx-preview" style="min-height:48px;padding:12px 14px;background:var(--soft);border-radius:12px;margin-bottom:14px;font-size:13px;line-height:1.6;color:var(--t2);">輸入金額後，這裡會顯示這次換匯成本。</div>
+    <div id="fx-preview" style="display:none;padding:12px 14px;background:var(--soft);border-radius:12px;margin-bottom:14px;font-size:13px;line-height:1.6;color:var(--t2);"></div>
     <div class="flex gap-2">
       <button id="fx-cancel-edit" class="btn btn-ghost flex-1" type="button" onclick="App.resetFxForm()" style="display:none;">取消修改</button>
       <button id="fx-save-btn" class="btn btn-accent flex-1" type="button" onclick="App.saveFxExchange()">加入換匯紀錄</button>
@@ -574,6 +580,48 @@ select.input{
     <div class="divider" style="margin:20px 0 12px;"></div>
     <div class="sm semibold" style="margin-bottom:8px;">已記錄的換匯</div>
     <div id="fx-exchange-history"></div>
+  </div>
+</div>
+
+<!-- EXCHANGE RATE HELP -->
+<div class="modal-overlay" id="m-rates-help">
+  <div class="modal-sheet" style="max-height:88vh;">
+    <div class="modal-handle"></div>
+    <button class="modal-x-btn" onclick="App.closeModal('m-rates-help')">×</button>
+    <div class="modal-title">匯率設定常見問題</div>
+
+    <div class="card" style="padding:12px 14px;margin-bottom:10px;background:var(--soft);border-color:var(--soft);">
+      <div class="xs" style="line-height:1.7;color:var(--t2);">匯率都是「1 單位外幣等於多少 TWD」。記帳時只要選幣別和支付方式，系統會自動套用正確的匯率。</div>
+    </div>
+
+    <details class="faq-item">
+      <summary>一般匯率怎麼設定？</summary>
+      <div class="faq-a">可按「取得即時匯率」由系統自動帶入，也可點數字手動修改後儲存。一般匯率預設只顯示 4 個，旅程支出曾使用的幣別會排在前面；其餘可按「顯示更多」展開。</div>
+    </details>
+    <details class="faq-item">
+      <summary>現金和信用卡用哪一種匯率？</summary>
+      <div class="faq-a">
+        <div><strong style="color:var(--t1);">現金支出：</strong>有實際換匯紀錄時，使用平均換匯成本。</div>
+        <div style="margin-top:6px;"><strong style="color:var(--t1);">信用卡支出：</strong>使用一般匯率。</div>
+        <div style="margin-top:6px;"><strong style="color:var(--t1);">沒有換匯紀錄：</strong>現金支出也先使用一般匯率。</div>
+      </div>
+    </details>
+    <details class="faq-item">
+      <summary>什麼是中繼換算？</summary>
+      <div class="faq-a">如果先用 TWD 換 USD 或 EUR，再換成當地貨幣，點「＋ 記錄換匯」，填入「用多少換到多少」即可。中繼幣的匯率會自動帶入，也能手動修改。</div>
+    </details>
+    <details class="faq-item">
+      <summary>途中換了好幾次，怎麼算？</summary>
+      <div class="faq-a">每次換匯都記下來，系統會依每次的金額計算整體的平均換匯成本，現金支出會自動使用這個結果。</div>
+    </details>
+    <details class="faq-item">
+      <summary>怎麼修改或刪除換匯紀錄？</summary>
+      <div class="faq-a">在「實際換匯（現金）」直接點 OMR、IDR 等幣別那一列，就會開啟該幣別的換匯明細，可逐筆修改或刪除。右上角「＋ 記錄換匯」只用來新增紀錄。</div>
+    </details>
+    <details class="faq-item">
+      <summary>PDF 和 CSV 會顯示什麼？</summary>
+      <div class="faq-a">匯出檔會列出一般匯率、平均換匯成本，以及每一筆完整換匯紀錄，包含日期、換出／換得幣別與金額、當時匯率和這次換匯成本。</div>
+    </details>
   </div>
 </div>
 
@@ -720,7 +768,7 @@ select.input{
             <text x="66" y="243" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">完整明細表，可列印 PDF 或匯出 CSV</text>
           </svg>
         </div>
-        「一般匯率」可按「取得即時匯率」由系統自動帶入，也可自己修改後儲存。記帳時選了外幣，結算會自動換算成主要結算貨幣。
+        「一般匯率」可按「取得即時匯率」由系統自動帶入，也可自己修改後儲存。預設先顯示 4 個幣別，旅程支出曾使用的幣別會排在前面，其餘可按「顯示更多」展開。記帳時選了外幣，結算會自動換算成主要結算貨幣。
       </div>
     </details>
     <details class="faq-item">
@@ -729,11 +777,19 @@ select.input{
         系統會依每筆支出的「支付方式」自動選擇，不用每次再設定。
         <div style="margin-top:10px;padding:12px 14px;background:var(--surface);border-radius:12px;line-height:1.75;">
           <div><strong style="color:var(--t1);">一般匯率：</strong>系統可自動抓取，也能手動修改。</div>
-          <div><strong style="color:var(--t1);">現金支出：</strong>有實際換匯紀錄時，自動使用加權平均匯率。</div>
+          <div><strong style="color:var(--t1);">現金支出：</strong>有實際換匯紀錄時，自動使用平均換匯成本。</div>
           <div><strong style="color:var(--t1);">信用卡支出：</strong>使用一般匯率。</div>
           <div><strong style="color:var(--t1);">尚無換匯紀錄：</strong>現金支出也會先使用一般匯率。</div>
         </div>
-        <div style="margin-top:10px;">如果是先用美金或歐元換當地貨幣，到「匯率設定」點「＋ 記錄換匯」，直接填寫「用多少換到多少」。換了多次也可全部記下，系統會依各次金額算出整體的加權平均成本。</div>
+        <div style="margin-top:10px;">如果是先用美金或歐元換當地貨幣，到「匯率設定」點「＋ 記錄換匯」，直接填寫「用多少換到多少」。換了多次也可全部記下，系統會依各次金額算出整體的平均換匯成本。</div>
+      </div>
+    </details>
+    <details class="faq-item">
+      <summary>中繼換算和多次換匯怎麼記？</summary>
+      <div class="faq-a">
+        到「匯率設定」點「＋ 記錄換匯」，直接填「用多少幣別，換到多少當地貨幣」。如果是 TWD → USD／EUR → 當地貨幣，中繼幣匯率會自動帶入，也能手動修改。
+        <div style="margin-top:10px;">途中換了多次就逐筆加入，系統會依每次金額計算平均換匯成本。要查看或修改時，直接點「實際換匯（現金）」裡的 OMR、IDR 等幣別列，即可逐筆修改或刪除。</div>
+        <div style="margin-top:10px;color:var(--t2);">匯率設定頁右上角的「？」有完整說明。</div>
       </div>
     </details>
     <details class="faq-item">
@@ -938,7 +994,7 @@ select.input{
     <details class="faq-item">
       <summary>可以把帳目匯出保存嗎？</summary>
       <div class="faq-a">
-        可以。點右上角「⋯」選單，選「匯出支出/結算明細」，能存成／列印 PDF，或匯出 CSV 檔。如果有記錄實際換匯，PDF 和 CSV 都會一併附上完整換匯紀錄與加權平均匯率。
+        可以。點右上角「⋯」選單，選「匯出支出/結算明細」，能存成／列印 PDF，或匯出 CSV 檔。如果有記錄實際換匯，PDF 和 CSV 都會列出一般匯率、平均換匯成本，以及每筆換匯的日期、換出／換得幣別與金額、當時匯率和這次換匯成本。
         <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
           <svg viewBox="0 0 320 264" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="右上角「⋯」選單裡的「匯出支出/結算明細」">
             <text x="14" y="32" font-size="22" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">←</text>
@@ -1527,7 +1583,7 @@ function expenseRateInfo(e,t){
   const cur=e?.currency||t?.baseCurrency||'TWD';
   const isCash=(e?.payMethod||'現金')==='現金';
   const weighted=isCash?cashRateInfo(t,cur):null;
-  return {rateTwd:weighted?.rate||generalRateTwd(t,cur),source:weighted?'現金加權平均':'一般匯率',weighted};
+  return {rateTwd:weighted?.rate||generalRateTwd(t,cur),source:weighted?'平均換匯成本':'一般匯率',weighted};
 }
 function expenseToBase(amt,e,t){
   const base=t?.baseCurrency||'TWD';
@@ -1867,6 +1923,15 @@ const App = {
       };
       sheet.addEventListener('scroll',sheet._faqCollapse,{passive:true});
     }
+  },
+  openRatesHelp(){
+    const m=document.getElementById('m-rates-help');
+    if(!m) return;
+    m.querySelectorAll('details[open]').forEach(d=>d.removeAttribute('open'));
+    const sheet=m.querySelector('.modal-sheet');
+    if(sheet) sheet.scrollTop=0;
+    this.openModal('m-rates-help');
+    requestAnimationFrame(()=>{if(sheet) sheet.scrollTop=0;});
   },
   closeModal(id){document.getElementById(id)?.classList.remove('open');},
 
@@ -2471,7 +2536,7 @@ const App = {
       const cashDisp=cashInBase==null?'':(cashInBase>=1?+cashInBase.toFixed(2):+cashInBase.toPrecision(4));
       return `<div style="padding:5px 0;border-bottom:1px solid var(--border);">
         <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:12px;color:var(--t2);">1 ${c} → ${t.baseCurrency}（一般）</span><span style="font-size:12px;font-weight:600;color:var(--t1);">${baseSym}${generalDisp}</span></div>
-        ${cash?`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;"><span style="font-size:12px;color:var(--t2);">1 ${c} → ${t.baseCurrency}（現金加權）</span><span style="font-size:12px;font-weight:700;color:var(--accent);">${baseSym}${cashDisp}</span></div>`:''}
+        ${cash?`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;"><span style="font-size:12px;color:var(--t2);">1 ${c} → ${t.baseCurrency}（平均換匯成本）</span><span style="font-size:12px;font-weight:700;color:var(--accent);">${baseSym}${cashDisp}</span></div>`:''}
       </div>`;
     }).join('');
     const curSelect=`<div class="card" style="padding:14px 16px;margin-bottom:16px;">
@@ -4146,44 +4211,49 @@ const App = {
     if(!t){this.go('trip');return;}
     this._ratesDirty=false;// 進頁面時重設未儲存狀態
     const _pencil='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
-    const fxTargets=[...new Set((t.fxExchanges||[]).map(r=>r.toCurrency).filter(Boolean))];
-    const fxSummary=fxTargets.map(code=>{
+    const fxTargets=[...new Set((t.fxExchanges||[]).map(r=>r.toCurrency).filter(Boolean))].filter(code=>cashRateInfo(t,code));
+    const fxSummary=fxTargets.map((code,index)=>{
       const info=cashRateInfo(t,code);
-      if(!info) return '';
       const name=C[code]?.name||(t.customCurrencies||[]).find(c=>c.code===code)?.name||code;
       const rate=info.rate>=1?+info.rate.toFixed(2):+info.rate.toPrecision(5);
-      return `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      return `<button type="button" onclick="App.openFxExchangeHistory('${code}')" style="width:100%;padding:10px 0;border:none;border-bottom:${index===fxTargets.length-1?'none':'1px solid var(--border)'};background:transparent;display:flex;align-items:center;gap:10px;text-align:left;font:inherit;cursor:pointer;">
         <div style="font-size:22px;">${curFlag(code)}</div>
-        <div style="flex:1;min-width:0;"><div class="sm semibold">${code} ${name}</div><div class="xs muted">${info.count} 筆換匯 · 共換得 ${fmtFxNum(info.totalReceived)} ${code}</div></div>
-        <div style="text-align:right;"><div class="xs muted">現金加權</div><div class="sm semibold accent">${rate} TWD</div></div>
-      </div>`;
+        <div style="flex:1;min-width:0;"><div class="sm semibold">${code} ${name}</div><div class="xs muted">${info.count} 筆換匯 · 共換得 ${fmtFxNum(info.totalReceived)} ${code} · 點此管理</div></div>
+        <div style="text-align:right;flex-shrink:0;"><div class="xs muted">平均換匯成本</div><div class="sm semibold accent">1 ${code} = ${rate} TWD</div></div>
+      </button>`;
     }).join('');
-    const rows=Object.keys(C).filter(c=>c!=='TWD').map(c=>{
-      const isAdj=t.rates[c]!=null&&Math.abs(t.rates[c]-DEF[c])>1e-9;
+    const usedAt={};
+    Object.values(t.expenses||{}).forEach((e,index)=>{
+      const code=e?.currency;
+      if(code&&code!=='TWD') usedAt[code]=Math.max(usedAt[code]||0,Number(e.createdAt)||index+1);
+    });
+    const builtInRateItems=Object.keys(C).filter(code=>code!=='TWD').map((code,index)=>({code,name:C[code].name,flag:C[code].flag,isCustom:false,order:index}));
+    const customRateItems=(t.customCurrencies||[]).filter(cc=>cc.code&&cc.code!=='TWD'&&!C[cc.code]).map((cc,index)=>({code:cc.code,name:cc.name,flag:curFlag(cc.code),isCustom:true,order:builtInRateItems.length+index}));
+    const rateItems=[...builtInRateItems,...customRateItems].sort((a,b)=>{
+      const aUsed=usedAt[a.code]||0,bUsed=usedAt[b.code]||0;
+      if(!!aUsed!==!!bUsed) return aUsed?-1:1;
+      if(aUsed!==bUsed) return bUsed-aUsed;
+      return a.order-b.order;
+    });
+    const rateRow=item=>{
+      const {code,name,flag,isCustom}=item;
+      const isAdj=!isCustom&&t.rates[code]!=null&&Math.abs(t.rates[code]-DEF[code])>1e-9;
       return `
       <div class="card rate-row">
-        <div style="font-size:22px;">${C[c].flag}</div>
-        <div class="flex-1"><div class="sm semibold">1 ${c}</div><div class="xs muted">${C[c].name}</div></div>
+        <div style="font-size:22px;">${flag}</div>
+        <div class="flex-1"><div class="sm semibold">1 ${code}</div><div class="xs muted">${name}${isCustom?' <span style="color:var(--t3);">· 自訂</span>':''}</div></div>
         <span class="xs muted">=</span>
-        <div class="rate-input-wrap${isAdj?' adjusted':''}" id="ratewrap-${c}">
-          <input type="number" id="r-${c}" value="${t.rates[c]||DEF[c]}" min="0" step="any" oninput="App.onRateInput('${c}')">
+        <div class="rate-input-wrap${isAdj?' adjusted':''}" id="ratewrap-${code}">
+          <input type="number" id="r-${code}" value="${t.rates[code]||(isCustom?1:DEF[code])}" min="0" step="any" oninput="App.onRateInput('${code}'${isCustom?',true':''})">
           ${_pencil}
         </div>
         <span class="xs muted">TWD</span>
-        <button id="ratestate-${c}" onclick="App.resetOneRate('${c}')" title="${isAdj?'點一下改回預設 '+DEF[c]:'目前為預設值'}" style="font-size:11px;border:none;background:none;cursor:pointer;padding:2px;white-space:nowrap;flex-shrink:0;min-width:34px;text-align:right;color:${isAdj?'var(--accent)':'var(--t3)'};">${isAdj?'已調整 ↺':'預設'}</button>
-      </div>`;}).join('');
-    const custom=(t.customCurrencies||[]).map(cc=>`
-      <div class="card rate-row">
-        <div style="font-size:22px;">${curFlag(cc.code)}</div>
-        <div class="flex-1"><div class="sm semibold">1 ${cc.code}</div><div class="xs muted">${cc.name} <span style="color:var(--t3);">· 自訂</span></div></div>
-        <span class="xs muted">=</span>
-        <div class="rate-input-wrap" id="ratewrap-${cc.code}">
-          <input type="number" id="r-${cc.code}" value="${t.rates[cc.code]||1}" min="0" step="any" oninput="App.onRateInput('${cc.code}',true)">
-          ${_pencil}
-        </div>
-        <span class="xs muted">TWD</span>
-        <button onclick="App.deleteCustomCurrency('${cc.code}')" class="btn btn-text btn-sm" style="padding:0;min-width:32px;color:#EF4444;">刪除</button>
-      </div>`).join('');
+        ${isCustom?`<button onclick="App.deleteCustomCurrency('${code}')" class="btn btn-text btn-sm" style="padding:0;min-width:32px;color:#EF4444;">刪除</button>`:`<button id="ratestate-${code}" onclick="App.resetOneRate('${code}')" title="${isAdj?'點一下改回預設 '+DEF[code]:'目前為預設值'}" style="font-size:11px;border:none;background:none;cursor:pointer;padding:2px;white-space:nowrap;flex-shrink:0;min-width:34px;text-align:right;color:${isAdj?'var(--accent)':'var(--t3)'};">${isAdj?'已調整 ↺':'預設'}</button>`}
+      </div>`;
+    };
+    const firstRateRows=rateItems.slice(0,4).map(rateRow).join('');
+    const extraRateItems=rateItems.slice(4);
+    const extraRateRows=extraRateItems.map(rateRow).join('');
     document.getElementById('rates-content').innerHTML=`
       <div id="rates-unsaved" style="display:none;position:sticky;top:0;z-index:20;background:#FEF3C7;border:1px solid #FDE68A;border-radius:9px;padding:9px 12px;margin-bottom:10px;align-items:center;gap:8px;">
         <span style="font-size:12px;color:#92400E;flex:1;">有未儲存的變更，記得儲存</span>
@@ -4191,13 +4261,13 @@ const App = {
       </div>
       <div class="card" style="padding:14px 16px;margin-bottom:8px;background:var(--soft);border-color:var(--soft);">
         <div class="sm accent semibold">主要結算貨幣：${t.baseCurrency} - ${C[t.baseCurrency]?.name||'台幣'}</div>
-        <div class="xs muted mt1" style="line-height:1.6;">現金會優先用實際換匯的加權平均；信用卡用一般匯率。沒有換匯紀錄時，現金也會先用一般匯率。</div>
+        <div class="xs muted mt1" style="line-height:1.6;">現金會優先用實際換匯的平均換匯成本；信用卡用一般匯率。沒有換匯紀錄時，現金也會先用一般匯率。</div>
       </div>
-      <div class="card" style="padding:14px 16px;margin-bottom:16px;">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:${fxSummary?'4px':'10px'};">
-          <div><div class="sm semibold">實際換匯（現金）</div><div class="xs muted mt1">適合 TWD → USD／EUR → 當地貨幣</div></div>
-          <button type="button" onclick="App.openFxExchange()" style="border:none;background:var(--soft);color:var(--accent);font-size:12px;font-weight:700;border-radius:999px;padding:7px 10px;cursor:pointer;white-space:nowrap;">＋ 記錄換匯</button>
-        </div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin:16px 2px 10px;">
+        <div><div class="sm semibold">實際換匯（現金）</div><div class="xs muted mt1">適合 TWD → USD／EUR → 當地貨幣</div></div>
+        <button type="button" onclick="App.openFxExchange()" style="border:none;background:var(--soft);color:var(--accent);font-size:12px;font-weight:700;border-radius:999px;padding:7px 10px;cursor:pointer;white-space:nowrap;">＋ 記錄換匯</button>
+      </div>
+      <div class="card" style="padding:${fxSummary?'4px 16px':'14px 16px'};margin-bottom:16px;">
         ${fxSummary||`<div class="xs muted" style="line-height:1.6;">目前還沒有換匯紀錄。加入後，現金支出會自動改用實際成本。</div>`}
       </div>
       <div class="sm semibold" style="margin:4px 2px 10px;">一般匯率（信用卡／無換匯紀錄時）</div>
@@ -4205,8 +4275,9 @@ const App = {
         <div class="xs semibold" style="color:#92400E;margin-bottom:4px;">⚠️ 預設匯率為參考值</div>
         <div class="xs" style="color:#78350F;line-height:1.6;">以 2026 年 7 月市場匯率為基準手動填入，<strong>非即時匯率</strong>。<br>可按下方「取得即時匯率」自動填入當日行情。</div>
       </div>
-      ${rows}
-      ${custom}
+      ${firstRateRows}
+      ${extraRateItems.length?`<div id="rate-extra" data-count="${extraRateItems.length}" style="display:none;">${extraRateRows}</div>
+      <button id="rate-more-btn" type="button" aria-expanded="false" class="btn btn-ghost btn-full mt2" onclick="App.toggleRateList()">顯示更多（${extraRateItems.length}） ⌄</button>`:''}
       <div style="height:16px;"></div>
       <button class="btn btn-accent btn-full" onclick="App.saveRates()">儲存匯率</button>
       <button class="btn btn-ghost btn-full mt2" id="btn-fetch-rates" onclick="App.fetchLiveRates()" style="display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> 取得即時匯率</button>
@@ -4228,6 +4299,16 @@ const App = {
       </div>
       <button class="btn btn-ghost btn-full" onclick="App.addCustomCurrency()">＋ 新增貨幣</button>
       <div style="height:20px;"></div>`;
+  },
+
+  toggleRateList(){
+    const extra=document.getElementById('rate-extra');
+    const btn=document.getElementById('rate-more-btn');
+    if(!extra||!btn) return;
+    const willOpen=extra.style.display==='none';
+    extra.style.display=willOpen?'block':'none';
+    btn.setAttribute('aria-expanded',String(willOpen));
+    btn.textContent=willOpen?'收合其他幣別 ⌃':`顯示更多（${extra.dataset.count}） ⌄`;
   },
 
   _fxCurrencyCodes(t){
@@ -4275,6 +4356,13 @@ const App = {
     this.updateFxPreview();
     this.openModal('m-fx-exchange');
   },
+  openFxExchangeHistory(code){
+    this.openFxExchange();
+    setTimeout(()=>{
+      const target=[...document.querySelectorAll('#fx-exchange-history [data-fx-to]')].find(el=>el.dataset.fxTo===code)||document.getElementById('fx-exchange-history');
+      target?.scrollIntoView({behavior:'smooth',block:'start'});
+    },80);
+  },
   _syncFxRateField(resetValue=true){
     const t=loadTrip(this.tripId);
     const code=document.getElementById('fx-from-cur')?.value||'USD';
@@ -4311,9 +4399,9 @@ const App = {
     const fromAmt=parseFloat((document.getElementById('fx-from-amt')?.value||'').replace(/,/g,''));
     const toAmt=parseFloat((document.getElementById('fx-to-amt')?.value||'').replace(/,/g,''));
     const sourceRate=parseFloat(document.getElementById('fx-source-rate')?.value);
-    if(fromCur===toCur){box.innerHTML='<span style="color:#EF4444;font-weight:600;">換出和換得幣別不能相同。</span>';return;}
+    if(fromCur===toCur){box.style.display='block';box.innerHTML='<span style="color:#EF4444;font-weight:600;">換出和換得幣別不能相同。</span>';return;}
     if(!(fromAmt>0&&toAmt>0&&sourceRate>0)){
-      box.textContent='輸入金額後，這裡會顯示這次換匯成本。';return;
+      box.style.display='none';box.textContent='';return;
     }
     const batchTwd=fromAmt*sourceRate;
     const batchRate=batchTwd/toAmt;
@@ -4323,8 +4411,9 @@ const App = {
     const oldReceived=old.reduce((s,r)=>s+Number(r.toAmount),0);
     const weighted=(oldTwd+batchTwd)/(oldReceived+toAmt);
     const f=n=>n>=1?Number(n.toFixed(2)).toLocaleString():Number(n.toPrecision(5)).toLocaleString();
+    box.style.display='block';
     box.innerHTML=`<div style="color:var(--t1);font-weight:700;">這次：1 ${toCur} = ${f(batchRate)} TWD</div>
-      <div style="margin-top:3px;">儲存後的現金加權平均：<strong style="color:var(--accent);">1 ${toCur} = ${f(weighted)} TWD</strong>${old.length?` （共 ${old.length+1} 筆）`:''}</div>`;
+      <div style="margin-top:3px;">儲存後的平均換匯成本：<strong style="color:var(--accent);">1 ${toCur} = ${f(weighted)} TWD</strong>${old.length?` （共 ${old.length+1} 筆）`:''}</div>`;
   },
   resetFxForm(){
     this.openFxExchange();
@@ -4361,7 +4450,7 @@ const App = {
     box.innerHTML=rows.map(r=>{
       const batchRate=Number(r.fromAmount)*Number(r.sourceRateTwd)/Number(r.toAmount);
       const rate=batchRate>=1?+batchRate.toFixed(2):+batchRate.toPrecision(5);
-      return `<div class="card" style="padding:12px 14px;margin-bottom:8px;">
+      return `<div class="card" data-fx-to="${r.toCurrency}" style="padding:12px 14px;margin-bottom:8px;">
         <div style="display:flex;align-items:flex-start;gap:8px;">
           <div style="flex:1;min-width:0;"><div class="sm semibold">${fmtFxNum(Number(r.fromAmount))} ${r.fromCurrency} → ${fmtFxNum(Number(r.toAmount))} ${r.toCurrency}</div>
           <div class="xs muted" style="margin-top:4px;line-height:1.55;">${r.date||''} · 1 ${r.toCurrency} = ${rate} TWD<br>${r.fromCurrency} 匯率快照：${r.sourceRateTwd} TWD</div></div>
@@ -4372,7 +4461,7 @@ const App = {
     }).join('');
   },
   deleteFxExchange(id){
-    if(!confirm('確定刪除這筆換匯紀錄？\n現金加權匯率與結算金額會一起重新計算。')) return;
+    if(!confirm('確定刪除這筆換匯紀錄？\n平均換匯成本與結算金額會一起重新計算。')) return;
     const t=loadTrip(this.tripId);
     if(!t) return;
     t.fxExchanges=(t.fxExchanges||[]).filter(r=>r.id!==id);
@@ -4686,7 +4775,7 @@ const App = {
       const after=totalCols-2;
       const general=`<tr><td style="${tdS}font-size:10px;color:#6B7280;">${c} 一般匯率</td><td style="padding:6px 9px;font-size:11px;font-weight:700;background:#FDE68A;border:1px solid #D1D5DB;text-align:right;">${rate}</td>${Array(after).fill(blank).join('')}</tr>`;
       const cash=cashRateInfo(t,c);
-      const cashRow=cash?`<tr><td style="${tdS}font-size:10px;color:#6B7280;">${c} 現金加權平均</td><td style="padding:6px 9px;font-size:11px;font-weight:700;background:#DCFCE7;border:1px solid #D1D5DB;text-align:right;">${cash.rate>=1?+cash.rate.toFixed(2):+cash.rate.toPrecision(5)}</td>${Array(after).fill(blank).join('')}</tr>`:'';
+      const cashRow=cash?`<tr><td style="${tdS}font-size:10px;color:#6B7280;">${c} 平均換匯成本</td><td style="padding:6px 9px;font-size:11px;font-weight:700;background:#DCFCE7;border:1px solid #D1D5DB;text-align:right;">${cash.rate>=1?+cash.rate.toFixed(2):+cash.rate.toPrecision(5)}</td>${Array(after).fill(blank).join('')}</tr>`:'';
       return general+cashRow;
     }).join('');
     // Header: two rows
@@ -5131,13 +5220,13 @@ const App = {
 
     let csv='﻿'; // BOM
 
-    // 一般匯率 + 現金加權平均（與 PDF 同步）
+    // 一般匯率 + 平均換匯成本（與 PDF 同步）
     const rateCursCsv=[...new Set([...otherCurs,...(t.fxExchanges||[]).map(r=>r.toCurrency).filter(c=>c&&c!==baseCur)])];
     rateCursCsv.forEach(c=>{
       const row=[`${c} 一般匯率`,generalRateTwd(t,c),...empties(totalCols-2)];
       csv+=row.map(esc).join(',')+'\n';
       const cash=cashRateInfo(t,c);
-      if(cash) csv+=[`${c} 現金加權平均`,cash.rate,...empties(totalCols-2)].map(esc).join(',')+'\n';
+      if(cash) csv+=[`${c} 平均換匯成本`,cash.rate,...empties(totalCols-2)].map(esc).join(',')+'\n';
     });
 
     // 完整換匯紀錄：每筆保留當時中繼幣匯率快照與計算後成本
@@ -5532,7 +5621,7 @@ function runSelfTest(){
     const s3Card=calcExp({amount:12.5,currency:'OMR',payMethod:'信用卡',paidBy:'A',parts:['A','B','C'],splitMode:'equal',createdAt:3},t1);
     const s3Fallback=calcExp({amount:12.5,currency:'OMR',payMethod:'現金',paidBy:'A',parts:['A','B','C'],splitMode:'equal',createdAt:3},{...t1,fxExchanges:[]});
     const _snapshotStillSame=cashRateInfo({...t1,rates:{...t1.rates,USD:99}},'OMR').rate===cashRateInfo(t1,'OMR').rate;
-    ok('中繼換算:現金加權/信用卡一般/無紀錄回退/快照不變',s3.baseTotal===Math.round(12.5*_fxRate)&&s3Card.baseTotal===Math.round(12.5*85.5)&&s3Fallback.baseTotal===s3Card.baseTotal&&cashRateTwd(t1,'USD')===32&&Object.values(s3.shares).reduce((a,b)=>a+b,0)===s3.baseTotal&&_snapshotStillSame);
+    ok('中繼換算:現金換匯成本/信用卡一般/無紀錄回退/快照不變',s3.baseTotal===Math.round(12.5*_fxRate)&&s3Card.baseTotal===Math.round(12.5*85.5)&&s3Fallback.baseTotal===s3Card.baseTotal&&cashRateTwd(t1,'USD')===32&&Object.values(s3.shares).reduce((a,b)=>a+b,0)===s3.baseTotal&&_snapshotStillSame);
     const w=ts=>{const s=calcExp({amount:100,currency:'TWD',paidBy:'A',parts:['A','B','C'],splitMode:'equal',createdAt:ts},t0).shares;return Object.entries(s).find(([,v])=>v===34)[0];};
     ok('尾差輪流分配(逐筆換人)',new Set([w(10),w(11),w(12)]).size>1);
     const fx={id:'__st',name:'驗收',baseCurrency:'TWD',rates:{OMR:85.5},payRecords:[],
