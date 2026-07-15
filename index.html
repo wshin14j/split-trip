@@ -343,7 +343,7 @@ select.input{
 .rate-input-wrap.adjusted input{font-weight:500;}
 .rates-base-line{display:flex;align-items:center;gap:7px;margin:0 2px 14px;color:var(--t2);font-size:12px;}
 .rates-base-line strong{color:var(--t1);font-size:13px;}
-.rates-base-hint{display:none;margin:-7px 2px 14px;padding:9px 11px;border-radius:10px;background:var(--surface);color:var(--t2);font-size:11px;line-height:1.55;}
+.rates-base-line .rates-inline-action{margin-left:auto;}
 .rates-mode-switch{margin-bottom:18px;}
 .rates-mode-switch .tab-btn{font-size:13px;}
 .rates-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 4px;}
@@ -365,11 +365,16 @@ select.input{
 .rates-more-settings[open] summary .rates-chevron{transform:rotate(225deg);margin-top:4px;}
 .rates-more-body{padding:8px 4px 0;text-align:center;color:var(--t2);font-size:10.5px;line-height:1.6;}
 .rates-more-body .btn{margin-top:10px;}
+.settle-currency-row{min-height:40px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 8px;color:var(--t2);font-size:12px;font-weight:500;}
+.settle-currency-control{display:flex;align-items:center;gap:8px;min-width:108px;justify-content:flex-end;color:var(--t2);}
+.settle-currency-control select{appearance:none;-webkit-appearance:none;border:none;background:none;outline:none;color:var(--t1);font:inherit;font-size:13px;font-weight:600;text-align:right;text-align-last:right;padding:6px 0;cursor:pointer;}
 .settle-rate-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;border:none;border-top:1px solid var(--border);background:none;color:var(--t2);font-size:12px;font-weight:500;padding:11px 0 2px;cursor:pointer;}
 .settle-rate-toggle[aria-expanded="true"] .rates-chevron{transform:rotate(225deg);margin-top:4px;}
-.rates-save-bar{display:none;position:sticky;bottom:-16px;z-index:25;margin:8px -20px -16px;padding:10px 20px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid var(--border);box-shadow:0 -6px 20px rgba(31,42,68,.08);align-items:center;gap:12px;}
-.rates-save-bar span{flex:1;font-size:12px;color:var(--t2);}
-.rates-save-bar button{height:40px;border:none;border-radius:11px;padding:0 18px;background:var(--primary);color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.rates-save-bar{display:none;position:sticky;bottom:-16px;z-index:25;margin:8px -20px -16px;padding:10px 20px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid var(--border);box-shadow:0 -6px 20px rgba(31,42,68,.08);align-items:center;gap:8px;}
+.rates-save-bar span{flex:1;font-size:11.5px;color:var(--t2);white-space:nowrap;}
+.rates-save-bar button{height:40px;border-radius:11px;padding:0 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.rates-save-bar .rates-discard-btn{border:1px solid var(--border);background:#fff;color:var(--primary);}
+.rates-save-bar .rates-save-btn{border:none;background:var(--primary);color:#fff;}
 .rates-fx-list{padding:4px 14px;margin-bottom:16px;border-radius:16px;box-shadow:0 1px 5px rgba(0,0,0,.07);}
 .rates-help-sheet{height:88vh;max-height:88vh;}
 @media(max-width:374px){
@@ -650,7 +655,7 @@ select.input{
     </div>
     <div class="mb3" style="position:relative;">
       <label class="form-label">幣別名稱</label>
-      <input id="r-new-name" class="input" placeholder="輸入名稱或關鍵字" oninput="App.searchCurrency(this.value)" autocomplete="off">
+      <input id="r-new-name" class="input" placeholder="輸入國家、幣別名稱或代碼" oninput="App.searchCurrency(this.value)" autocomplete="off">
       <div id="cur-suggestions" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:50;display:none;max-height:200px;overflow-y:auto;"></div>
     </div>
     <div class="mb3">
@@ -703,7 +708,7 @@ select.input{
     </details>
     <details class="faq-item">
       <summary>找不到當地貨幣怎麼辦？</summary>
-      <div class="faq-a">可在「一般匯率」右側點「＋ 新增幣別」；如果正在新增換匯紀錄，也可直接點「找不到當地貨幣？＋ 新增幣別」。新增完成後會自動回到換匯表單，並選好剛新增的幣別。</div>
+      <div class="faq-a">可在「一般匯率」右側點「＋ 新增幣別」，在「幣別名稱」輸入國家、英文國名、幣別名稱或代碼，例如輸入「阿曼」、Oman 或 OMR，都會顯示候選幣別。如果正在新增換匯紀錄，也可直接點「找不到當地貨幣？＋ 新增幣別」；新增完成後會自動回到換匯表單。</div>
     </details>
     <details class="faq-item">
       <summary>結算頁怎麼查看使用中的匯率？</summary>
@@ -859,7 +864,7 @@ select.input{
             <text x="66" y="243" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">完整明細表，可列印 PDF 或匯出 CSV</text>
           </svg>
         </div>
-        在匯率設定的「一般匯率」頁籤，可按「更新為今日匯率」由系統自動帶入，也可自己修改後儲存。預設先顯示 3 個幣別，旅程支出曾使用的幣別會排在前面，其餘可按「顯示其他」展開。找不到當地貨幣時，可點「＋ 新增幣別」；如果正在記錄換匯，也能從表單內直接新增，完成後會自動帶回換匯表單。結算頁的「匯率詳情」預設收合，點開即可查看目前使用中的一般匯率與「第三貨幣換匯（平均）」，也能從「修改匯率」前往設定。
+        在匯率設定的「一般匯率」頁籤，可按「更新今日匯率」由系統自動帶入，也可自己修改後儲存。預設先顯示 3 個幣別，旅程支出曾使用的幣別會排在前面，其餘可按「顯示其他」展開。找不到當地貨幣時，可點「＋ 新增幣別」，輸入國家、英文國名、幣別名稱或代碼搜尋；如果正在記錄換匯，也能從表單內直接新增。結算頁的「匯率詳情」預設收合，點開即可查看目前使用中的一般匯率與「第三貨幣換匯（平均）」，也能從「修改匯率」前往設定。
       </div>
     </details>
     <details class="faq-item">
@@ -1155,7 +1160,7 @@ select.input{
         <option value="EUR">EUR - 歐元</option>
         <option value="GBP">GBP - 英鎊</option>
       </select>
-      <div class="form-hint">所有金額會換算成這個貨幣結算，建立後無法更改（結算頁仍可切換「顯示」幣別）</div>
+      <div class="form-hint">支出與結算會以此幣別作為換算基準；結算頁可再切換成其他幣別顯示。</div>
     </div>
     <button class="btn btn-accent btn-full" onclick="App.createTrip()">建立旅程</button>
   </div>
@@ -1498,7 +1503,10 @@ function curFlag(code){
   if(C[code]?.flag) return C[code].flag;
   try{return code.slice(0,2).toUpperCase().replace(/./g,c=>String.fromCodePoint(c.charCodeAt(0)+127397));}catch(e){return '';}
 }
-const CUR_ZH = {TWD:'台幣',JPY:'日圓',USD:'美金',EUR:'歐元',GBP:'英鎊',KRW:'韓元',VND:'越南盾',THB:'泰銖',SGD:'新加坡元',HKD:'港幣',AUD:'澳幣',CAD:'加拿大元',CNY:'人民幣',MYR:'馬來西亞令吉',IDR:'印尼盾',PHP:'菲律賓披索',INR:'印度盧比',CHF:'瑞士法郎',NZD:'紐西蘭元',MXN:'墨西哥披索',BRL:'巴西雷亞爾',TRY:'土耳其里拉',ZAR:'南非蘭德',AED:'阿聯酋迪拉姆',SAR:'沙烏地里亞爾',NOK:'挪威克朗',SEK:'瑞典克朗',DKK:'丹麥克朗',CZK:'捷克克朗',PLN:'波蘭茲羅提',HUF:'匈牙利福林',ILS:'以色列謝克爾',QAR:'卡達里亞爾'};
+const CUR_ZH = {TWD:'台幣',JPY:'日圓',USD:'美金',EUR:'歐元',GBP:'英鎊',KRW:'韓元',VND:'越南盾',THB:'泰銖',SGD:'新加坡元',HKD:'港幣',AUD:'澳幣',CAD:'加拿大元',CNY:'人民幣',MYR:'馬來西亞令吉',IDR:'印尼盾',PHP:'菲律賓披索',INR:'印度盧比',CHF:'瑞士法郎',NZD:'紐西蘭元',MXN:'墨西哥披索',BRL:'巴西雷亞爾',TRY:'土耳其里拉',ZAR:'南非蘭德',AED:'阿聯酋迪拉姆',SAR:'沙烏地里亞爾',NOK:'挪威克朗',SEK:'瑞典克朗',DKK:'丹麥克朗',CZK:'捷克克朗',PLN:'波蘭茲羅提',HUF:'匈牙利福林',ILS:'以色列謝克爾',QAR:'卡達里亞爾',OMR:'阿曼里亞爾',BHD:'巴林第納爾',KWD:'科威特第納爾',JOD:'約旦第納爾',EGP:'埃及鎊',MAD:'摩洛哥迪拉姆',GEL:'喬治亞拉里',ISK:'冰島克朗',RON:'羅馬尼亞列伊',BGN:'保加利亞列弗',RSD:'塞爾維亞第納爾',KES:'肯亞先令',TZS:'坦尚尼亞先令',NPR:'尼泊爾盧比',LKR:'斯里蘭卡盧比',PKR:'巴基斯坦盧比',BDT:'孟加拉塔卡',KHR:'柬埔寨瑞爾',LAK:'寮國基普',MMK:'緬甸元',MNT:'蒙古圖格里克',UZS:'烏茲別克索姆',KZT:'哈薩克堅戈'};
+const CUR_COUNTRY = {
+  TWD:'台灣 Taiwan',JPY:'日本 Japan',USD:'美國 United States USA America',EUR:'歐洲 歐元區 Europe European Union EU',GBP:'英國 United Kingdom UK Britain',KRW:'韓國 南韓 South Korea Korea',VND:'越南 Vietnam',THB:'泰國 Thailand',SGD:'新加坡 Singapore',HKD:'香港 Hong Kong',AUD:'澳洲 澳大利亞 Australia',CAD:'加拿大 Canada',CNY:'中國 China',MYR:'馬來西亞 Malaysia',IDR:'印尼 印度尼西亞 Indonesia',PHP:'菲律賓 Philippines',INR:'印度 India',CHF:'瑞士 Switzerland',NZD:'紐西蘭 新西蘭 New Zealand',MXN:'墨西哥 Mexico',BRL:'巴西 Brazil',TRY:'土耳其 Turkey Türkiye',ZAR:'南非 South Africa',AED:'阿聯酋 阿拉伯聯合大公國 UAE United Arab Emirates',SAR:'沙烏地阿拉伯 Saudi Arabia',NOK:'挪威 Norway',SEK:'瑞典 Sweden',DKK:'丹麥 Denmark',CZK:'捷克 Czechia Czech Republic',PLN:'波蘭 Poland',HUF:'匈牙利 Hungary',ILS:'以色列 Israel',QAR:'卡達 Qatar',OMR:'阿曼 Oman',BHD:'巴林 Bahrain',KWD:'科威特 Kuwait',JOD:'約旦 Jordan',EGP:'埃及 Egypt',MAD:'摩洛哥 Morocco',GEL:'喬治亞 Georgia',ISK:'冰島 Iceland',RON:'羅馬尼亞 Romania',BGN:'保加利亞 Bulgaria',RSD:'塞爾維亞 Serbia',KES:'肯亞 Kenya',TZS:'坦尚尼亞 Tanzania',NPR:'尼泊爾 Nepal',LKR:'斯里蘭卡 Sri Lanka',PKR:'巴基斯坦 Pakistan',BDT:'孟加拉 Bangladesh',KHR:'柬埔寨 Cambodia',LAK:'寮國 Laos',MMK:'緬甸 Myanmar Burma',MNT:'蒙古 Mongolia',UZS:'烏茲別克 Uzbekistan',KZT:'哈薩克 Kazakhstan'
+};
 const AVATAR_COLORS=[
   {id:'red',    bg:'#EF4444',text:'#fff'},      // 紅
   {id:'orange', bg:'#F97316',text:'#fff'},      // 橙
@@ -1825,7 +1833,7 @@ const App = {
     this.screen=s; window.scrollTo(0,0);
     if(s==='home') this.renderHome();
     else if(s==='trip') this.renderTrip();
-    else if(s==='rates') this.renderRates();
+    else if(s==='rates'){this._ratesView='general';this.renderRates();}
   },
 
   showToast(msg,dur=2200){
@@ -2644,11 +2652,14 @@ const App = {
       </div>`;
     }).join('');
     const curSelect=`<div class="card" style="padding:14px 16px;margin-bottom:16px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:13px;color:var(--t2);flex-shrink:0;">結算幣別</span>
-        <select class="input" style="height:36px;font-size:13px;flex:1;" onchange="App._settleCur=this.value;App.renderTab();">
-          ${allCurs.map(cur=>`<option value="${cur}"${dispCur===cur?' selected':''}>${cur} ${(C[cur]||{}).sym||''}</option>`).join('')}
-        </select>
+      <div class="settle-currency-row">
+        <span>結算幣別</span>
+        <label class="settle-currency-control">
+          <select aria-label="結算幣別" onchange="App._settleCur=this.value;App.renderTab();">
+            ${allCurs.map(cur=>`<option value="${cur}"${dispCur===cur?' selected':''}>${cur} ${(C[cur]||{}).sym||''}</option>`).join('')}
+          </select>
+          <span class="rates-chevron" aria-hidden="true"></span>
+        </label>
       </div>
       ${usedExpCurs.length>0?`<button type="button" class="settle-rate-toggle" aria-expanded="${!!this._showSettleRateDetails}" onclick="App._showSettleRateDetails=!App._showSettleRateDetails;App.renderTab();"><span>匯率詳情</span><span class="rates-chevron" aria-hidden="true"></span></button>
         ${this._showSettleRateDetails?`<div style="padding-top:4px;">${rateRows}<div style="margin-top:9px;text-align:right;"><button type="button" onclick="App.go('rates')" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;">修改匯率 →</button></div></div>`:''}`:''}
@@ -4311,6 +4322,12 @@ const App = {
     this._ratesDirty=false;
     this.go('trip');
   },
+  openSettlementFromRates(){
+    if(this._ratesDirty&&!confirm('匯率修改尚未儲存，直接離開將不會保存。\n確定要離開嗎？')) return;
+    this._ratesDirty=false;
+    this.tab='settlement';
+    this.go('trip');
+  },
   renderRates(){
     const t=loadTrip(this.tripId);
     if(!t){this.go('trip');return;}
@@ -4357,18 +4374,18 @@ const App = {
           ${_pencil}
         </div>
         <span class="xs muted">TWD</span>
-        ${isCustom?`<button onclick="App.deleteCustomCurrency('${code}')" title="刪除 ${code}" aria-label="刪除 ${code}" style="width:48px;font-size:10.5px;border:none;background:none;color:#EF4444;cursor:pointer;padding:2px;white-space:nowrap;flex-shrink:0;text-align:right;">刪除</button>`:`<button id="ratestate-${code}" onclick="App.resetOneRate('${code}')" title="${isAdj?'點一下改回預設 '+DEF[code]:'目前為預設值'}" style="width:48px;font-size:10.5px;border:none;background:none;cursor:pointer;padding:2px;white-space:nowrap;flex-shrink:0;text-align:right;color:var(--t2);">${isAdj?'已調整 ↺':'預設'}</button>`}
+        ${isCustom?`<span title="自訂幣別" style="width:48px;font-size:10.5px;color:var(--t2);padding:2px;white-space:nowrap;flex-shrink:0;text-align:right;">自訂</span>`:`<button id="ratestate-${code}" onclick="App.resetOneRate('${code}')" title="${isAdj?'點一下改回預設 '+DEF[code]:'目前為預設值'}" style="width:48px;font-size:10.5px;border:none;background:none;cursor:pointer;padding:2px;white-space:nowrap;flex-shrink:0;text-align:right;color:var(--t2);">${isAdj?'已調整 ↺':'預設'}</button>`}
       </div>`;
     };
     const firstRateRows=rateItems.slice(0,3).map(rateRow).join('');
     const extraRateItems=rateItems.slice(3);
     const extraRateRows=extraRateItems.map(rateRow).join('');
+    const settleDisplayCur=this._settleCur||t.baseCurrency;
     document.getElementById('rates-content').innerHTML=`
       <div class="rates-base-line">
-        <span>主要結算貨幣</span><strong>${t.baseCurrency} ${C[t.baseCurrency]?.name||CUR_ZH[t.baseCurrency]||''}</strong>
-        <button type="button" id="rates-base-info" onclick="App.toggleRatesBaseHint()" aria-label="了解主要結算貨幣" aria-expanded="false" style="width:20px;height:20px;border:1px solid var(--border);border-radius:50%;background:#fff;color:var(--t2);font-size:11px;cursor:pointer;">i</button>
+        <span>結算幣別</span><strong>${settleDisplayCur} ${C[settleDisplayCur]?.name||CUR_ZH[settleDisplayCur]||''}</strong>
+        <button type="button" class="rates-inline-action" onclick="App.openSettlementFromRates()">修改幣別</button>
       </div>
-      <div class="rates-base-hint" id="rates-base-hint">主要結算貨幣於建立旅程時設定；結算頁可切換顯示幣別，但不會更改主要結算貨幣。</div>
       <div class="tab-switch rates-mode-switch" role="tablist" aria-label="匯率類型">
         <button id="rates-tab-general" class="tab-btn${ratesView==='general'?' on':''}" type="button" role="tab" aria-selected="${ratesView==='general'}" onclick="App.switchRatesView('general')">一般匯率</button>
         <button id="rates-tab-cash" class="tab-btn${ratesView==='cash'?' on':''}" type="button" role="tab" aria-selected="${ratesView==='cash'}" onclick="App.switchRatesView('cash')">第三貨幣換匯</button>
@@ -4378,10 +4395,10 @@ const App = {
           <div class="rates-section-title">一般匯率</div>
           <button type="button" class="rates-inline-action" onclick="App.openAddCurrency('rates')">＋ 新增幣別</button>
         </div>
-        <div class="rates-section-copy">適用於信用卡支出，以及尚未記錄「第三貨幣換匯」的現金支出。由系統自動帶入參考匯率。</div>
+        <div class="rates-section-copy">適用於信用卡支出，以及尚未記錄「第三貨幣換匯」的現金支出。<br>由系統自動帶入參考匯率。</div>
         <div class="rates-status">
-          <div class="rates-status-copy" id="rates-current-note"><strong>預設值為市場參考匯率</strong>參考 2026 年 7 月行情，也能直接修改數字。</div>
-          <button class="rates-update-btn" id="btn-fetch-rates" type="button" onclick="App.fetchLiveRates()">更新為今日匯率</button>
+          <div class="rates-status-copy" id="rates-current-note"><strong>預設值為市場參考匯率</strong>參考 2026 年 7 月，可直接修改。</div>
+          <button class="rates-update-btn" id="btn-fetch-rates" type="button" onclick="App.fetchLiveRates()">更新今日匯率</button>
         </div>
         <div class="card rates-list">
           ${firstRateRows}
@@ -4392,6 +4409,7 @@ const App = {
           <summary><span>匯率來源與更多設定</span><span class="rates-chevron" aria-hidden="true"></span></summary>
           <div class="rates-more-body">即時匯率來源：<a href="https://www.exchangerate-api.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">ExchangeRate-API</a><br>彙整各國央行與商業來源，每日更新。
             <button class="btn btn-ghost btn-full" type="button" onclick="App.resetRates()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> 還原預設匯率</button>
+            ${customRateItems.length?`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);text-align:left;"><div style="font-size:11.5px;font-weight:700;color:var(--t1);margin-bottom:5px;">管理自訂幣別</div>${customRateItems.map(item=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;"><span>${item.flag} ${item.code} ${item.name}</span><button type="button" onclick="App.deleteCustomCurrency('${item.code}')" style="border:none;background:none;color:#EF4444;font-size:11px;cursor:pointer;">刪除</button></div>`).join('')}</div>`:''}
           </div>
         </details>
       </div>
@@ -4406,7 +4424,8 @@ const App = {
       <div style="height:20px;"></div>
       <div class="rates-save-bar" id="rates-unsaved">
         <span id="rates-unsaved-copy">匯率有修改</span>
-        <button type="button" onclick="App.saveRates()">儲存修改</button>
+        <button class="rates-discard-btn" type="button" onclick="App.discardRateChanges()">放棄修改</button>
+        <button class="rates-save-btn" type="button" onclick="App.saveRates()">儲存修改</button>
       </div>`;
   },
 
@@ -4421,15 +4440,6 @@ const App = {
       if(panel) panel.style.display=on?'block':'none';
     });
     document.getElementById('rates-content')?.scrollTo({top:0,behavior:'smooth'});
-  },
-
-  toggleRatesBaseHint(){
-    const hint=document.getElementById('rates-base-hint');
-    const btn=document.getElementById('rates-base-info');
-    if(!hint||!btn) return;
-    const willOpen=getComputedStyle(hint).display==='none';
-    hint.style.display=willOpen?'block':'none';
-    btn.setAttribute('aria-expanded',String(willOpen));
   },
 
   toggleRateList(){
@@ -4645,17 +4655,19 @@ const App = {
     if(!box) return;
     const n=q.trim().toLowerCase();
     if(!n){box.style.display='none';return;}
+    const t=loadTrip(this.tripId);
+    const customCodes=new Set((t?.customCurrencies||[]).map(c=>c.code));
     const results=Object.entries(CUR_ZH).filter(([code,zh])=>
-      zh.toLowerCase().includes(n)||code.toLowerCase().includes(n)
-    ).slice(0,8);
+      `${code} ${zh} ${CUR_COUNTRY[code]||''}`.toLowerCase().includes(n)
+    ).slice(0,8).map(([code,zh])=>({code,zh,country:(CUR_COUNTRY[code]||'').replace(/[A-Za-z].*$/,'').trim(),exists:!!C[code]||customCodes.has(code)}));
     if(!results.length){box.style.display='none';return;}
     box.style.display='block';
-    box.innerHTML=results.map(([code,zh])=>`
-      <div onclick="App.selectCurrencySuggestion('${code}','${zh}')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);" onmouseover="this.style.background='var(--soft)'" onmouseout="this.style.background=''">
+    box.innerHTML=results.map(({code,zh,country,exists})=>`
+      <button type="button" ${exists?'disabled':`onclick="App.selectCurrencySuggestion('${code}','${zh}')"`} style="width:100%;display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:${exists?'default':'pointer'};border:none;border-bottom:1px solid var(--border);background:#fff;text-align:left;opacity:${exists?'.58':'1'};font:inherit;">
         <span style="font-size:20px;">${curFlag(code)}</span>
-        <span style="font-weight:600;">${code}</span>
-        <span style="color:var(--t2);font-size:13px;">${zh}</span>
-      </div>`).join('');
+        <span style="flex:1;min-width:0;"><span style="display:block;font-size:13px;font-weight:700;color:var(--t1);">${code} · ${zh}</span><span style="display:block;font-size:11px;color:var(--t2);margin-top:2px;">${country||CUR_COUNTRY[code]||''}</span></span>
+        ${exists?'<span style="font-size:10.5px;color:var(--t2);white-space:nowrap;">已在列表</span>':''}
+      </button>`).join('');
   },
   selectCurrencySuggestion(code,zh){
     const codeEl=document.getElementById('r-new-code');
@@ -4713,7 +4725,7 @@ const App = {
     }catch(e){
       this.showToast('取得失敗，請確認網路連線');
     }finally{
-      if(btn){btn.disabled=false;btn.textContent='更新為今日匯率';}
+      if(btn){btn.disabled=false;btn.textContent='更新今日匯率';}
     }
   },
 
@@ -4740,6 +4752,12 @@ const App = {
   resetOneRate(code){
     const el=document.getElementById('r-'+code);
     if(el){el.value=DEF[code];this.onRateInput(code);}
+  },
+  discardRateChanges(){
+    this._ratesDirty=false;
+    this._dirtyRateCodes=new Set();
+    this.renderRates();
+    this.showToast('已放棄未儲存的修改');
   },
   saveRates(){
     this._ratesDirty=false;
