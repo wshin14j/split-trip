@@ -362,11 +362,11 @@ select.input{
 .rates-more-settings[open] summary .rates-chevron{transform:rotate(225deg);margin-top:4px;}
 .rates-more-body{padding:8px 4px 0;text-align:center;color:var(--t2);font-size:10.5px;line-height:1.6;}
 .rates-more-body .btn{margin-top:10px;}
-.settle-currency-row{min-height:40px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 8px;color:var(--t2);font-size:12px;font-weight:500;}
-.settle-currency-picker{position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.settle-currency-row{min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0;color:var(--t2);font-size:12px;font-weight:500;}
+.settle-currency-picker{position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 .settle-currency-picker:focus-within{color:var(--t1);}
-.settle-currency-value{display:flex;align-items:center;gap:8px;min-width:108px;justify-content:flex-end;color:var(--t1);font-size:13px;font-weight:600;}
-.settle-currency-native{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;}
+.settle-currency-value{display:flex;align-items:center;gap:8px;min-width:108px;justify-content:flex-end;color:var(--t1);font-size:13px;font-weight:600;pointer-events:none;}
+.settle-currency-native{position:absolute;z-index:3;inset:0;width:100%;height:100%;opacity:.01;cursor:pointer;}
 .settle-rate-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;border:none;border-top:1px solid var(--border);background:none;color:var(--t2);font-size:12px;font-weight:500;padding:11px 0 2px;cursor:pointer;}
 .settle-rate-toggle[aria-expanded="true"] .rates-chevron{transform:rotate(225deg);margin-top:4px;}
 .rates-save-bar{display:none;position:sticky;bottom:-16px;z-index:25;margin:8px -20px -16px;padding:10px 20px calc(10px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);border-top:1px solid var(--border);box-shadow:0 -6px 20px rgba(31,42,68,.08);align-items:center;gap:8px;}
@@ -688,7 +688,7 @@ select.input{
     <details class="faq-item">
       <summary>現金和信用卡用哪一種匯率？</summary>
       <div class="faq-a">
-        <div><strong style="color:var(--t1);">信用卡支出：</strong>使用一般匯率。</div>
+        <div><strong style="color:var(--t1);">信用卡支出：</strong>由系統自動帶入參考匯率，但可以手動調整。</div>
         <div style="margin-top:6px;"><strong style="color:var(--t1);">現金支出：</strong>該幣別有記錄「第三貨幣換匯」時，使用「第三貨幣換匯（平均）」。</div>
         <div style="margin-top:6px;"><strong style="color:var(--t1);">尚未記錄第三貨幣換匯：</strong>現金支出先使用一般匯率。</div>
       </div>
@@ -698,16 +698,45 @@ select.input{
       <div class="faq-a">適合兩段式現金換匯：台幣 (TWD) ➔ 美金／歐元 ➔ 當地貨幣。點「＋ 記錄換匯」，填入「用多少換到多少」即可；中繼幣匯率會自動帶入，也能手動修改。</div>
     </details>
     <details class="faq-item">
-      <summary>途中當地換匯換了好幾次，怎麼算？</summary>
+      <summary>當地換匯換了好幾次，匯率會怎麼算？</summary>
       <div class="faq-a">每次換匯都記下來，系統會依各次金額計算「第三貨幣換匯（平均）」，該幣別的現金支出會自動使用這個結果。</div>
     </details>
     <details class="faq-item">
       <summary>怎麼修改或刪除換匯紀錄？</summary>
-      <div class="faq-a">在「第三貨幣換匯」頁籤直接點 OMR、IDR 等幣別那一列，只會看到該幣別的換匯明細，可逐筆修改或刪除。「＋ 記錄換匯」只用來新增紀錄。</div>
+      <div class="faq-a">在「第三貨幣換匯」頁籤直接點 OMR、IDR 等幣別那一列，只會看到該幣別的換匯明細，可逐筆修改或刪除。「＋ 記錄換匯」只用來新增紀錄。
+        <div style="margin:10px 0 2px;padding:10px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 190" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="點 OMR 幣別列後，在換匯明細逐筆修改或刪除">
+            <circle cx="20" cy="24" r="13" fill="#E9ECFF"/><text x="20" y="29" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6CFF">1</text>
+            <text x="42" y="29" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">點幣別列查看明細</text>
+            <rect x="12" y="44" width="296" height="54" rx="13" fill="#FFFFFF" stroke="#D5DAE4" stroke-width="1.3"/>
+            <text x="28" y="68" font-size="13" font-weight="700" fill="#1F2A44">🇴🇲  1 OMR</text><text x="28" y="86" font-size="11" fill="#6B7280">Omani Rial · 換了 2 次</text>
+            <text x="292" y="71" text-anchor="end" font-size="13" font-weight="700" fill="#1F2A44">88.75 TWD  ›</text><text x="292" y="87" text-anchor="end" font-size="10.5" fill="#6B7280">換匯平均</text>
+            <circle cx="20" cy="123" r="13" fill="#E9ECFF"/><text x="20" y="128" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6CFF">2</text>
+            <text x="42" y="128" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">選擇要處理的紀錄</text>
+            <rect x="12" y="143" width="296" height="38" rx="11" fill="#FFFFFF" stroke="#D5DAE4" stroke-width="1.3"/>
+            <text x="24" y="166" font-size="11.5" font-weight="700" fill="#1F2A44">1,000 USD → 360 OMR</text>
+            <text x="244" y="166" text-anchor="end" font-size="11.5" font-weight="700" fill="#5B6CFF">修改</text><text x="294" y="166" text-anchor="end" font-size="11.5" font-weight="700" fill="#EF4444">刪除</text>
+          </svg>
+        </div>
+      </div>
     </details>
     <details class="faq-item">
       <summary>找不到當地貨幣怎麼辦？</summary>
-      <div class="faq-a">可在「一般匯率」右側點「＋ 新增幣別」，在「幣別名稱」輸入國家、英文國名、幣別名稱或代碼，例如輸入「阿曼」、Oman 或 OMR，都會顯示候選幣別。如果正在新增換匯紀錄，也可直接點「找不到當地貨幣？＋ 新增幣別」；新增完成後會自動回到換匯表單。</div>
+      <div class="faq-a">可在「一般匯率」右側點「＋ 新增幣別」，在「幣別名稱」輸入國家、英文國名、幣別名稱或代碼，例如輸入「阿曼」、Oman 或 OMR，都會顯示候選幣別。如果正在新增換匯紀錄，也可直接點「找不到當地貨幣？＋ 新增幣別」；新增完成後會自動回到換匯表單。
+        <div style="margin:10px 0 2px;padding:10px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 196" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="新增幣別時輸入英文國名 Oman，選擇 OMR 阿曼里亞爾">
+            <circle cx="20" cy="24" r="13" fill="#E9ECFF"/><text x="20" y="29" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6CFF">1</text>
+            <text x="42" y="29" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">點「＋ 新增幣別」</text>
+            <rect x="176" y="10" width="132" height="30" rx="15" fill="#EEF0FF"/><text x="242" y="30" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6CFF" font-family="-apple-system,'Noto Sans TC',sans-serif">＋ 新增幣別</text>
+            <circle cx="20" cy="67" r="13" fill="#E9ECFF"/><text x="20" y="72" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6CFF">2</text>
+            <text x="42" y="72" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">輸入國家或英文國名</text>
+            <rect x="12" y="87" width="296" height="42" rx="11" fill="#FFFFFF" stroke="#5B6CFF" stroke-width="1.5"/><text x="26" y="113" font-size="13" fill="#1F2A44">Oman</text>
+            <circle cx="20" cy="157" r="13" fill="#E9ECFF"/><text x="20" y="162" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6CFF">3</text>
+            <rect x="42" y="139" width="266" height="48" rx="11" fill="#FFFFFF" stroke="#D5DAE4" stroke-width="1.3"/>
+            <text x="56" y="160" font-size="13" font-weight="700" fill="#1F2A44">🇴🇲  OMR · 阿曼里亞爾</text><text x="56" y="178" font-size="10.5" fill="#6B7280">阿曼 · Oman · Omani Rial</text>
+          </svg>
+        </div>
+      </div>
     </details>
     <details class="faq-item">
       <summary>結算頁怎麼查看使用中的匯率？</summary>
@@ -876,7 +905,7 @@ select.input{
         系統會依每筆支出的「支付方式」自動選擇，不用每次再設定。
         <div style="margin-top:10px;padding:12px 14px;background:var(--surface);border-radius:12px;line-height:1.75;">
           <div><strong style="color:var(--t1);">一般匯率：</strong>由系統自動帶入參考值，也能手動修改。</div>
-          <div><strong style="color:var(--t1);">信用卡支出：</strong>使用一般匯率。</div>
+          <div><strong style="color:var(--t1);">信用卡支出：</strong>由系統自動帶入參考匯率，但可以手動調整。</div>
           <div><strong style="color:var(--t1);">現金支出：</strong>該幣別有記錄「第三貨幣換匯」時，使用「第三貨幣換匯（平均）」。</div>
           <div><strong style="color:var(--t1);">尚未記錄第三貨幣換匯：</strong>現金支出先使用一般匯率。</div>
         </div>
@@ -884,7 +913,7 @@ select.input{
       </div>
     </details>
     <details class="faq-item">
-      <summary>第三貨幣換匯和多次換匯怎麼記？</summary>
+      <summary>當地換匯換了好幾次，匯率會怎麼算？</summary>
       <div class="faq-a">
         到「匯率設定」的「第三貨幣換匯」點「＋ 記錄換匯」，直接填「用多少幣別，換到多少當地貨幣」。如果是台幣 (TWD) ➔ 美金／歐元 ➔ 當地貨幣，中繼幣匯率會自動帶入，也能手動修改。
         <div style="margin-top:10px;">途中換了多次就逐筆加入，系統會依各次金額計算「第三貨幣換匯（平均）」。要查看或修改時，直接點 OMR、IDR 等幣別列，即可逐筆修改或刪除。</div>
@@ -1440,7 +1469,7 @@ select.input{
         <label class="form-label">備註（選填）</label>
         <input id="fund-dep-note" class="input" placeholder="例：換匯 USD 200">
       </div>
-      <button class="btn btn-primary btn-full" onclick="App.saveFundDeposit()">儲存</button>
+      <button class="btn btn-primary btn-full" id="fund-dep-save" onclick="App.saveFundDeposit()">儲存</button>
     </div>
   </div>
 </div>
@@ -1510,6 +1539,21 @@ const CUR_ZH = {TWD:'台幣',JPY:'日圓',USD:'美金',EUR:'歐元',GBP:'英鎊'
 const CUR_COUNTRY = {
   TWD:'台灣 Taiwan',JPY:'日本 Japan',USD:'美國 United States USA America',EUR:'歐洲 歐元區 Europe European Union EU',GBP:'英國 United Kingdom UK Britain',KRW:'韓國 南韓 South Korea Korea',VND:'越南 Vietnam',THB:'泰國 Thailand',SGD:'新加坡 Singapore',HKD:'香港 Hong Kong',AUD:'澳洲 澳大利亞 Australia',CAD:'加拿大 Canada',CNY:'中國 China',MYR:'馬來西亞 Malaysia',IDR:'印尼 印度尼西亞 Indonesia',PHP:'菲律賓 Philippines',INR:'印度 India',CHF:'瑞士 Switzerland',NZD:'紐西蘭 新西蘭 New Zealand',MXN:'墨西哥 Mexico',BRL:'巴西 Brazil',TRY:'土耳其 Turkey Türkiye',ZAR:'南非 South Africa',AED:'阿聯酋 阿拉伯聯合大公國 UAE United Arab Emirates',SAR:'沙烏地阿拉伯 Saudi Arabia',NOK:'挪威 Norway',SEK:'瑞典 Sweden',DKK:'丹麥 Denmark',CZK:'捷克 Czechia Czech Republic',PLN:'波蘭 Poland',HUF:'匈牙利 Hungary',ILS:'以色列 Israel',QAR:'卡達 Qatar',OMR:'阿曼 Oman',BHD:'巴林 Bahrain',KWD:'科威特 Kuwait',JOD:'約旦 Jordan',EGP:'埃及 Egypt',MAD:'摩洛哥 Morocco',GEL:'喬治亞 Georgia',ISK:'冰島 Iceland',RON:'羅馬尼亞 Romania',BGN:'保加利亞 Bulgaria',RSD:'塞爾維亞 Serbia',KES:'肯亞 Kenya',TZS:'坦尚尼亞 Tanzania',NPR:'尼泊爾 Nepal',LKR:'斯里蘭卡 Sri Lanka',PKR:'巴基斯坦 Pakistan',BDT:'孟加拉 Bangladesh',KHR:'柬埔寨 Cambodia',LAK:'寮國 Laos',MMK:'緬甸 Myanmar Burma',MNT:'蒙古 Mongolia',UZS:'烏茲別克 Uzbekistan',KZT:'哈薩克 Kazakhstan'
 };
+Object.assign(CUR_ZH,{CVE:'維德角埃斯庫多'});
+delete CUR_ZH.BGN;
+Object.assign(CUR_COUNTRY,{
+  CVE:'維德角 佛得角 Cabo Verde Cabo Verdo Cape Verde',
+  USD:'美國 United States USA America Ecuador El Salvador Panama Puerto Rico',
+  EUR:'歐洲 歐元區 Europe European Union EU France Germany Italy Spain Portugal Austria Belgium Bulgaria Croatia Cyprus Estonia Finland Greece Ireland Latvia Lithuania Luxembourg Malta Montenegro Netherlands Slovakia Slovenia',
+  AUD:'澳洲 澳大利亞 Australia Kiribati Nauru Tuvalu',INR:'印度 India Bhutan',CHF:'瑞士 Switzerland Liechtenstein',NZD:'紐西蘭 新西蘭 New Zealand Cook Islands Niue Tokelau',ZAR:'南非 South Africa Lesotho Namibia',DKK:'丹麥 Denmark Faroe Islands Greenland',
+  XAF:'Cameroon Central African Republic Chad Congo Equatorial Guinea Gabon',XCD:'Anguilla Antigua and Barbuda Dominica Grenada Montserrat Saint Kitts and Nevis Saint Lucia Saint Vincent and the Grenadines',XCG:'Curaçao Curacao Sint Maarten',XOF:'Benin Burkina Faso Ivory Coast Côte d Ivoire Guinea-Bissau Mali Niger Senegal Togo',XPF:'French Polynesia New Caledonia Wallis and Futuna'
+});
+delete CUR_COUNTRY.BGN;
+// ISO 4217 List One（2026-01-01）的現行國家幣別代碼。
+const CUR_ISO_CODES='AED AFN ALL AMD AOA ARS AUD AWG AZN BAM BBD BDT BHD BIF BMD BND BOB BRL BSD BTN BWP BYN BZD CAD CDF CHF CLP CNY COP CRC CUP CVE CZK DJF DKK DOP DZD EGP ERN ETB EUR FJD FKP GBP GEL GHS GIP GMD GNF GTQ GYD HKD HNL HTG HUF IDR ILS INR IQD IRR ISK JMD JOD JPY KES KGS KHR KMF KPW KRW KWD KYD KZT LAK LBP LKR LRD LSL LYD MAD MDL MGA MKD MMK MNT MOP MRU MUR MVR MWK MXN MYR MZN NAD NGN NIO NOK NPR NZD OMR PAB PEN PGK PHP PKR PLN PYG QAR RON RSD RUB RWF SAR SBD SCR SDG SEK SGD SHP SLE SOS SRD SSP STN SVC SYP SZL THB TJS TMT TND TOP TRY TTD TWD TZS UAH UGX USD UYU UZS VES VND VUV WST XAF XCD XCG XOF XPF YER ZAR ZMW ZWG'.split(' ');
+const _EN_REGION_NAMES=typeof Intl!=='undefined'&&Intl.DisplayNames?new Intl.DisplayNames(['en'],{type:'region'}):null;
+const _EN_CURRENCY_NAMES=typeof Intl!=='undefined'&&Intl.DisplayNames?new Intl.DisplayNames(['en'],{type:'currency'}):null;
+function intlName(displayNames,code){try{return displayNames?.of(code)||'';}catch{return '';}}
 const AVATAR_COLORS=[
   {id:'red',    bg:'#EF4444',text:'#fff'},      // 紅
   {id:'orange', bg:'#F97316',text:'#fff'},      // 橙
@@ -1831,6 +1875,7 @@ const App = {
   _summaryView:'group', _filterCat:null, _filterPending:false, _filterMember:null, _filterPayMethod:null, _filterSelfMode:null, _filterPartsFor:null, _filterGroupScope:null, _jumpOriginMember:null, _collapseAnchor:null, _filterExpanded:false, _showAddMember:false, _addAsFund:false, _editingMember:null, _createAvatar:null, _editAvatar:null, _settleCur:null, _summaryIncludePersonal:true, _expandedMemberSummary:{}, _expandedDebt:{}, _editingDebt:{}, _expandedHistoric:{}, _expandedExp:{}, _fundCardExpanded:false, _payRecExpanded:false, _editingFundDeposits:false,
 
   go(s){
+    if(this.screen==='rates'&&s!=='rates') this.resetRatesDisclosures();
     document.querySelectorAll('.screen').forEach(e=>e.classList.remove('active'));
     document.getElementById(`s-${s}`)?.classList.add('active');
     this.screen=s; window.scrollTo(0,0);
@@ -2634,10 +2679,12 @@ const App = {
     // Currency selector
     if(!this._settleCur) this._settleCur=t.baseCurrency;
     const dispCur=this._settleCur;
-    const dispSym=(C[dispCur]||C.TWD).sym;
+    const dispSym=curSym(dispCur);
     const fmtS=v=>{
       const converted=toBase(v,t.baseCurrency,t.rates,dispCur);
-      return `${dispSym}${Math.round(Math.abs(converted)).toLocaleString()}`;
+      const abs=Math.abs(converted);
+      const shown=dispCur==='TWD'?Math.round(abs):parseFloat(abs.toFixed(3));
+      return `${dispSym}${shown.toLocaleString(undefined,{maximumFractionDigits:3})}`;
     };
     const allCurs=['TWD','JPY','USD','EUR','GBP','KRW','VND','THB','IDR',...(t.customCurrencies||[]).map(c=>c.code)].filter((v,i,a)=>a.indexOf(v)===i);
     // Currencies actually used in this trip (excluding base)
@@ -3451,7 +3498,7 @@ const App = {
     if(labelEl) labelEl.textContent=existing?'存入者（編輯時不可變更）':'存入者（可多選）';
     // 成員勾選按鈕
     const membersEl=document.getElementById('fund-dep-members');
-    membersEl.innerHTML=regular.map(m=>{
+    membersEl.innerHTML=regular.length?regular.map(m=>{
       const sel=existing?existing.fromMemberId===m.id:true;
       if(existing){
         return `<button type="button" id="fdm-${m.id}" data-sel="${sel?'1':''}" disabled
@@ -3459,7 +3506,17 @@ const App = {
       }
       return `<button type="button" id="fdm-${m.id}" data-sel="${sel?'1':''}" onclick="App.toggleFundMember('${m.id}')"
         style="padding:6px 14px;border-radius:999px;border:1.5px solid ${sel?'var(--accent)':'var(--border)'};background:${sel?'var(--accent)':'#fff'};color:${sel?'#fff':'var(--t1)'};font-size:13px;font-weight:600;cursor:pointer;">${m.name}</button>`;
-    }).join('');
+    }).join(''):`<div style="width:100%;padding:12px 14px;border-radius:12px;background:#F8FAFC;color:var(--t2);font-size:12px;line-height:1.6;">
+      尚未有一般成員。公款帳需要指定存入者，請先
+      <button type="button" onclick="App.goAddMemberFromFundDeposit()" style="border:none;background:none;color:var(--accent);font:inherit;font-weight:700;padding:0;cursor:pointer;">新增成員 →</button>
+    </div>`;
+    const saveBtn=document.getElementById('fund-dep-save');
+    if(saveBtn){
+      const unavailable=!existing&&!regular.length;
+      saveBtn.disabled=unavailable;
+      saveBtn.style.opacity=unavailable?'.45':'1';
+      saveBtn.style.cursor=unavailable?'not-allowed':'pointer';
+    }
     if(existing){
       document.getElementById('fund-dep-amt').value=existing.amt;
       document.getElementById('fund-dep-cur').value=existing.cur||baseCur;
@@ -3473,6 +3530,13 @@ const App = {
     }
     this._editingDepId=depId||null;
     this.openModal('m-fund-deposit');
+  },
+  goAddMemberFromFundDeposit(){
+    this.closeModal('m-fund-deposit');
+    this._showAddMember=true;
+    this._addAsFund=false;
+    this.switchTab('members');
+    setTimeout(()=>document.getElementById('in-member')?.focus(),80);
   },
   toggleFundMember(mid){
     const btn=document.getElementById(`fdm-${mid}`);
@@ -4332,6 +4396,8 @@ const App = {
     if(!t){this.go('trip');return;}
     this._ratesDirty=false;// 進頁面時重設未儲存狀態
     this._dirtyRateCodes=new Set();
+    const todayKey=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Taipei'});
+    this._todayRateCodes=new Set(Object.entries(t.rateUpdatedAt||{}).filter(([,date])=>date===todayKey).map(([code])=>code));
     const ratesView=this._ratesView==='cash'?'cash':'general';
     const _pencil='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>';
     const fxTargets=[...new Set((t.fxExchanges||[]).map(r=>r.toCurrency).filter(Boolean))].filter(code=>cashRateInfo(t,code));
@@ -4339,19 +4405,25 @@ const App = {
       const info=cashRateInfo(t,code);
       const name=C[code]?.name||(t.customCurrencies||[]).find(c=>c.code===code)?.name||code;
       const rate=info.rate>=1?+info.rate.toFixed(2):+info.rate.toPrecision(5);
-      return `<button type="button" onclick="App.openFxExchangeHistory('${code}')" style="width:100%;padding:12px 0;border:none;border-bottom:${index===fxTargets.length-1?'none':'1px solid var(--border)'};background:transparent;display:flex;align-items:center;gap:10px;text-align:left;font:inherit;cursor:pointer;">
+      return `<button type="button" onclick="App.openFxExchangeHistory('${code}')" style="width:100%;padding:12px 0;border:none;border-bottom:${index===fxTargets.length-1?'none':'1px solid var(--border)'};background:transparent;display:flex;align-items:center;gap:9px;text-align:left;font:inherit;cursor:pointer;color:var(--t1);">
         <div style="font-size:22px;">${curFlag(code)}</div>
-        <div style="flex:1;min-width:0;"><div class="sm semibold">${code} ${name}</div><div class="xs muted" style="line-height:1.45;">換了 ${info.count} 次，共換得<br>${fmtFxNum(info.totalReceived)} ${code}</div></div>
-        <div style="text-align:right;flex-shrink:0;"><div class="xs muted">平均換匯成本</div><div class="sm semibold accent">1 ${code} = ${rate} TWD</div></div>
+        <div style="flex:1;min-width:0;"><div class="sm semibold">1 ${code}</div><div class="xs muted">${name}</div><div class="xs muted" style="line-height:1.45;margin-top:3px;">換了 ${info.count} 次 · 共換得<br>${fmtFxNum(info.totalReceived)} ${code}</div></div>
+        <span class="xs muted" aria-hidden="true">=</span>
+        <div style="text-align:right;flex-shrink:0;max-width:43%;"><div class="sm semibold" style="color:var(--t1);overflow-wrap:anywhere;">${rate} TWD</div><div class="xs muted">換匯平均</div></div>
+        <span style="color:var(--t2);font-size:20px;font-weight:400;line-height:1;" aria-hidden="true">›</span>
       </button>`;
     }).join('');
     const usedAt={};
+    const usedCurrencyCodes=new Set();
     Object.values(t.expenses||{}).forEach((e,index)=>{
       const code=e?.currency;
+      if(code) usedCurrencyCodes.add(code);
       if(code&&code!=='TWD') usedAt[code]=Math.max(usedAt[code]||0,Number(e.createdAt)||index+1);
     });
+    (t.fxExchanges||[]).forEach(r=>{if(r.fromCurrency)usedCurrencyCodes.add(r.fromCurrency);if(r.toCurrency)usedCurrencyCodes.add(r.toCurrency);});
+    (t.fundDeposits||[]).forEach(d=>{if(d.cur)usedCurrencyCodes.add(d.cur);});
     const builtInRateItems=Object.keys(C).filter(code=>code!=='TWD').map((code,index)=>({code,name:C[code].name,flag:C[code].flag,isCustom:false,order:index}));
-    const customRateItems=(t.customCurrencies||[]).filter(cc=>cc.code&&cc.code!=='TWD'&&!C[cc.code]).map((cc,index)=>({code:cc.code,name:cc.name,flag:curFlag(cc.code),isCustom:true,order:builtInRateItems.length+index}));
+    const customRateItems=(t.customCurrencies||[]).filter(cc=>cc.code&&cc.code!=='TWD'&&!C[cc.code]).map((cc,index)=>({code:cc.code,name:cc.name,flag:curFlag(cc.code),isCustom:true,isInUse:usedCurrencyCodes.has(cc.code),order:builtInRateItems.length+index}));
     const rateItems=[...builtInRateItems,...customRateItems].sort((a,b)=>{
       const aUsed=usedAt[a.code]||0,bUsed=usedAt[b.code]||0;
       if(!!aUsed!==!!bUsed) return aUsed?-1:1;
@@ -4363,6 +4435,7 @@ const App = {
     const rateRow=item=>{
       const {code,name,flag,isCustom}=item;
       const isAdj=!isCustom&&t.rates[code]!=null&&Math.abs(t.rates[code]-DEF[code])>1e-9;
+      const isToday=this._todayRateCodes.has(code);
       return `
       <div class="rate-row">
         <div style="font-size:22px;">${flag}</div>
@@ -4373,7 +4446,7 @@ const App = {
           ${_pencil}
         </div>
         <span class="xs muted">TWD</span>
-        ${isCustom?`<span title="自訂幣別" style="width:48px;font-size:10.5px;color:var(--t2);padding:2px;white-space:nowrap;flex-shrink:0;text-align:right;">自訂</span>`:`<button id="ratestate-${code}" onclick="App.resetOneRate('${code}')" title="${isAdj?'點一下改回預設 '+DEF[code]:'目前為預設值'}" style="width:48px;font-size:10.5px;border:none;background:none;cursor:pointer;padding:2px;white-space:nowrap;flex-shrink:0;text-align:right;color:var(--t2);">${isAdj?'已調整 ↺':'預設'}</button>`}
+        ${isCustom?`<span id="ratestate-${code}" title="自訂幣別" style="width:48px;font-size:10.5px;color:var(--t2);padding:2px;white-space:nowrap;flex-shrink:0;text-align:right;">${isToday?'今日匯率':'自訂'}</span>`:`<button id="ratestate-${code}" onclick="App.resetOneRate('${code}')" title="${isToday?'今天從系統更新':isAdj?'點一下改回預設 '+DEF[code]:'目前為預設值'}" style="width:48px;font-size:10.5px;border:none;background:none;cursor:pointer;padding:2px;white-space:nowrap;flex-shrink:0;text-align:right;color:var(--t2);">${isToday?'今日匯率':isAdj?'已調整 ↺':'預設'}</button>`}
       </div>`;
     };
     const firstRateRows=rateItems.slice(0,3).map(rateRow).join('');
@@ -4403,7 +4476,7 @@ const App = {
           <summary><span>匯率來源與更多設定</span><span class="rates-chevron" aria-hidden="true"></span></summary>
           <div class="rates-more-body">即時匯率來源：<a href="https://www.exchangerate-api.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">ExchangeRate-API</a><br>彙整各國央行與商業來源，每日更新。
             <button class="btn btn-ghost btn-full" type="button" onclick="App.resetRates()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> 還原預設匯率</button>
-            ${customRateItems.length?`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);text-align:left;"><div style="font-size:11.5px;font-weight:700;color:var(--t1);margin-bottom:5px;">管理自訂幣別</div>${customRateItems.map(item=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;"><span>${item.flag} ${item.code} ${item.name}</span><button type="button" onclick="App.deleteCustomCurrency('${item.code}')" style="border:none;background:none;color:#EF4444;font-size:11px;cursor:pointer;">刪除</button></div>`).join('')}</div>`:''}
+            ${customRateItems.length?`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);text-align:left;"><div style="font-size:11.5px;font-weight:700;color:var(--t1);margin-bottom:3px;">管理自訂幣別</div><div style="font-size:10.5px;color:var(--t2);line-height:1.5;margin-bottom:4px;">使用中的幣別需先移除相關支出、換匯或公款紀錄，才能刪除。</div>${customRateItems.map(item=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;"><span>${item.flag} ${item.code} ${item.name}</span>${item.isInUse?`<span style="color:var(--t2);font-size:11px;">使用中</span>`:`<button type="button" onclick="App.deleteCustomCurrency('${item.code}')" style="border:none;background:none;color:#EF4444;font-size:11px;cursor:pointer;">刪除</button>`}</div>`).join('')}</div>`:''}
           </div>
         </details>
       </div>
@@ -4445,6 +4518,17 @@ const App = {
     btn.setAttribute('aria-expanded',String(willOpen));
     const label=btn.querySelector('.rates-more-label');
     if(label) label.textContent=willOpen?'收合其他幣別':`顯示其他 ${extra.dataset.count} 個`;
+  },
+  resetRatesDisclosures(){
+    const extra=document.getElementById('rate-extra');
+    const btn=document.getElementById('rate-more-btn');
+    if(extra) extra.style.display='none';
+    if(btn){
+      btn.setAttribute('aria-expanded','false');
+      const label=btn.querySelector('.rates-more-label');
+      if(label) label.textContent=`顯示其他 ${extra?.dataset.count||0} 個`;
+    }
+    document.querySelectorAll('.rates-more-settings[open]').forEach(el=>el.removeAttribute('open'));
   },
 
   _fxCurrencyCodes(t){
@@ -4651,24 +4735,29 @@ const App = {
     if(!n){box.style.display='none';return;}
     const t=loadTrip(this.tripId);
     const customCodes=new Set((t?.customCurrencies||[]).map(c=>c.code));
-    const results=Object.entries(CUR_ZH).filter(([code,zh])=>
-      `${code} ${zh} ${CUR_COUNTRY[code]||''}`.toLowerCase().includes(n)
-    ).slice(0,8).map(([code,zh])=>({code,zh,country:(CUR_COUNTRY[code]||'').replace(/[A-Za-z].*$/,'').trim(),exists:!!C[code]||customCodes.has(code)}));
+    const codes=[...new Set([...CUR_ISO_CODES,...Object.keys(CUR_ZH)])];
+    const results=codes.map(code=>{
+      const enCurrency=intlName(_EN_CURRENCY_NAMES,code);
+      const enCountry=code[0]!=='X'?intlName(_EN_REGION_NAMES,code.slice(0,2)):'';
+      const zh=CUR_ZH[code]||enCurrency||code;
+      const aliases=CUR_COUNTRY[code]||'';
+      return {code,zh,enCurrency,enCountry,aliases,exists:!!C[code]||customCodes.has(code)};
+    }).filter(item=>`${item.code} ${item.zh} ${item.enCurrency} ${item.enCountry} ${item.aliases}`.toLowerCase().includes(n)).slice(0,8);
     if(!results.length){box.style.display='none';return;}
     box.style.display='block';
-    box.innerHTML=results.map(({code,zh,country,exists})=>`
-      <button type="button" ${exists?'disabled':`onclick="App.selectCurrencySuggestion('${code}','${zh}')"`} style="width:100%;display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:${exists?'default':'pointer'};border:none;border-bottom:1px solid var(--border);background:#fff;text-align:left;opacity:${exists?'.58':'1'};font:inherit;">
+    box.innerHTML=results.map(({code,zh,enCurrency,enCountry,aliases,exists})=>`
+      <button type="button" ${exists?'disabled':`onclick="App.selectCurrencySuggestion('${code}')"`} style="width:100%;display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:${exists?'default':'pointer'};border:none;border-bottom:1px solid var(--border);background:#fff;text-align:left;opacity:${exists?'.58':'1'};font:inherit;">
         <span style="font-size:20px;">${curFlag(code)}</span>
-        <span style="flex:1;min-width:0;"><span style="display:block;font-size:13px;font-weight:700;color:var(--t1);">${code} · ${zh}</span><span style="display:block;font-size:11px;color:var(--t2);margin-top:2px;">${country||CUR_COUNTRY[code]||''}</span></span>
+        <span style="flex:1;min-width:0;"><span style="display:block;font-size:13px;font-weight:700;color:var(--t1);">${code} · ${zh}</span><span style="display:block;font-size:11px;color:var(--t2);margin-top:2px;">${[aliases,enCountry,enCurrency!==zh?enCurrency:''].filter(Boolean).join(' · ')}</span></span>
         ${exists?'<span style="font-size:10.5px;color:var(--t2);white-space:nowrap;">已在列表</span>':''}
       </button>`).join('');
   },
-  selectCurrencySuggestion(code,zh){
+  selectCurrencySuggestion(code){
     const codeEl=document.getElementById('r-new-code');
     const nameEl=document.getElementById('r-new-name');
     const box=document.getElementById('cur-suggestions');
     if(codeEl) codeEl.value=code;
-    if(nameEl) nameEl.value=zh;
+    if(nameEl) nameEl.value=CUR_ZH[code]||intlName(_EN_CURRENCY_NAMES,code)||code;
     if(box) box.style.display='none';
     this.autoFillRate(code);
   },
@@ -4678,8 +4767,8 @@ const App = {
     const rateEl=document.getElementById('r-new-rate');
     const nameEl=document.getElementById('r-new-name');
     if(!rateEl) return;
-    // auto-fill name from Chinese map
-    if(nameEl&&!nameEl.value&&CUR_ZH[code]) nameEl.value=CUR_ZH[code];
+    // auto-fill name from Chinese map, then fall back to the official English currency name
+    if(nameEl&&!nameEl.value) nameEl.value=CUR_ZH[code]||intlName(_EN_CURRENCY_NAMES,code)||'';
     if(DEF[code]){rateEl.value=DEF[code];return;}
     if(code.length!==3) return;
     try{
@@ -4688,7 +4777,7 @@ const App = {
       const r=rateData.rates?.[code];
       if(r){const v=1/r; rateEl.value=v>=1?+(v.toFixed(2)):+(v.toPrecision(4));}
       if(nameEl&&!nameEl.value){
-        const n=CUR_ZH[code];
+        const n=CUR_ZH[code]||intlName(_EN_CURRENCY_NAMES,code);
         if(n) nameEl.value=n;
       }
     }catch(e){}
@@ -4711,6 +4800,9 @@ const App = {
           const v=1/rate;
           el.value=v>=1?+(v.toFixed(2)):+(v.toPrecision(4));
           this.onRateInput(c,DEF[c]==null);
+          this._todayRateCodes.add(c);
+          const st=document.getElementById('ratestate-'+c);
+          if(st){st.textContent='今日匯率';st.title='今天從系統更新';}
         }
       });
       const note=document.getElementById('rates-current-note');
@@ -4727,6 +4819,7 @@ const App = {
     const el=document.getElementById('r-'+code);
     if(!el) return;
     const v=parseFloat(el.value);
+    this._todayRateCodes?.delete(code);
     if(!isCustom){
       const def=DEF[code];
       const isAdj=!isNaN(v)&&Math.abs(v-def)>1e-9;
@@ -4734,6 +4827,9 @@ const App = {
       if(wrap) wrap.classList.toggle('adjusted',isAdj);
       const st=document.getElementById('ratestate-'+code);
       if(st){st.textContent=isAdj?'已調整 ↺':'預設';st.style.color='var(--t2)';st.title=isAdj?'點一下改回預設 '+def:'目前為預設值';}
+    } else {
+      const st=document.getElementById('ratestate-'+code);
+      if(st){st.textContent='自訂';st.title='自訂幣別';}
     }
     this._ratesDirty=true;
     if(!this._dirtyRateCodes) this._dirtyRateCodes=new Set();
@@ -4764,6 +4860,12 @@ const App = {
     (t.customCurrencies||[]).forEach(cc=>{
       const v=parseFloat(document.getElementById(`r-${cc.code}`)?.value);
       if(v>0) t.rates[cc.code]=v;
+    });
+    const todayKey=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Taipei'});
+    if(!t.rateUpdatedAt) t.rateUpdatedAt={};
+    (this._dirtyRateCodes||new Set()).forEach(code=>{
+      if(this._todayRateCodes?.has(code)) t.rateUpdatedAt[code]=todayKey;
+      else delete t.rateUpdatedAt[code];
     });
     saveTrip(t); this.renderRates(); this.showToast('匯率已儲存 ✓');
   },
@@ -4807,8 +4909,11 @@ const App = {
   deleteCustomCurrency(code){
     const t=loadTrip(this.tripId);
     if(!t) return;
-    if((t.fxExchanges||[]).some(r=>r.fromCurrency===code||r.toCurrency===code)){
-      this.showToast(`${code} 已有換匯紀錄，請先刪除相關紀錄`);return;
+    const inExpense=Object.values(t.expenses||{}).some(e=>e.currency===code);
+    const inFx=(t.fxExchanges||[]).some(r=>r.fromCurrency===code||r.toCurrency===code);
+    const inFund=(t.fundDeposits||[]).some(d=>d.cur===code);
+    if(inExpense||inFx||inFund){
+      this.showToast(`${code} 正在使用中，請先移除相關支出、換匯或公款紀錄`);return;
     }
     if(!confirm(`確定要刪除幣別「${code}」？`)) return;
     t.customCurrencies=(t.customCurrencies||[]).filter(c=>c.code!==code);
@@ -5891,6 +5996,12 @@ function runSelfTest(){
 }
 
 // ─── INIT ────────────────────────────────────────────────────
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden&&App.screen==='rates') App.resetRatesDisclosures();
+});
+window.addEventListener('pagehide',()=>{
+  if(App.screen==='rates') App.resetRatesDisclosures();
+});
 window.addEventListener('load',async()=>{
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('./sw.js').catch(()=>{});
