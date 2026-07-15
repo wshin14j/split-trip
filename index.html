@@ -694,8 +694,12 @@ select.input{
       </div>
     </details>
     <details class="faq-item">
-      <summary>什麼是第三貨幣換匯？</summary>
-      <div class="faq-a">適合兩段式現金換匯：台幣 (TWD) ➔ 美金／歐元 ➔ 當地貨幣。點「＋ 記錄換匯」，填入「用多少換到多少」即可；中繼幣匯率會自動帶入，也能手動修改。</div>
+      <summary>什麼是「第三貨幣換匯」？</summary>
+      <div class="faq-a">
+        適合兩段式現金換匯。
+        <div style="margin-top:8px;">例如：先用<strong style="color:var(--t1);">台幣換美金／歐元</strong>，抵達當地後，再<strong style="color:var(--t1);">用美金／歐元兌換為當地貨幣</strong>。</div>
+        <div style="margin-top:8px;">點擊「＋ 記錄換匯」並填入實際換出與換得金額即可。系統會自動帶入換匯當時的美金／歐元兌台幣匯率，也可以手動修正；<strong style="color:var(--t1);">「台幣 ➔ 當地貨幣」的換匯成本則由系統自動計算。</strong></div>
+      </div>
     </details>
     <details class="faq-item">
       <summary>當地換匯換了好幾次，匯率會怎麼算？</summary>
@@ -909,13 +913,13 @@ select.input{
           <div><strong style="color:var(--t1);">現金支出：</strong>該幣別有記錄「第三貨幣換匯」時，使用「第三貨幣換匯（平均）」。</div>
           <div><strong style="color:var(--t1);">尚未記錄第三貨幣換匯：</strong>現金支出先使用一般匯率。</div>
         </div>
-        <div style="margin-top:10px;">如果是台幣 (TWD) ➔ 美金／歐元 ➔ 當地貨幣，到「匯率設定」的「第三貨幣換匯」點「＋ 記錄換匯」，直接填寫「用多少換到多少」。換了多次也可全部記下，系統會依各次金額算出「第三貨幣換匯（平均）」。</div>
+        <div style="margin-top:10px;">如果是台幣 (TWD) ➔ 美金／歐元 ➔ 當地貨幣，到「匯率設定」的「第三貨幣換匯」點「＋ 記錄換匯」，填入實際換出與換得金額。美金／歐元當時兌台幣的匯率可以手動修正；「台幣 ➔ 當地貨幣」的換匯成本則由系統自動計算。換了多次也可全部記下，系統會依各次金額算出「第三貨幣換匯（平均）」。</div>
       </div>
     </details>
     <details class="faq-item">
       <summary>當地換匯換了好幾次，匯率會怎麼算？</summary>
       <div class="faq-a">
-        到「匯率設定」的「第三貨幣換匯」點「＋ 記錄換匯」，直接填「用多少幣別，換到多少當地貨幣」。如果是台幣 (TWD) ➔ 美金／歐元 ➔ 當地貨幣，中繼幣匯率會自動帶入，也能手動修改。
+        到「匯率設定」的「第三貨幣換匯」點「＋ 記錄換匯」，直接填「用多少幣別，換到多少當地貨幣」。如果是台幣 (TWD) ➔ 美金／歐元 ➔ 當地貨幣，美金／歐元當時兌台幣的匯率會自動帶入，也能手動修正。
         <div style="margin-top:10px;">途中換了多次就逐筆加入，系統會依各次金額計算「第三貨幣換匯（平均）」。要查看或修改時，直接點 OMR、IDR 等幣別列，即可逐筆修改或刪除。</div>
         <div style="margin-top:10px;color:var(--t2);">匯率設定頁右上角的「？」有完整說明。</div>
       </div>
@@ -2701,7 +2705,7 @@ const App = {
         ${cash?`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:5px;"><span style="font-size:12px;color:var(--t2);">${c} 第三貨幣換匯（平均）</span><span style="font-size:12px;font-weight:600;color:var(--t1);">${baseSym}${cashDisp}</span></div>`:''}
       </div>`;
     }).join('');
-    const curSelect=`<div class="card" style="padding:14px 16px;margin-bottom:16px;">
+    const curSelect=`<div class="card" style="padding:10px 16px 14px;margin-bottom:16px;">
       <label class="settle-currency-row settle-currency-picker">
         <span>結算幣別</span>
         <span class="settle-currency-value" aria-hidden="true">
