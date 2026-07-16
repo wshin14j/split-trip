@@ -111,9 +111,9 @@ input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
 .input-lg{height:52px;font-size:16px;}
 #fx-date{
   display:block;width:100%;max-width:100%;min-width:0;min-inline-size:0;
-  -webkit-appearance:none;appearance:none;text-align:center;
+  -webkit-appearance:none;appearance:none;text-align:center;line-height:52px;
 }
-#fx-date::-webkit-date-and-time-value{text-align:center;}
+#fx-date::-webkit-date-and-time-value{display:flex;align-items:center;justify-content:center;height:100%;padding:0;text-align:center;line-height:normal;}
 select.input{
   appearance:none;
   background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -346,15 +346,35 @@ select.input{
 .rate-input-wrap input::-webkit-outer-spin-button,.rate-input-wrap input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .rate-input-wrap svg{color:var(--t3);flex-shrink:0;}
 .rate-input-wrap.adjusted input{font-weight:500;}
-.rates-mode-switch{margin-bottom:18px;}
-.rates-mode-switch .tab-btn{font-size:13px;}
+.rates-mode-switch{
+  position:relative;align-items:flex-end;gap:10px;margin-bottom:0;padding:8px 12px 0;
+  overflow:visible;border-bottom:1px solid var(--border);border-radius:16px 16px 0 0;background:#F3F4F6;
+}
+.rates-mode-switch .tab-btn{
+  position:relative;z-index:1;height:44px;border-radius:14px 14px 0 0;
+  font-size:13px;font-weight:600;color:var(--t2);
+}
+.rates-mode-switch .tab-btn.on{
+  z-index:2;background:#fff;color:var(--primary);box-shadow:0 1px 0 #fff;
+}
+.rates-mode-switch .tab-btn.on::before,.rates-mode-switch .tab-btn.on::after{
+  content:'';position:absolute;bottom:-1px;width:14px;height:14px;pointer-events:none;
+}
+.rates-mode-switch .tab-btn.on::before{
+  left:-14px;border-bottom-right-radius:14px;box-shadow:6px 6px 0 6px #fff;
+}
+.rates-mode-switch .tab-btn.on::after{
+  right:-14px;border-bottom-left-radius:14px;box-shadow:-6px 6px 0 6px #fff;
+}
+.rates-tab-panel{padding-top:18px;}
 .rates-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 4px;}
 .rates-section-title{font-size:14px;font-weight:700;color:var(--t1);}
 .rates-section-copy{font-size:11.5px;color:var(--t2);line-height:1.55;margin:0 2px 10px;}
 .rates-inline-action{border:none;background:none;color:var(--accent);font-size:12px;font-weight:700;padding:3px 0;cursor:pointer;white-space:nowrap;}
-.rates-status{display:flex;align-items:center;gap:12px;padding:11px 12px;margin-bottom:12px;border-radius:12px;background:var(--surface);border:1px solid #E5E7EB;}
-.rates-status-copy{flex:1;min-width:0;font-size:11.5px;color:var(--t2);line-height:1.5;}
-.rates-status-copy strong{display:block;color:var(--t1);font-size:12px;margin-bottom:1px;}
+.rates-status{display:flex;flex-direction:column;gap:5px;padding:11px 12px;margin-bottom:12px;border-radius:12px;background:var(--surface);border:1px solid #E5E7EB;}
+.rates-status-top{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.rates-status-title{color:var(--t1);font-size:12px;font-weight:700;}
+.rates-status-copy{min-width:0;font-size:11px;color:var(--t2);line-height:1.45;white-space:nowrap;}
 .rates-update-btn{height:34px;border:none;border-radius:10px;padding:0 11px;background:var(--primary);color:#fff;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
 .rates-list{overflow:hidden;margin-bottom:8px;border-radius:16px;box-shadow:0 1px 5px rgba(0,0,0,.07);}
 .rates-more-row{text-align:right;margin:2px 2px 14px;}
@@ -365,9 +385,14 @@ select.input{
 .rates-more-settings summary{list-style:none;cursor:pointer;color:var(--t2);font-size:11.5px;padding:6px;display:flex;align-items:center;justify-content:center;gap:7px;}
 .rates-more-settings summary::-webkit-details-marker{display:none;}
 .rates-more-settings[open] summary .rates-chevron{transform:rotate(225deg);margin-top:4px;}
-.rates-more-body{padding:8px 4px 0;text-align:center;color:var(--t2);font-size:10.5px;line-height:1.6;}
-.rates-reset-link{display:flex;align-items:center;gap:5px;width:max-content;margin:8px 2px 0 auto;padding:4px 0;border:none;background:none;color:var(--t2);font-size:11px;font-weight:600;cursor:pointer;}
-.rates-reset-link:active{color:var(--t1);}
+.rates-more-body{padding:8px 4px 0;text-align:left;color:var(--t2);font-size:10.5px;line-height:1.6;}
+.rates-more-section{padding:10px 2px 12px;}
+.rates-more-section+.rates-more-section{border-top:1px solid var(--border);}
+.rates-more-title{font-size:11.5px;font-weight:700;color:var(--t1);margin-bottom:3px;}
+.rates-more-copy{font-size:10.5px;color:var(--t2);line-height:1.55;}
+.rates-reset-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.rates-reset-action{display:flex;align-items:center;justify-content:center;gap:4px;height:30px;padding:0 10px;flex-shrink:0;border:1px solid var(--border);border-radius:9px;background:#fff;color:var(--primary);font-size:10.5px;font-weight:700;cursor:pointer;}
+.rates-reset-action:active{background:var(--surface);}
 .settle-currency-card{padding:4px 16px;margin-bottom:16px;}
 .settle-currency-row{height:44px;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0;color:var(--t2);font-size:12px;font-weight:500;}
 .settle-currency-picker{position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
@@ -490,10 +515,10 @@ select.input{
     </div>
   </div>
   <div style="padding:14px 20px 12px;background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;">
-    <div class="tab-switch" id="trip-tabs">
-      <button class="tab-btn on" onclick="App.switchTab('expenses')">支出</button>
-      <button class="tab-btn" onclick="App.switchTab('settlement')">結算</button>
-      <button class="tab-btn" onclick="App.switchTab('members')">成員</button>
+    <div class="tab-switch" id="trip-tabs" role="tablist" aria-label="旅程功能">
+      <button class="tab-btn on" type="button" role="tab" aria-selected="true" onclick="App.pressTripTab(event,'expenses')" ontouchend="App.touchTripTab(event,'expenses')">支出</button>
+      <button class="tab-btn" type="button" role="tab" aria-selected="false" onclick="App.pressTripTab(event,'settlement')" ontouchend="App.touchTripTab(event,'settlement')">結算</button>
+      <button class="tab-btn" type="button" role="tab" aria-selected="false" onclick="App.pressTripTab(event,'members')" ontouchend="App.touchTripTab(event,'members')">成員</button>
     </div>
   </div>
   <div id="trip-summary-outer" style="display:none;flex-shrink:0;padding:16px 20px 10px;background:var(--bg);position:sticky;top:0;z-index:10;"></div>
@@ -627,7 +652,7 @@ select.input{
         </div>
       </div>
       <div style="text-align:right;margin:-2px 2px 12px;">
-        <button type="button" onclick="App.openAddCurrency('fx')" style="border:none;background:none;color:var(--accent);font-size:12px;font-weight:600;padding:4px 0;cursor:pointer;">找不到當地貨幣？＋ 新增幣別</button>
+        <button type="button" onclick="App.openAddCurrency('fx')" style="border:none;background:none;color:var(--accent);font-size:12px;font-weight:600;padding:4px 0;cursor:pointer;">找不到需要的幣別？＋ 新增幣別</button>
       </div>
       <div class="mb3">
         <label class="form-label" id="fx-source-rate-label">換出幣別的當時匯率</label>
@@ -656,14 +681,14 @@ select.input{
     <div class="modal-handle"></div>
     <button class="modal-x-btn" onclick="App.closeModal('m-add-currency')">×</button>
     <div class="modal-title">新增幣別</div>
-    <div class="mb3">
-      <label class="form-label">幣別代碼</label>
-      <input id="r-new-code" class="input" placeholder="例如 OMR" style="text-transform:uppercase;" oninput="App.autoFillRate(this.value)">
-    </div>
     <div class="mb3" style="position:relative;">
       <label class="form-label">幣別名稱</label>
       <input id="r-new-name" class="input" placeholder="輸入國家、幣別名稱或代碼" oninput="App.searchCurrency(this.value)" autocomplete="off">
       <div id="cur-suggestions" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:50;display:none;max-height:200px;overflow-y:auto;"></div>
+    </div>
+    <div class="mb3">
+      <label class="form-label">幣別代碼</label>
+      <input id="r-new-code" class="input" placeholder="例如 OMR" style="text-transform:uppercase;" oninput="App.autoFillRate(this.value)">
     </div>
     <div class="mb3">
       <label class="form-label">一般匯率</label>
@@ -672,7 +697,7 @@ select.input{
         <input id="r-new-rate" class="input flex-1" type="number" placeholder="換算台幣匯率" min="0" step="any">
         <span class="xs muted">TWD</span>
       </div>
-      <div class="form-hint">系統會嘗試自動帶入，也可手動修改。</div>
+      <div class="form-hint">系統會自動帶入，也可手動修改。</div>
     </div>
     <button class="btn btn-accent btn-full" type="button" onclick="App.addCustomCurrency()">＋ 新增幣別</button>
   </div>
@@ -2186,7 +2211,9 @@ const App = {
     document.getElementById('trip-name').textContent=t.name;
     document.getElementById('trip-sub').textContent=`${t.members.filter(m=>!m.isGroupFund).length} 位成員`;
     document.querySelectorAll('#trip-tabs .tab-btn').forEach((b,i)=>{
-      b.classList.toggle('on',['expenses','settlement','members'][i]===this.tab);
+      const on=['expenses','settlement','members'][i]===this.tab;
+      b.classList.toggle('on',on);
+      b.setAttribute('aria-selected',String(on));
     });
     document.getElementById('fab').style.display=this.tab==='expenses'?'flex':'none';
     this.renderTab();
@@ -2231,7 +2258,42 @@ const App = {
     }
   },
 
+  _queueTripTab(tab){
+    if(!['expenses','settlement','members'].includes(tab)) return;
+    const seq=(this._tabSwitchSeq||0)+1;
+    this._tabSwitchSeq=seq;
+    this.tab=tab;
+    document.querySelectorAll('#trip-tabs .tab-btn').forEach((b,i)=>{
+      const on=['expenses','settlement','members'][i]===tab;
+      b.classList.toggle('on',on);
+      b.setAttribute('aria-selected',String(on));
+    });
+    const fab=document.getElementById('fab');
+    if(fab) fab.style.display=tab==='expenses'?'flex':'none';
+    // 先讓 Safari 畫出選中狀態，再重畫內容；連續快點時只執行最後一次。
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      if(this._tabSwitchSeq!==seq||this.screen!=='trip') return;
+      this.switchTab(tab);
+    }));
+  },
+
+  pressTripTab(event,tab){
+    // iPhone 的 touchend 後可能再補送一次 click，略過這個重複事件。
+    if(Date.now()-(this._lastTripTabTouch||0)<650){
+      event?.preventDefault();
+      return;
+    }
+    this._queueTripTab(tab);
+  },
+
+  touchTripTab(event,tab){
+    this._lastTripTabTouch=Date.now();
+    if(event?.cancelable) event.preventDefault();
+    this._queueTripTab(tab);
+  },
+
   switchTab(tab){
+    this._tabSwitchSeq=(this._tabSwitchSeq||0)+1;
     // 手動切分頁=離開「從結算跳過來」的檢視:清掉跳轉來源與當時套上的篩選,返回膠囊才不會殘留
     if(this._jumpOriginMember){
       this._jumpOriginMember=null;this._filterCat=null;this._filterPending=false;this._filterPayMethod=null;this._filterPartsFor=null;this._filterMember=null;this._filterSelfMode=null;this._filterGroupScope=null;
@@ -4508,15 +4570,17 @@ const App = {
         <button id="rates-tab-general" class="tab-btn${ratesView==='general'?' on':''}" type="button" role="tab" aria-selected="${ratesView==='general'}" onclick="App.switchRatesView('general')">一般匯率</button>
         <button id="rates-tab-cash" class="tab-btn${ratesView==='cash'?' on':''}" type="button" role="tab" aria-selected="${ratesView==='cash'}" onclick="App.switchRatesView('cash')">第三貨幣換匯</button>
       </div>
-      <div id="rates-panel-general" role="tabpanel" style="display:${ratesView==='general'?'block':'none'};">
-        <div class="rates-section-head">
-          <div class="rates-section-title">一般匯率</div>
+      <div id="rates-panel-general" class="rates-tab-panel" role="tabpanel" style="display:${ratesView==='general'?'block':'none'};">
+        <div class="rates-section-head" style="justify-content:flex-end;">
           <button type="button" class="rates-inline-action" onclick="App.openAddCurrency('rates')">＋ 新增幣別</button>
         </div>
-        <div class="rates-section-copy">適用於信用卡支出，以及尚未記錄「第三貨幣換匯」的現金支出。<br>由系統自動帶入參考匯率。</div>
+        <div class="rates-section-copy">適用於信用卡支出，以及未記錄「第三貨幣換匯」的現金支出。<br>由系統自動帶入參考匯率。</div>
         <div class="rates-status">
-          <div class="rates-status-copy" id="rates-current-note"><strong>預設值為市場參考匯率</strong>參考 2026 年 7 月，可直接修改。</div>
-          <button class="rates-update-btn" id="btn-fetch-rates" type="button" onclick="App.fetchLiveRates()">更新今日匯率</button>
+          <div class="rates-status-top">
+            <div class="rates-status-title" id="rates-status-title">預設值為市場參考匯率</div>
+            <button class="rates-update-btn" id="btn-fetch-rates" type="button" onclick="App.fetchLiveRates()">更新今日匯率</button>
+          </div>
+          <div class="rates-status-copy" id="rates-current-note">參考 2026 年 7 月，可直接今日更新或手動修改。</div>
         </div>
         <div class="card rates-list">
           ${firstRateRows}
@@ -4525,15 +4589,24 @@ const App = {
         ${extraRateItems.length?`<div class="rates-more-row"><button id="rate-more-btn" class="rates-disclosure" type="button" aria-expanded="false" onclick="App.toggleRateList()"><span class="rates-more-label">顯示其他 ${extraRateItems.length} 個</span><span class="rates-chevron" aria-hidden="true"></span></button></div>`:''}
         <details class="rates-more-settings">
           <summary><span>匯率來源與更多設定</span><span class="rates-chevron" aria-hidden="true"></span></summary>
-          <div class="rates-more-body">即時匯率來源：<a href="https://www.exchangerate-api.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">ExchangeRate-API</a><br>彙整各國央行與商業來源，每日更新。
-            <button class="rates-reset-link" type="button" onclick="App.resetRates()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> 還原預設匯率</button>
-            ${customRateItems.length?`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);text-align:left;"><div style="font-size:11.5px;font-weight:700;color:var(--t1);margin-bottom:3px;">管理自訂幣別</div><div style="font-size:10.5px;color:var(--t2);line-height:1.5;margin-bottom:4px;">使用中的幣別需先移除相關支出、換匯或公款紀錄，才能刪除。</div>${customRateItems.map(item=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;"><span>${item.flag} ${item.code} ${item.name}</span>${item.isInUse?`<span style="color:var(--t2);font-size:11px;">使用中</span>`:`<button type="button" onclick="App.deleteCustomCurrency('${item.code}')" style="border:none;background:none;color:#EF4444;font-size:11px;cursor:pointer;">刪除</button>`}</div>`).join('')}</div>`:''}
+          <div class="rates-more-body">
+            <div class="rates-more-section">
+              <div class="rates-more-title">即時匯率來源</div>
+              <div class="rates-more-copy"><a href="https://www.exchangerate-api.com" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">ExchangeRate-API</a><br>彙整各國央行與商業來源，每日更新。</div>
+            </div>
+            <div class="rates-more-section rates-reset-row">
+              <div>
+                <div class="rates-more-title">還原預設匯率</div>
+                <div class="rates-more-copy">將一般匯率恢復為最初參考值。</div>
+              </div>
+              <button class="rates-reset-action" type="button" onclick="App.resetRates()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> 還原</button>
+            </div>
+            ${customRateItems.length?`<div class="rates-more-section"><div class="rates-more-title">管理自訂幣別</div><div class="rates-more-copy" style="margin-bottom:4px;">使用中的幣別需先移除相關支出、換匯或公款紀錄，才能刪除。</div>${customRateItems.map(item=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;"><span>${item.flag} ${item.code} ${item.name}</span>${item.isInUse?`<span style="color:var(--t2);font-size:11px;">使用中</span>`:`<button type="button" onclick="App.deleteCustomCurrency('${item.code}')" style="border:none;background:none;color:#EF4444;font-size:11px;cursor:pointer;">刪除</button>`}</div>`).join('')}</div>`:''}
           </div>
         </details>
       </div>
-      <div id="rates-panel-cash" role="tabpanel" style="display:${ratesView==='cash'?'block':'none'};">
-        <div class="rates-section-head">
-          <div class="rates-section-title">第三貨幣換匯</div>
+      <div id="rates-panel-cash" class="rates-tab-panel" role="tabpanel" style="display:${ratesView==='cash'?'block':'none'};">
+        <div class="rates-section-head" style="justify-content:flex-end;">
           <button type="button" class="rates-inline-action" onclick="App.openFxExchange()">＋ 記錄換匯</button>
         </div>
         <div class="rates-section-copy">適合兩段式現金換匯：台幣 ➔ 美金/歐元 (或其他) ➔ 當地貨幣</div>
@@ -4856,8 +4929,10 @@ const App = {
           if(st){st.textContent='今日匯率';st.title='今天從系統更新';}
         }
       });
+      const title=document.getElementById('rates-status-title');
       const note=document.getElementById('rates-current-note');
-      if(note) note.innerHTML='<strong>已帶入今日匯率</strong>確認數字後，請儲存這次修改。';
+      if(title) title.textContent='已帶入今日匯率';
+      if(note) note.textContent='確認數字後，請儲存這次修改。';
       this.showToast('已帶入今日匯率，記得儲存 ✓');
     }catch(e){
       this.showToast('取得失敗，請確認網路連線');
