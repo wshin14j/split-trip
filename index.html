@@ -683,7 +683,7 @@ select.input{
     <div class="modal-title">新增幣別</div>
     <div class="mb3" style="position:relative;">
       <label class="form-label">幣別名稱</label>
-      <input id="r-new-name" class="input" placeholder="輸入國家、幣別名稱或代碼" oninput="App.searchCurrency(this.value)" autocomplete="off">
+      <input id="r-new-name" class="input" placeholder="輸入國家或幣別名稱" oninput="App.searchCurrency(this.value)" autocomplete="off">
       <div id="cur-suggestions" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.1);z-index:50;display:none;max-height:200px;overflow-y:auto;"></div>
     </div>
     <div class="mb3">
@@ -764,7 +764,7 @@ select.input{
     </details>
     <details class="faq-item">
       <summary>找不到當地貨幣怎麼辦？</summary>
-      <div class="faq-a">可在「一般匯率」右側點「＋ 新增幣別」，在「幣別名稱」輸入國家、英文國名、幣別名稱或代碼，例如輸入「阿曼」、Oman 或 OMR，都會顯示候選幣別。如果正在新增換匯紀錄，也可直接點「找不到當地貨幣？＋ 新增幣別」；新增完成後會自動回到換匯表單。
+      <div class="faq-a">可在「一般匯率」的「幣別清單」右側點「＋ 新增幣別」，在「幣別名稱」輸入國家、英文國名、幣別名稱或代碼，例如輸入「阿曼」、Oman 或 OMR，都會顯示候選幣別。如果正在新增換匯紀錄，也可直接點「找不到需要的幣別？＋ 新增幣別」；新增完成後會自動回到換匯表單。
         <div style="margin:10px 0 2px;padding:10px;background:var(--surface);border-radius:12px;">
           <svg viewBox="0 0 320 196" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="新增幣別時輸入英文國名 Oman，選擇 OMR 阿曼里亞爾">
             <circle cx="20" cy="24" r="13" fill="#E9ECFF"/><text x="20" y="29" text-anchor="middle" font-size="12" font-weight="700" fill="#5B6CFF">1</text>
@@ -4571,9 +4571,6 @@ const App = {
         <button id="rates-tab-cash" class="tab-btn${ratesView==='cash'?' on':''}" type="button" role="tab" aria-selected="${ratesView==='cash'}" onclick="App.switchRatesView('cash')">第三貨幣換匯</button>
       </div>
       <div id="rates-panel-general" class="rates-tab-panel" role="tabpanel" style="display:${ratesView==='general'?'block':'none'};">
-        <div class="rates-section-head" style="justify-content:flex-end;">
-          <button type="button" class="rates-inline-action" onclick="App.openAddCurrency('rates')">＋ 新增幣別</button>
-        </div>
         <div class="rates-section-copy">適用於信用卡支出，以及未記錄「第三貨幣換匯」的現金支出。<br>由系統自動帶入參考匯率。</div>
         <div class="rates-status">
           <div class="rates-status-top">
@@ -4581,6 +4578,10 @@ const App = {
             <button class="rates-update-btn" id="btn-fetch-rates" type="button" onclick="App.fetchLiveRates()">更新今日匯率</button>
           </div>
           <div class="rates-status-copy" id="rates-current-note">參考 2026 年 7 月，可直接今日更新或手動修改。</div>
+        </div>
+        <div class="rates-section-head" style="margin-bottom:8px;">
+          <div class="rates-section-title">幣別清單</div>
+          <button type="button" class="rates-inline-action" onclick="App.openAddCurrency('rates')">＋ 新增幣別</button>
         </div>
         <div class="card rates-list">
           ${firstRateRows}
@@ -4606,10 +4607,11 @@ const App = {
         </details>
       </div>
       <div id="rates-panel-cash" class="rates-tab-panel" role="tabpanel" style="display:${ratesView==='cash'?'block':'none'};">
-        <div class="rates-section-head" style="justify-content:flex-end;">
+        <div class="rates-section-copy">適合兩段式現金換匯：台幣 ➔ 美金/歐元 (或其他) ➔ 當地貨幣</div>
+        <div class="rates-section-head" style="margin-bottom:8px;">
+          <div class="rates-section-title">換匯紀錄</div>
           <button type="button" class="rates-inline-action" onclick="App.openFxExchange()">＋ 記錄換匯</button>
         </div>
-        <div class="rates-section-copy">適合兩段式現金換匯：台幣 ➔ 美金/歐元 (或其他) ➔ 當地貨幣</div>
         ${fxSummary?`<div class="card rates-fx-list">${fxSummary}</div>`:`<div style="padding:30px 16px;text-align:center;background:var(--surface);border-radius:16px;color:var(--t2);font-size:12px;line-height:1.7;">目前還沒有換匯紀錄<br>加入後，現金支出會自動使用平均換匯成本。</div>`}
       </div>
       <div style="height:20px;"></div>
