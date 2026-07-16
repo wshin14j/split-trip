@@ -5643,13 +5643,19 @@ const App = {
       }).join('')}
       ${hasFundPdf?`<td style="${_cttl2n}${mbl(fundDisplayIdx)}"></td><td style="${_cttl2n}"></td>`:''}
     </tr>`;
-    // 公費退款:每人存入−每人公款支出份額;正=退回現金(綠),負=應補公款(紅)
-    const _hasRefundRow=hasFundPdf&&_regMPdf.some(m=>(_refundInt[m.id]||0)!==0);
+    // 公費差額:每人存入−每人公款支出份額;退款與補繳分列，避免同列混用正負語意
+    const _hasFundRefund=hasFundPdf&&_regMPdf.some(m=>(_refundInt[m.id]||0)>0);
+    const _hasFundTopup=hasFundPdf&&_regMPdf.some(m=>(_refundInt[m.id]||0)<0);
     const _refundNote='＊共同開銷均分若有餘數，會輪流由不同人多付；差異依公費支出筆數而定，通常僅差幾元。';
-    const fundRefundRow=_hasRefundRow?`<tr>${_cblankArr}
-      <td style="${_cttl2}text-align:center;color:#6B7280;">公費退款</td>
-      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const v=_refundInt[m.id]||0;const col=v>0?'#22c55e':v<0?'#EF4444':'#6B7280';return `<td style="${_cttl2n}${mbl(i)}color:${col};">${v>0?v.toLocaleString():v<0?`−${(-v).toLocaleString()}`:'—'}</td>`;}).join('')}
+    const fundRefundRow=_hasFundRefund?`<tr>${_cblankArr}
+      <td style="${_cttl2}text-align:center;color:#6B7280;">公費退款（＋）</td>
+      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const v=_refundInt[m.id]||0;return `<td style="${_cttl2n}${mbl(i)}color:${v>0?'#22c55e':'#6B7280'};">${v>0?`＋${v.toLocaleString()}`:'—'}</td>`;}).join('')}
       ${hasFundPdf?`<td colspan="2" style="${_cttl2}${mbl(fundDisplayIdx)}white-space:normal;text-align:left;padding:6px 9px;"><div style="max-width:190px;white-space:normal;font-size:9px;font-weight:400;color:#6B7280;line-height:1.45;">${_refundNote}</div></td>`:''}
+    </tr>`:'';
+    const fundTopupRow=_hasFundTopup?`<tr>${_cblankArr}
+      <td style="${_cttl2}text-align:center;color:#6B7280;">公費補繳（−）</td>
+      ${displayMembers.filter(m=>!m.isGroupFund).map((m,i)=>{const v=_refundInt[m.id]||0;return `<td style="${_cttl2n}${mbl(i)}color:${v<0?'#EF4444':'#6B7280'};">${v<0?`−${(-v).toLocaleString()}`:'—'}</td>`;}).join('')}
+      ${hasFundPdf?`<td colspan="2" style="${_cttl2}${mbl(fundDisplayIdx)}white-space:normal;text-align:left;padding:6px 9px;"><div style="max-width:190px;white-space:normal;font-size:9px;font-weight:400;color:#6B7280;line-height:1.45;">＊存入公費少於個人實際使用的公費，需補繳差額。</div></td>`:''}
     </tr>`:'';
     const paidOtherRow=`<tr>${_cblankArr}
       <td style="${_cttl2}text-align:center;color:#6B7280;">已支付群組</td>
@@ -5693,7 +5699,7 @@ const App = {
       <td style="${cttl}font-weight:700;text-align:center;">總花費</td>
       ${_lrmCombShares.map((sh,i)=>`<td style="${cttln}${mbl(i)}font-weight:700;">${sh.toLocaleString()}</td>`).join('')}
       ${hasFundPdf?`<td style="${cttln}${mbl(fundDisplayIdx)}"></td><td style="${cttln}"></td>`:''}
-    </tr>${fundDepRow}${fundRefundRow}${paidOtherRow}${_proxyRowC}${selfPayRow}${owedRow}`;
+    </tr>${fundDepRow}${paidOtherRow}${_proxyRowC}${selfPayRow}${fundRefundRow}${fundTopupRow}${owedRow}`;
     const mCol=m=>{const c=AVATAR_COLORS.find(c=>c.id===m.color);return c?c.bg:'#6366F1';};
     const catCol={'餐飲':'#F97316','住宿':'#8B5CF6','交通':'#3B82F6','玩樂':'#EC4899','購物':'#10B981','其他':'#6B7280'};
     const catTotals={};
@@ -6083,19 +6089,21 @@ const App = {
     sectionRow('整趟旅程完整花費（群組＋個人）');
     const ttlRow1=['合計','全部支出','',...combinedCurTotals,'',...empties(2),_intCombTotalCsv,'總花費',..._floorCombSharesCsv,...(hasFund?['','']:[])];
     const ttlRow1b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已存入公費',...regularMembersCsv.map(m=>_depIntCsv[m.id]||''),...(hasFund?['','']:[])];
-    // 公費退款:正=退回現金,負=應補公款(與 PDF 一致)
+    // 公費差額:退款與補繳分列，順序與 PDF 一致
     const _refundNoteCsv='共同開銷均分若有餘數，會輪流由不同人多付；差異依公費支出筆數而定，通常僅差幾元。';
-    const ttlRow1c=[...empties(fixedLeft+allCurs.length+fixedMid-1),'公費退款',...regularMembersCsv.map(m=>{const v=_refundIntCsv[m.id]||0;return v!==0?v:'';}),...(hasFund?[_refundNoteCsv,'']:[])];
+    const ttlRefundRow=[...empties(fixedLeft+allCurs.length+fixedMid-1),'公費退款（＋）',...regularMembersCsv.map(m=>{const v=_refundIntCsv[m.id]||0;return v>0?v:'';}),...(hasFund?[_refundNoteCsv,'']:[])];
+    const ttlTopupRow=[...empties(fixedLeft+allCurs.length+fixedMid-1),'公費補繳（−）',...regularMembersCsv.map(m=>{const v=_refundIntCsv[m.id]||0;return v<0?v:'';}),...(hasFund?['存入公費少於個人實際使用的公費，需補繳差額。','']:[])];
     const ttlRow2=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付群組',...regularMembersCsv.map(m=>memberGroupPaidCsv[m.id]||0),...(hasFund?['','']:[])];
     const ttlRow2b=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支付他人墊付',...regularMembersCsv.map(m=>{const v=memberProxyPaidCsv[m.id]||0;return v||'';}),...(hasFund?['','']:[])];
     const ttlRow2c=[...empties(fixedLeft+allCurs.length+fixedMid-1),'已支出自購',...regularMembersCsv.map(m=>{const v=_selfOnlyShareCsv[m.id]||0;return v||'';}),...(hasFund?['','']:[])];
     const ttlRow3=[...empties(fixedLeft+allCurs.length+fixedMid-1),'待付款',...regularMembersCsv.map(m=>{const owed=Math.round(-(peerBalDetailCsv[m.id]||0));return owed!==0?owed:0;}),...(hasFund?['','']:[])];
     csv+=ttlRow1.map(esc).join(',')+'\n';
     csv+=ttlRow1b.map(esc).join(',')+'\n';
-    if(hasFund&&regularMembersCsv.some(m=>(_refundIntCsv[m.id]||0)!==0)) csv+=ttlRow1c.map(esc).join(',')+'\n';
     csv+=ttlRow2.map(esc).join(',')+'\n';
     if(Object.values(memberProxyPaidCsv).some(v=>v>0)) csv+=ttlRow2b.map(esc).join(',')+'\n';
     csv+=ttlRow2c.map(esc).join(',')+'\n';
+    if(hasFund&&regularMembersCsv.some(m=>(_refundIntCsv[m.id]||0)>0)) csv+=ttlRefundRow.map(esc).join(',')+'\n';
+    if(hasFund&&regularMembersCsv.some(m=>(_refundIntCsv[m.id]||0)<0)) csv+=ttlTopupRow.map(esc).join(',')+'\n';
     csv+=ttlRow3.map(esc).join(',')+'\n';
 
     // Settlement — 使用 peerBalDetailCsv（排除公款帳），與 UI 結算頁一致
@@ -6292,6 +6300,10 @@ function runSelfTest(){
     const generalUsage=rateUsage.find(r=>r.code==='OMR'&&r.source==='一般匯率')?.usage||'';
     const cashUsage=rateUsage.find(r=>r.code==='OMR'&&r.source==='平均換匯成本')?.usage||'';
     const rateUsageOK=generalUsage==='信用卡支出'&&cashUsage==='現金支出、公款帳支出'&&!rateUsage.some(r=>r.code==='IDR');
+    const fundRefundOnly={...fx,fundDeposits:[
+      {fromMemberId:'A',amt:300,cur:'TWD'},{fromMemberId:'B',amt:300,cur:'TWD'},{fromMemberId:'C',amt:300,cur:'TWD'}
+    ]};
+    const fundTopupOnly={...fx,fundDeposits:[]};
     const html=App._buildExportHTML(fx);
     const doc=new DOMParser().parseFromString('<table>'+html+'</table>','text/html');
     const num=td=>{const s=td.textContent.replace(/[,\s]/g,'');if(s===''||s==='—')return null;const m=s.match(/^−?-?\d+(\.\d+)?$/);return m?parseFloat(s.replace('−','-')):null;};
@@ -6308,20 +6320,35 @@ function runSelfTest(){
     const _pdfHasPayMethod=_pdfHeaders.includes('支付方式')&&_pdfHeaders.indexOf('支付方式')<_pdfHeaders.indexOf('付款人')&&doc.body.textContent.includes('信用卡')&&doc.body.textContent.includes('現金');
     const rateHtml=App._buildExportHTML(rateFx);
     const _pdfRateUsage=rateHtml.includes('OMR 一般匯率')&&rateHtml.includes('信用卡支出')&&rateHtml.includes('OMR 平均換匯成本')&&rateHtml.includes('現金支出、公款帳支出')&&!rateHtml.includes('IDR 一般匯率')&&!rateHtml.includes('IDR 平均換匯成本');
-    ok(`PDF 逐列驗算(${checked} 列)+換匯紀錄+支付方式`,checked>5&&bad===0&&_pdfHasFx&&_pdfHasPayMethod&&rateUsageOK&&_pdfRateUsage,bad?`${bad} 列不一致`:(!_pdfHasFx?'缺少換匯紀錄':(!_pdfHasPayMethod?'缺少支付方式':(!_pdfRateUsage?'匯率用途或篩選錯誤':''))));
+    const _pdfFundMixed=html.includes('公費退款（＋）')&&html.includes('公費補繳（−）')
+      &&html.indexOf('已支出自購')<html.indexOf('公費退款（＋）')
+      &&html.indexOf('公費退款（＋）')<html.indexOf('公費補繳（−）')
+      &&html.indexOf('公費補繳（−）')<html.indexOf('待付款');
+    const _refundOnlyHtml=App._buildExportHTML(fundRefundOnly);
+    const _topupOnlyHtml=App._buildExportHTML(fundTopupOnly);
+    const _pdfFundCases=_pdfFundMixed
+      &&_refundOnlyHtml.includes('公費退款（＋）')&&!_refundOnlyHtml.includes('公費補繳（−）')
+      &&!_topupOnlyHtml.includes('公費退款（＋）')&&_topupOnlyHtml.includes('公費補繳（−）');
+    ok(`PDF 逐列驗算(${checked} 列)+換匯紀錄+支付方式+公費差額`,checked>5&&bad===0&&_pdfHasFx&&_pdfHasPayMethod&&rateUsageOK&&_pdfRateUsage&&_pdfFundCases,bad?`${bad} 列不一致`:(!_pdfHasFx?'缺少換匯紀錄':(!_pdfHasPayMethod?'缺少支付方式':(!_pdfRateUsage?'匯率用途或篩選錯誤':(!_pdfFundCases?'公費退款／補繳條件或順序錯誤':'')))));
     const _orig=localStorage.getItem('st_trips');
-    let csvText=null,rateCsvText=null;const _B=window.Blob;const _click=HTMLAnchorElement.prototype.click;
+    let csvText=null,rateCsvText=null;const fundCsvTexts=[];const _B=window.Blob;const _click=HTMLAnchorElement.prototype.click;
     try{
       const all=_orig?JSON.parse(_orig):{};all.__st=fx;
       localStorage.setItem('st_trips',JSON.stringify(all));
       window.Blob=function(parts,opts){
-        if(csvText===null) csvText=parts.join(''); else rateCsvText=parts.join('');
+        if(csvText===null) csvText=parts.join('');
+        else if(rateCsvText===null) rateCsvText=parts.join('');
+        else fundCsvTexts.push(parts.join(''));
         return new _B(parts,opts);
       };
       HTMLAnchorElement.prototype.click=function(){};
       const _tid=App.tripId;App.tripId='__st';App.exportCSV();App.tripId=_tid;
       all.__st=rateFx;localStorage.setItem('st_trips',JSON.stringify(all));
       App.tripId='__st';App.exportCSV();App.tripId=_tid;
+      [fx,fundRefundOnly,fundTopupOnly].forEach(v=>{
+        all.__st=v;localStorage.setItem('st_trips',JSON.stringify(all));
+        App.tripId='__st';App.exportCSV();App.tripId=_tid;
+      });
     }finally{
       window.Blob=_B;HTMLAnchorElement.prototype.click=_click;
       if(_orig===null)localStorage.removeItem('st_trips');else localStorage.setItem('st_trips',_orig);
@@ -6339,7 +6366,15 @@ function runSelfTest(){
     const _csvHeader=(csvText||'').replace(/^﻿/,'').split('\n').map(pl).find(c=>c.includes('支付方式')&&c.includes('付款人'))||[];
     const _csvHasPayMethod=_csvHeader.indexOf('支付方式')>=0&&_csvHeader.indexOf('支付方式')<_csvHeader.indexOf('付款人')&&(csvText||'').includes('"信用卡"')&&(csvText||'').includes('"現金"');
     const _csvRateUsage=(rateCsvText||'').includes('"OMR 一般匯率",85.5,"信用卡支出"')&&(rateCsvText||'').includes('"OMR 平均換匯成本",83.33333333333334,"現金支出、公款帳支出"')&&!(rateCsvText||'').includes('IDR 一般匯率')&&!(rateCsvText||'').includes('IDR 平均換匯成本');
-    ok(`CSV 逐列驗算(${cChecked} 列)+換匯紀錄+支付方式`,cChecked>5&&cBad===0&&_csvHasFx&&_csvHasPayMethod&&_csvRateUsage,cBad?`${cBad} 列不一致`:(!_csvHasFx?'缺少換匯紀錄':(!_csvHasPayMethod?'缺少支付方式':(!_csvRateUsage?'匯率用途或篩選錯誤':''))));
+    const [_mixedCsv='',_refundOnlyCsv='',_topupOnlyCsv='']=fundCsvTexts;
+    const _csvFundMixed=_mixedCsv.includes('公費退款（＋）')&&_mixedCsv.includes('公費補繳（−）')
+      &&_mixedCsv.indexOf('已支出自購')<_mixedCsv.indexOf('公費退款（＋）')
+      &&_mixedCsv.indexOf('公費退款（＋）')<_mixedCsv.indexOf('公費補繳（−）')
+      &&_mixedCsv.indexOf('公費補繳（−）')<_mixedCsv.indexOf('待付款');
+    const _csvFundCases=_csvFundMixed
+      &&_refundOnlyCsv.includes('公費退款（＋）')&&!_refundOnlyCsv.includes('公費補繳（−）')
+      &&!_topupOnlyCsv.includes('公費退款（＋）')&&_topupOnlyCsv.includes('公費補繳（−）');
+    ok(`CSV 逐列驗算(${cChecked} 列)+換匯紀錄+支付方式+公費差額`,cChecked>5&&cBad===0&&_csvHasFx&&_csvHasPayMethod&&_csvRateUsage&&_csvFundCases,cBad?`${cBad} 列不一致`:(!_csvHasFx?'缺少換匯紀錄':(!_csvHasPayMethod?'缺少支付方式':(!_csvRateUsage?'匯率用途或篩選錯誤':(!_csvFundCases?'公費退款／補繳條件或順序錯誤':'')))));
   }catch(err){ok('執行過程發生錯誤',false,String(err));}
   const allPass=R.every(r=>r.pass);
   const el=document.createElement('div');
