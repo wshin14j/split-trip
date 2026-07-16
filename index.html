@@ -342,7 +342,7 @@ select.input{
 .rate-label>div:last-child{line-height:1.35;}
 .rate-input-wrap{display:flex;align-items:center;gap:4px;border:1.5px solid var(--border);background:#fff;border-radius:9px;padding:0 8px;height:40px;transition:border-color .15s;flex-shrink:0;}
 .rate-input-wrap:focus-within{border-color:var(--accent);}
-.rate-input-wrap input{border:none;background:transparent;outline:none;text-align:right;font-size:14px;padding:0;height:100%;width:58px;-moz-appearance:textfield;}
+.rate-input-wrap input{border:none;background:transparent;outline:none;text-align:right;font-size:14px;padding:0;height:100%;width:66px;-moz-appearance:textfield;}
 .rate-input-wrap input::-webkit-outer-spin-button,.rate-input-wrap input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
 .rate-input-wrap svg{color:var(--t3);flex-shrink:0;}
 .rate-input-wrap.adjusted input{font-weight:500;}
@@ -405,7 +405,7 @@ select.input{
 @media(max-width:374px){
   .rate-row{gap:6px;padding:11px 10px;}
   .rate-input-wrap{padding:0 6px;}
-  .rate-input-wrap input{width:51px;}
+  .rate-input-wrap input{width:62px;}
   .rates-update-btn{padding:0 9px;}
 }
 
@@ -717,12 +717,10 @@ select.input{
     <details class="faq-item">
       <summary>現金和信用卡用哪一種匯率？</summary>
       <div class="faq-a">
-        系統會依記帳時選擇的「支付方式」自動套用匯率。
-        <div style="margin-top:10px;"><strong style="color:var(--t1);">信用卡支出：</strong>由系統自動帶入「一般匯率」。</div>
-        <div style="margin-top:10px;"><strong style="color:var(--t1);">現金支出：</strong></div>
-        <div style="margin-top:4px;">・該幣別有「第三貨幣換匯」紀錄：</div>
-        <div style="padding-left:1em;">　使用「第三貨幣換匯（平均）」。</div>
-        <div style="margin-top:4px;">・沒有「第三貨幣換匯」紀錄：由系統自動帶入「一般匯率」。</div>
+        <div><strong style="color:var(--t1);">信用卡支出</strong>：自動帶入「一般匯率」。</div>
+        <div style="margin-top:10px;"><strong style="color:var(--t1);">現金支出</strong>（依是否有「第三貨幣換匯」紀錄判斷）：</div>
+        <div style="margin-top:4px;"><strong style="color:var(--t1);">・有紀錄</strong>：使用「第三貨幣換匯（平均）」。</div>
+        <div style="margin-top:4px;"><strong style="color:var(--t1);">・無紀錄</strong>：自動帶入「一般匯率」。</div>
       </div>
     </details>
     <details class="faq-item">
@@ -965,13 +963,11 @@ select.input{
     <details class="faq-item">
       <summary>現金和信用卡用哪一種匯率？</summary>
       <div class="faq-a">
-        系統會依記帳時選擇的「支付方式」自動套用匯率，不用每次設定。
         <div style="margin-top:10px;padding:12px 14px;background:var(--surface);border-radius:12px;line-height:1.75;">
-          <div><strong style="color:var(--t1);">信用卡支出：</strong>由系統自動帶入「一般匯率」。</div>
-          <div style="margin-top:8px;"><strong style="color:var(--t1);">現金支出：</strong></div>
-          <div>・該幣別有「第三貨幣換匯」紀錄：</div>
-          <div style="padding-left:1em;">　使用「第三貨幣換匯（平均）」。</div>
-          <div>・沒有「第三貨幣換匯」紀錄：由系統自動帶入「一般匯率」。</div>
+          <div><strong style="color:var(--t1);">信用卡支出</strong>：自動帶入「一般匯率」。</div>
+          <div style="margin-top:8px;"><strong style="color:var(--t1);">現金支出</strong>（依是否有「第三貨幣換匯」紀錄判斷）：</div>
+          <div><strong style="color:var(--t1);">・有紀錄</strong>：使用「第三貨幣換匯（平均）」。</div>
+          <div><strong style="color:var(--t1);">・無紀錄</strong>：自動帶入「一般匯率」。</div>
         </div>
         <div style="margin-top:14px;font-weight:700;color:var(--t1);">兩段式現金換匯怎麼記？</div>
         <div style="margin-top:6px;">如果先用台幣換美金／歐元，再換成當地貨幣，請到「匯率設定」→「第三貨幣換匯」→「＋ 記錄換匯」，填入實際換出與換得金額。每次換匯都可以分別記錄，系統會自動算出平均換匯成本。</div>
@@ -1537,7 +1533,7 @@ select.input{
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px 10px;flex-shrink:0;">
-      <div style="font-size:17px;font-weight:700;" id="fund-dep-title">💰 存入公款</div>
+      <div style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:7px;" id="fund-dep-title"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="display:block;flex-shrink:0;"><path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2l9 5H3l9-5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>存入公款</span></div>
       <button class="modal-x-btn" onclick="App.closeModal('m-fund-deposit')">×</button>
     </div>
     <div style="padding:0 20px 24px;display:flex;flex-direction:column;gap:14px;">
@@ -2985,7 +2981,7 @@ const App = {
         ${!isSettled?`<button onclick="event.stopPropagation();App.openAddPayRecord('${cardFrom}','${cardTo}',${Math.round(remainBase)})" style="width:100%;padding:8px;border-radius:10px;border:1.5px dashed var(--accent);background:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;">＋ 記錄付款</button>`:''}
       </div>`:'';
       return `<div style="padding:14px 0;border-bottom:1px solid var(--border);${isSettled?'opacity:0.75;':''}">
-        <div style="display:grid;grid-template-columns:36px minmax(0,1fr) 36px 90px;align-items:center;column-gap:8px;cursor:pointer;" onclick="App.toggleDebtExpand(${di})">
+        <div style="display:grid;grid-template-columns:36px minmax(0,clamp(96px,30vw,118px)) 36px minmax(72px,1fr);align-items:center;column-gap:6px;cursor:pointer;" onclick="App.toggleDebtExpand(${di})">
           <div class="avatar" style="${avStyle(t,cardFrom)}">${avText(mName(cardFrom))}</div>
           <div class="min-w-0" style="display:flex;align-items:center;gap:6px;font-weight:700;font-size:15px;line-height:24px;">
             <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${mName(cardFrom)}</span>
@@ -3625,7 +3621,7 @@ const App = {
     const existing=depId?(t.fundDeposits||[]).find(d=>d.id===depId):null;
     // 標題與說明依模式切換;編輯單筆時存入者不可變更(saveFundDeposit 本來就不會改),按鈕鎖住避免誤會
     const titleEl=document.getElementById('fund-dep-title');
-    if(titleEl) titleEl.textContent=existing?'💰 編輯存入紀錄':'💰 存入公款';
+    if(titleEl) titleEl.innerHTML=`<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="display:block;flex-shrink:0;"><path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2l9 5H3l9-5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${existing?'編輯存入紀錄':'存入公款'}</span>`;
     const labelEl=document.getElementById('fund-dep-members-label');
     if(labelEl) labelEl.textContent=existing?'存入者（編輯時不可變更）':'存入者（可多選）';
     // 成員勾選按鈕
