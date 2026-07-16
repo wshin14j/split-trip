@@ -362,7 +362,7 @@ select.input{
 .rates-tab-panel{padding-top:18px;}
 .rates-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 2px 4px;}
 .rates-section-title{font-size:14px;font-weight:700;color:var(--t1);}
-.rates-section-copy{font-size:11.5px;color:var(--t2);line-height:1.55;margin:0 2px 10px;}
+.rates-section-copy{font-size:11.5px;color:var(--t2);line-height:1.55;margin:0 2px 10px;text-align:center;}
 .rates-inline-action{border:none;background:none;color:var(--accent);font-size:12px;font-weight:700;padding:3px 0;cursor:pointer;white-space:nowrap;}
 .rates-status{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-items:center;column-gap:12px;row-gap:5px;padding:11px 12px;margin-bottom:12px;border-radius:12px;background:var(--surface);border:1px solid #E5E7EB;}
 .rates-status-top{display:contents;}
@@ -705,22 +705,73 @@ select.input{
 
     <div class="card" style="padding:12px 14px;margin-bottom:10px;background:var(--soft);border-color:var(--soft);">
       <div style="font-size:clamp(10px,2.82vw,11px);line-height:1.7;color:var(--t2);">
-        <div style="white-space:nowrap;">一般匯率系統自動帶入參考值，亦可手動修改。</div>
+        <div style="white-space:nowrap;">一般匯率由系統自動帶入參考值，亦可手動修改。</div>
         <div style="white-space:nowrap;">現金若有多筆「第三貨幣換匯」紀錄，則用多次換匯的平均結果。</div>
       </div>
     </div>
 
     <details class="faq-item">
       <summary>一般匯率怎麼設定？</summary>
-      <div class="faq-a">在「一般匯率」頁籤，可按「更新為今日匯率」由系統自動帶入，也可點數字手動修改後儲存。預設只顯示 3 個，旅程支出曾使用的幣別會排在前面；其餘可按「顯示其他」展開。</div>
+      <div class="faq-a">
+        <div style="font-weight:700;color:var(--t1);margin-bottom:2px;">① 開啟匯率設定</div>
+        <div>在旅程頁點右上角「⋯」，再選「匯率設定」。</div>
+        <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 142" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="從旅程頁右上角選單開啟匯率設定">
+            <rect x="8" y="8" width="304" height="126" rx="16" fill="#FFFFFF" stroke="#D5DAE4" stroke-width="1.3"/>
+            <text x="24" y="37" font-size="20" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">←</text>
+            <circle cx="260" cy="30" r="8" fill="none" stroke="#6B7280" stroke-width="1.8"/>
+            <text x="260" y="34" text-anchor="middle" font-size="12" font-weight="700" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">?</text>
+            <circle cx="286" cy="30" r="2.2" fill="#1F2A44"/><circle cx="294" cy="30" r="2.2" fill="#1F2A44"/><circle cx="302" cy="30" r="2.2" fill="#1F2A44"/>
+            <rect data-highlight="true" x="278" y="17" width="31" height="27" rx="8" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+            <line x1="18" y1="52" x2="302" y2="52" stroke="#E5E7EB"/>
+            <rect x="24" y="66" width="272" height="52" rx="12" fill="#EEF0FF"/>
+            <text x="45" y="89" font-size="14" font-weight="700" fill="#4338CA" font-family="-apple-system,'Noto Sans TC',sans-serif">匯率設定</text>
+            <text x="45" y="107" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">設定各幣別換算匯率</text>
+          </svg>
+        </div>
+
+        <div style="font-weight:700;color:var(--t1);margin:2px 0;">② 更新或修改匯率</div>
+        <div>可按「更新今日匯率」，也能直接修改數字後儲存。</div>
+        <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 154" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="更新今日匯率或手動修改匯率">
+            <rect x="8" y="8" width="304" height="62" rx="14" fill="#FFFFFF" stroke="#D5DAE4" stroke-width="1.3"/>
+            <text x="22" y="34" font-size="12.5" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">預設值為市場參考匯率</text>
+            <text x="22" y="53" font-size="10.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">可直接更新或手動修改</text>
+            <rect x="205" y="19" width="94" height="40" rx="11" fill="#1F2A44"/>
+            <text x="252" y="44" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">更新今日匯率</text>
+            <rect data-highlight="true" x="200" y="14" width="104" height="50" rx="14" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+            <rect x="8" y="82" width="304" height="64" rx="14" fill="#FFFFFF" stroke="#D5DAE4" stroke-width="1.3"/>
+            <text x="24" y="111" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">🇺🇸  1 USD</text>
+            <text x="24" y="130" font-size="10.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">美金</text>
+            <text x="162" y="118" font-size="13" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">=</text>
+            <rect x="182" y="94" width="76" height="40" rx="9" fill="#FFFFFF" stroke="#D5DAE4" stroke-width="1.3"/>
+            <text x="220" y="119" text-anchor="middle" font-size="14" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">32.09</text>
+            <text x="274" y="119" font-size="12" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">TWD</text>
+            <rect data-highlight="true" x="177" y="89" width="86" height="50" rx="12" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+          </svg>
+        </div>
+
+        <div style="font-weight:700;color:var(--t1);margin:2px 0;">③ 新增其他幣別</div>
+        <div>找不到需要的幣別時，點「＋ 新增幣別」。</div>
+        <div style="margin:8px 0 4px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 82" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="在幣別清單旁點新增幣別">
+            <text x="16" y="44" font-size="14" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">幣別清單</text>
+            <text x="296" y="44" text-anchor="end" font-size="13" font-weight="700" fill="#5B6CFF" font-family="-apple-system,'Noto Sans TC',sans-serif">＋ 新增幣別</text>
+            <rect data-highlight="true" x="186" y="18" width="118" height="42" rx="11" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+          </svg>
+        </div>
+      </div>
     </details>
     <details class="faq-item">
       <summary>現金和信用卡用哪一種匯率？</summary>
       <div class="faq-a">
-        <div><strong style="color:var(--t1);">信用卡支出</strong>：自動帶入「一般匯率」。</div>
+        系統會依記帳時選擇的「支付方式」自動套用匯率：
+        <div style="margin-top:10px;"><strong style="color:var(--t1);">信用卡支出</strong>：自動帶入「一般匯率」。</div>
         <div style="margin-top:10px;"><strong style="color:var(--t1);">現金支出</strong>（依是否有「第三貨幣換匯」紀錄判斷）：</div>
-        <div style="margin-top:4px;"><strong style="color:var(--t1);">・有紀錄</strong>：使用「第三貨幣換匯（平均）」。</div>
-        <div style="margin-top:4px;"><strong style="color:var(--t1);">・無紀錄</strong>：自動帶入「一般匯率」。</div>
+        <ul style="margin:4px 0 0;padding-left:1.25em;">
+          <li style="padding-left:2px;"><strong style="color:var(--t1);">有紀錄</strong>：使用「第三貨幣換匯（平均）」。</li>
+          <li style="padding-left:2px;"><strong style="color:var(--t1);">無紀錄</strong>：自動帶入「一般匯率」。</li>
+        </ul>
       </div>
     </details>
     <details class="faq-item">
@@ -733,7 +784,7 @@ select.input{
     </details>
     <details class="faq-item">
       <summary>當地換匯換了好幾次，匯率會怎麼算？</summary>
-      <div class="faq-a">每次換匯都記下來，系統會依各次金額計算「第三貨幣換匯（平均）」，該幣別的現金支出會自動使用這個結果。</div>
+      <div class="faq-a">每次換匯都記下來，系統會依各次金額計算「第三貨幣換匯（平均）」，該幣別的現金支出會自動使用這個結果。要查看或修改時，直接點 OMR、IDR 等幣別列。</div>
     </details>
     <details class="faq-item">
       <summary>怎麼修改或刪除換匯紀錄？</summary>
@@ -805,7 +856,7 @@ select.input{
     </details>
     <details class="faq-item">
       <summary>PDF 和 CSV 會顯示什麼？</summary>
-      <div class="faq-a">支出明細會在「付款人」前列出「支付方式」，顯示現金或信用卡。匯出檔也會列出一般匯率、第三貨幣換匯的平均結果，以及每一筆完整換匯紀錄，包含日期、換出／換得幣別與金額、當時匯率和這次換匯成本。</div>
+      <div class="faq-a">支出明細會在「付款人」前列出「支付方式」，顯示現金或信用卡。匯率摘要只列出實際參與支出或公款換算的匯率，並標示用於信用卡支出、現金支出、公款帳支出或公款存入；沒有支出的幣別不會列在摘要中。每一筆完整換匯紀錄仍會保留，包含日期、換出／換得幣別與金額、當時匯率和這次換匯成本。</div>
     </details>
   </div>
 </div>
@@ -863,7 +914,7 @@ select.input{
       </div>
     </details>
     <details class="faq-item">
-      <summary>金額還不確定（要等帳單、找收據），怎麼記才不會忘？</summary>
+      <summary>金額不確定（等帳單、找收據），怎麼記才不會忘？</summary>
       <div class="faq-a">
         先把項目記下來，金額之後再補就好——當下留下紀錄，是最不容易漏帳的方式。
         <div style="font-weight:700;color:var(--t1);margin:10px 0 2px;">① 記的時候</div>
@@ -925,7 +976,8 @@ select.input{
     <details class="faq-item">
       <summary>一般匯率怎麼設定？</summary>
       <div class="faq-a">
-        點右上角「⋯」選單，選「匯率設定」，就能新增幣別或修改匯率。
+        <div style="font-weight:700;color:var(--t1);margin-bottom:2px;">① 開啟匯率設定</div>
+        <div>在旅程頁點右上角「⋯」，再選「匯率設定」。</div>
         <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
           <svg viewBox="0 0 320 264" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="右上角「⋯」選單裡的「匯率設定」">
             <text x="14" y="32" font-size="22" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">←</text>
@@ -957,20 +1009,59 @@ select.input{
             <text x="66" y="243" font-size="11" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">完整明細表，可列印 PDF 或匯出 CSV</text>
           </svg>
         </div>
-        在匯率設定的「一般匯率」頁籤，可按「更新今日匯率」由系統自動帶入，也可自己修改後儲存。預設先顯示 3 個幣別，旅程支出曾使用的幣別會排在前面，其餘可按「顯示其他」展開。找不到當地貨幣時，可點「＋ 新增幣別」，輸入國家、英文國名、幣別名稱或代碼搜尋；如果正在記錄換匯，也能從表單內直接新增。結算頁的「匯率詳情」預設收合，點開即可查看目前使用中的一般匯率與「第三貨幣換匯（平均）」，也能從「修改匯率」前往設定。
+        <div style="font-weight:700;color:var(--t1);margin:2px 0;">② 更新或修改匯率</div>
+        <div>可按「更新今日匯率」，也能直接修改數字後儲存。</div>
+        <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 154" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="更新今日匯率或手動修改匯率">
+            <rect x="8" y="8" width="304" height="62" rx="14" fill="#FFFFFF" stroke="#D5DAE4" stroke-width="1.3"/>
+            <text x="22" y="34" font-size="12.5" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">預設值為市場參考匯率</text>
+            <text x="22" y="53" font-size="10.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">可直接更新或手動修改</text>
+            <rect x="205" y="19" width="94" height="40" rx="11" fill="#1F2A44"/>
+            <text x="252" y="44" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF" font-family="-apple-system,'Noto Sans TC',sans-serif">更新今日匯率</text>
+            <rect data-highlight="true" x="200" y="14" width="104" height="50" rx="14" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+            <rect x="8" y="82" width="304" height="64" rx="14" fill="#FFFFFF" stroke="#D5DAE4" stroke-width="1.3"/>
+            <text x="24" y="111" font-size="13" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">🇺🇸  1 USD</text>
+            <text x="24" y="130" font-size="10.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">美金</text>
+            <text x="162" y="118" font-size="13" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">=</text>
+            <rect x="182" y="94" width="76" height="40" rx="9" fill="#FFFFFF" stroke="#D5DAE4" stroke-width="1.3"/>
+            <text x="220" y="119" text-anchor="middle" font-size="14" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">32.09</text>
+            <text x="274" y="119" font-size="12" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">TWD</text>
+            <rect data-highlight="true" x="177" y="89" width="86" height="50" rx="12" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+          </svg>
+        </div>
+
+        <div style="font-weight:700;color:var(--t1);margin:2px 0;">③ 新增其他幣別</div>
+        <div>找不到需要的幣別時，點「＋ 新增幣別」。</div>
+        <div style="margin:8px 0 4px;padding:12px;background:var(--surface);border-radius:12px;">
+          <svg viewBox="0 0 320 82" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="在幣別清單旁點新增幣別">
+            <text x="16" y="44" font-size="14" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">幣別清單</text>
+            <text x="296" y="44" text-anchor="end" font-size="13" font-weight="700" fill="#5B6CFF" font-family="-apple-system,'Noto Sans TC',sans-serif">＋ 新增幣別</text>
+            <rect data-highlight="true" x="186" y="18" width="118" height="42" rx="11" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+          </svg>
+        </div>
       </div>
     </details>
     <details class="faq-item">
       <summary>現金和信用卡用哪一種匯率？</summary>
       <div class="faq-a">
+        系統會依記帳時選擇的「支付方式」自動套用匯率：
         <div style="margin-top:10px;padding:12px 14px;background:var(--surface);border-radius:12px;line-height:1.75;">
           <div><strong style="color:var(--t1);">信用卡支出</strong>：自動帶入「一般匯率」。</div>
           <div style="margin-top:8px;"><strong style="color:var(--t1);">現金支出</strong>（依是否有「第三貨幣換匯」紀錄判斷）：</div>
-          <div><strong style="color:var(--t1);">・有紀錄</strong>：使用「第三貨幣換匯（平均）」。</div>
-          <div><strong style="color:var(--t1);">・無紀錄</strong>：自動帶入「一般匯率」。</div>
+          <ul style="margin:4px 0 0;padding-left:1.25em;">
+            <li style="padding-left:2px;"><strong style="color:var(--t1);">有紀錄</strong>：使用「第三貨幣換匯（平均）」。</li>
+            <li style="padding-left:2px;"><strong style="color:var(--t1);">無紀錄</strong>：自動帶入「一般匯率」。</li>
+          </ul>
         </div>
+      </div>
+    </details>
+    <details class="faq-item">
+      <summary>什麼是「第三貨幣換匯」？</summary>
+      <div class="faq-a">
+        適合兩段式現金換匯。
+        <div style="margin-top:8px;">例如：先用<strong style="color:var(--t1);">台幣換美金／歐元</strong>，抵達當地後，再<strong style="color:var(--t1);">用美金／歐元兌換為當地貨幣</strong>。</div>
         <div style="margin-top:14px;font-weight:700;color:var(--t1);">兩段式現金換匯怎麼記？</div>
-        <div style="margin-top:6px;">如果先用台幣換美金／歐元，再換成當地貨幣，請到「匯率設定」→「第三貨幣換匯」→「＋ 記錄換匯」，填入實際換出與換得金額。每次換匯都可以分別記錄，系統會自動算出平均換匯成本。</div>
+        <div style="margin-top:6px;">點擊「＋ 記錄換匯」並填入實際換出與換得金額即可。系統會自動帶入換匯當時的美金／歐元兌台幣匯率，也可以手動修正；<strong style="color:var(--t1);">「台幣 ➔ 當地貨幣」的換匯成本則由系統自動計算。</strong></div>
         <div style="margin:14px auto 2px;max-width:320px;">
           <svg viewBox="0 0 320 205" width="100%" role="img" aria-label="第三貨幣換匯操作流程：台幣換美金或歐元，再換成當地貨幣，並到匯率設定記錄換匯">
             <rect x="1" y="1" width="318" height="203" rx="18" fill="#F8F9FC" stroke="#E1E4EC"/>
@@ -1001,19 +1092,12 @@ select.input{
       </div>
     </details>
     <details class="faq-item">
-      <summary>什麼是「第三貨幣換匯」？</summary>
-      <div class="faq-a">
-        適合兩段式現金換匯。
-        <div style="margin-top:8px;">例如：先用<strong style="color:var(--t1);">台幣換美金／歐元</strong>，抵達當地後，再<strong style="color:var(--t1);">用美金／歐元兌換為當地貨幣</strong>。</div>
-        <div style="margin-top:8px;">到「匯率設定」→「第三貨幣換匯」點「＋ 記錄換匯」，填入實際換出與換得金額。系統會自動算出「台幣 → 當地貨幣」的換匯成本。</div>
-      </div>
+      <summary>當地換匯換了好幾次，匯率會怎麼算？</summary>
+      <div class="faq-a">每次換匯都記下來，系統會依各次金額計算「第三貨幣換匯（平均）」，該幣別的現金支出會自動使用這個結果。要查看或修改時，直接點 OMR、IDR 等幣別列。</div>
     </details>
     <details class="faq-item">
-      <summary>當地換匯換了好幾次，匯率會怎麼算？</summary>
-      <div class="faq-a">
-        途中換了多次就逐筆加入，系統會依各次金額計算「第三貨幣換匯（平均）」。要查看或修改時，直接點 OMR、IDR 等幣別列，即可逐筆修改或刪除。
-        <div style="margin-top:10px;color:var(--t2);">匯率設定頁右上角的「？」有完整說明。</div>
-      </div>
+      <summary>結算頁怎麼查看使用中的匯率？</summary>
+      <div class="faq-a">結算頁的「匯率詳情」預設收合。點開後會列出各幣別的「一般匯率」，若有第三貨幣換匯紀錄，也會多顯示「第三貨幣換匯（平均）」。需要調整時，再點「修改匯率」前往匯率設定。</div>
     </details>
     <details class="faq-item">
       <summary>分帳金額為什麼有時候差一元？</summary>
@@ -1023,7 +1107,7 @@ select.input{
     <div class="faq-group" style="display:flex;align-items:center;gap:5px;width:max-content;">公款帳 <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2l9 5H3l9-5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <details class="faq-item">
       <summary>什麼是公款帳？什麼時候該用？</summary>
-      <div class="faq-a">出發前大家先湊一筆公共基金（例如每人先繳 5000），旅途中的共同開銷直接從這筆錢支付，就適合開公款帳。到「成員」分頁點成員旁的編輯鍵，打開「設為公款帳戶」即可啟用。</div>
+      <div class="faq-a">大家先湊一筆公共基金（例如每人先繳 5,000），旅途中的共同開銷直接從這筆錢支付，就適合開公款帳。到「成員」分頁點成員旁的編輯鍵，打開「設為公款帳戶」即可啟用。</div>
     </details>
     <details class="faq-item">
       <summary>公款帳怎麼記帳？</summary>
@@ -1144,7 +1228,6 @@ select.input{
             <text x="80" y="52" font-size="9.5" fill="#6B7280" font-family="-apple-system,'Noto Sans TC',sans-serif">Safari 分享選單</text>
             <text x="80" y="68" font-size="12" font-weight="700" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">加入主畫面</text>
             <text x="267" y="64" text-anchor="end" font-size="18" fill="#5B6CFF" font-family="-apple-system,'Noto Sans TC',sans-serif">+</text>
-            <rect data-highlight="true" x="33" y="33" width="254" height="46" rx="12" fill="none" stroke="#EF4444" stroke-width="2.5"/>
           </svg>
         </div>
         <div style="font-weight:700;color:var(--t1);margin:2px 0;">② Android 從 LINE 開啟時</div>
@@ -1159,7 +1242,7 @@ select.input{
             <rect data-highlight="true" x="248" y="56" width="40" height="22" rx="7" fill="none" stroke="#EF4444" stroke-width="2.5"/>
           </svg>
         </div>
-        <br><button type="button" class="faq-action" onclick="App.openInstallHelp('auto')">查看我這台裝置的步驟</button>
+        <div style="margin-top:14px;text-align:center;"><button type="button" class="faq-action" onclick="App.openInstallHelp('auto')">查看我這台裝置的步驟</button></div>
       </div>
     </details>
     <details class="faq-item">
@@ -1213,7 +1296,7 @@ select.input{
     <details class="faq-item">
       <summary>可以把帳目匯出保存嗎？</summary>
       <div class="faq-a">
-        可以。點右上角「⋯」選單，選「匯出支出/結算明細」，能存成／列印 PDF，或匯出 CSV 檔。支出明細會在「付款人」前列出「支付方式」，顯示現金或信用卡。如果有記錄換匯，PDF 和 CSV 都會列出一般匯率、平均換匯成本，以及每筆換匯的日期、換出／換得幣別與金額、當時匯率和這次換匯成本。
+        可以。點右上角「⋯」選單，選「匯出支出/結算明細」，能存成／列印 PDF，或匯出 CSV 檔。支出明細會在「付款人」前列出「支付方式」，顯示現金或信用卡。匯率摘要只列出實際參與支出或公款換算的匯率，並標示實際用途；沒有支出的幣別不會列在摘要中。每一筆完整換匯紀錄仍會保留日期、換出／換得幣別與金額、當時匯率和這次換匯成本。
         <div style="margin:8px 0 16px;padding:12px;background:var(--surface);border-radius:12px;">
           <svg viewBox="0 0 320 264" style="width:100%;max-width:300px;height:auto;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="右上角「⋯」選單裡的「匯出支出/結算明細」">
             <text x="14" y="32" font-size="22" fill="#1F2A44" font-family="-apple-system,'Noto Sans TC',sans-serif">←</text>
@@ -1821,6 +1904,51 @@ function expenseRateInfo(e,t){
   const isCash=(e?.payMethod||'現金')==='現金';
   const weighted=isCash?cashRateInfo(t,cur):null;
   return {rateTwd:weighted?.rate||generalRateTwd(t,cur),source:weighted?'平均換匯成本':'一般匯率',weighted};
+}
+// 匯出檔的匯率摘要只列實際參與換算的匯率，並標示其用途。
+// 公款帳是付款帳戶而非支付方式，因此會和「現金／信用卡支出」分開標示。
+function exportRateUsageRows(t,expenses){
+  const baseCur=t?.baseCurrency||'TWD';
+  const fundIds=new Set((t?.members||[]).filter(m=>m.isGroupFund).map(m=>m.id));
+  const codeOrder=new Map();
+  const rows=new Map();
+  let nextOrder=0;
+  const add=(code,source,usage)=>{
+    if(!code||code===baseCur) return;
+    if(!codeOrder.has(code)) codeOrder.set(code,nextOrder++);
+    const weighted=source==='平均換匯成本'?cashRateInfo(t,code):null;
+    const key=`${code}|${source}`;
+    if(!rows.has(key)){
+      rows.set(key,{
+        code,source,
+        rate:weighted?.rate||generalRateTwd(t,code),
+        usages:new Set(),
+        codeOrder:codeOrder.get(code),
+        sourceOrder:source==='一般匯率'?0:1
+      });
+    }
+    rows.get(key).usages.add(usage);
+  };
+  (expenses||[]).forEach(e=>{
+    if(!e||e.note==='金額待補'||!(Number(e.amount)>0)) return;
+    const code=e.currency||baseCur;
+    if(code===baseCur) return;
+    const info=expenseRateInfo(e,t);
+    add(code,info.source,(e.payMethod||'現金')==='現金'?'現金支出':'信用卡支出');
+    const fundPaid=typeof e.paidBy==='string'
+      ? fundIds.has(e.paidBy)
+      : Object.entries(e.paidBy||{}).some(([id,amount])=>fundIds.has(id)&&Number(amount)>0);
+    if(fundPaid) add(code,info.source,'公款帳支出');
+  });
+  (t?.fundDeposits||[]).forEach(d=>{
+    const code=d?.cur||baseCur;
+    if(code===baseCur||!(Number(d?.amt)>0)) return;
+    add(code,cashRateInfo(t,code)?'平均換匯成本':'一般匯率','公款存入');
+  });
+  const usageOrder=['信用卡支出','現金支出','公款帳支出','公款存入'];
+  return [...rows.values()]
+    .sort((a,b)=>a.codeOrder-b.codeOrder||a.sourceOrder-b.sourceOrder)
+    .map(row=>({...row,usage:[...row.usages].sort((a,b)=>usageOrder.indexOf(a)-usageOrder.indexOf(b)).join('、')}));
 }
 function expenseToBase(amt,e,t){
   const base=t?.baseCurrency||'TWD';
@@ -5214,15 +5342,16 @@ const App = {
     const ttl2n=ttl2+'text-align:right;';
     const tblank1=`<td style="${ttl1}"></td>`;
     const tblank2=`<td style="${ttl2}"></td>`;
-    // Rate rows
-    const rateCurs=[...new Set([...otherCurs,...(t.fxExchanges||[]).map(r=>r.toCurrency).filter(c=>c&&c!==baseCur)])];
-    const rateRows=rateCurs.map(c=>{
-      const rate=generalRateTwd(t,c);
-      const after=totalCols-2;
-      const general=`<tr><td style="${tdS}font-size:10px;color:#6B7280;">${c} 一般匯率</td><td style="padding:6px 9px;font-size:11px;font-weight:700;background:#FDE68A;border:1px solid #D1D5DB;text-align:right;">${rate}</td>${Array(after).fill(blank).join('')}</tr>`;
-      const cash=cashRateInfo(t,c);
-      const cashRow=cash?`<tr><td style="${tdS}font-size:10px;color:#6B7280;">${c} 平均換匯成本</td><td style="padding:6px 9px;font-size:11px;font-weight:700;background:#DCFCE7;border:1px solid #D1D5DB;text-align:right;">${cash.rate>=1?+cash.rate.toFixed(2):+cash.rate.toPrecision(5)}</td>${Array(after).fill(blank).join('')}</tr>`:'';
-      return general+cashRow;
+    // Rate rows：只列實際參與支出／公款換算的匯率；完整換匯歷史仍在報表下方保留。
+    const rateUsageRows=exportRateUsageRows(t,exps);
+    const rateRows=rateUsageRows.map(row=>{
+      const rate=row.rate>=1?+row.rate.toFixed(2):+row.rate.toPrecision(5);
+      const bg=row.source==='平均換匯成本'?'#DCFCE7':'#FDE68A';
+      return `<tr>
+        <td style="${tdS}font-size:10px;color:#6B7280;">${row.code} ${row.source}</td>
+        <td style="padding:6px 9px;font-size:11px;font-weight:700;background:${bg};border:1px solid #D1D5DB;text-align:right;">${rate}</td>
+        <td colspan="${totalCols-2}" style="${tdS}font-size:10px;color:#4B5563;white-space:normal;">${row.usage}</td>
+      </tr>`;
     }).join('');
     // Header: two rows
     const mainHeader=`<tr>
@@ -5668,13 +5797,9 @@ const App = {
 
     let csv='﻿'; // BOM
 
-    // 一般匯率 + 平均換匯成本（與 PDF 同步）
-    const rateCursCsv=[...new Set([...otherCurs,...(t.fxExchanges||[]).map(r=>r.toCurrency).filter(c=>c&&c!==baseCur)])];
-    rateCursCsv.forEach(c=>{
-      const row=[`${c} 一般匯率`,generalRateTwd(t,c),...empties(totalCols-2)];
-      csv+=row.map(esc).join(',')+'\n';
-      const cash=cashRateInfo(t,c);
-      if(cash) csv+=[`${c} 平均換匯成本`,cash.rate,...empties(totalCols-2)].map(esc).join(',')+'\n';
+    // 實際使用的匯率摘要（與 PDF 同步）
+    exportRateUsageRows(t,exps).forEach(row=>{
+      csv+=[`${row.code} ${row.source}`,row.rate,row.usage,...empties(totalCols-3)].map(esc).join(',')+'\n';
     });
 
     // 完整換匯紀錄：每筆保留換出幣別當時匯率與計算後成本
@@ -6091,6 +6216,17 @@ function runSelfTest(){
     const c6=eng.perExp.e6;
     ok('混合付款:公費份額加總=公款實付',c6.fundPaid===200&&Object.values(c6.fundShares).reduce((a,b)=>a+b,0)===200);
     ok('混合付款:逐人 同伴+公費=分攤',c6.ps.every(id=>(c6.peerShares[id]||0)+(c6.fundShares[id]||0)===(c6.shares[id]||0))&&Object.values(c6.peerShares).reduce((a,b)=>a+b,0)===100);
+    const rateFx={...fx,
+      rates:{...fx.rates,USD:32,IDR:0.0018},
+      fxExchanges:[...fx.fxExchanges,{id:'fx-unused',date:'2026/01/02',fromCurrency:'USD',fromAmount:10,toCurrency:'IDR',toAmount:180000,sourceRateTwd:32,createdAt:2}],
+      expenses:{...fx.expenses,
+        er1:{name:'刷卡',category:'其他',amount:1,currency:'OMR',payMethod:'信用卡',paidBy:'A',parts:['A'],splitMode:'self',date:'2026/01/06',createdAt:7},
+        er2:{name:'公款現金',category:'其他',amount:1,currency:'OMR',payMethod:'現金',paidBy:'F',parts:['A','B','C'],splitMode:'equal',date:'2026/01/07',createdAt:8}
+      }};
+    const rateUsage=exportRateUsageRows(rateFx,Object.values(rateFx.expenses));
+    const generalUsage=rateUsage.find(r=>r.code==='OMR'&&r.source==='一般匯率')?.usage||'';
+    const cashUsage=rateUsage.find(r=>r.code==='OMR'&&r.source==='平均換匯成本')?.usage||'';
+    const rateUsageOK=generalUsage==='信用卡支出'&&cashUsage==='現金支出、公款帳支出'&&!rateUsage.some(r=>r.code==='IDR');
     const html=App._buildExportHTML(fx);
     const doc=new DOMParser().parseFromString('<table>'+html+'</table>','text/html');
     const num=td=>{const s=td.textContent.replace(/[,\s]/g,'');if(s===''||s==='—')return null;const m=s.match(/^−?-?\d+(\.\d+)?$/);return m?parseFloat(s.replace('−','-')):null;};
@@ -6105,15 +6241,22 @@ function runSelfTest(){
     const _pdfHasFx=doc.body.textContent.includes('完整換匯紀錄')&&doc.body.textContent.includes('100 USD')&&doc.body.textContent.includes('38.4 OMR');
     const _pdfHeaders=[...doc.querySelectorAll('th')].map(th=>th.textContent.trim());
     const _pdfHasPayMethod=_pdfHeaders.includes('支付方式')&&_pdfHeaders.indexOf('支付方式')<_pdfHeaders.indexOf('付款人')&&doc.body.textContent.includes('信用卡')&&doc.body.textContent.includes('現金');
-    ok(`PDF 逐列驗算(${checked} 列)+換匯紀錄+支付方式`,checked>5&&bad===0&&_pdfHasFx&&_pdfHasPayMethod,bad?`${bad} 列不一致`:(!_pdfHasFx?'缺少換匯紀錄':(!_pdfHasPayMethod?'缺少支付方式':'')));
+    const rateHtml=App._buildExportHTML(rateFx);
+    const _pdfRateUsage=rateHtml.includes('OMR 一般匯率')&&rateHtml.includes('信用卡支出')&&rateHtml.includes('OMR 平均換匯成本')&&rateHtml.includes('現金支出、公款帳支出')&&!rateHtml.includes('IDR 一般匯率')&&!rateHtml.includes('IDR 平均換匯成本');
+    ok(`PDF 逐列驗算(${checked} 列)+換匯紀錄+支付方式`,checked>5&&bad===0&&_pdfHasFx&&_pdfHasPayMethod&&rateUsageOK&&_pdfRateUsage,bad?`${bad} 列不一致`:(!_pdfHasFx?'缺少換匯紀錄':(!_pdfHasPayMethod?'缺少支付方式':(!_pdfRateUsage?'匯率用途或篩選錯誤':''))));
     const _orig=localStorage.getItem('st_trips');
-    let csvText=null;const _B=window.Blob;const _click=HTMLAnchorElement.prototype.click;
+    let csvText=null,rateCsvText=null;const _B=window.Blob;const _click=HTMLAnchorElement.prototype.click;
     try{
       const all=_orig?JSON.parse(_orig):{};all.__st=fx;
       localStorage.setItem('st_trips',JSON.stringify(all));
-      window.Blob=function(parts,opts){csvText=parts.join('');return new _B(parts,opts);};
+      window.Blob=function(parts,opts){
+        if(csvText===null) csvText=parts.join(''); else rateCsvText=parts.join('');
+        return new _B(parts,opts);
+      };
       HTMLAnchorElement.prototype.click=function(){};
       const _tid=App.tripId;App.tripId='__st';App.exportCSV();App.tripId=_tid;
+      all.__st=rateFx;localStorage.setItem('st_trips',JSON.stringify(all));
+      App.tripId='__st';App.exportCSV();App.tripId=_tid;
     }finally{
       window.Blob=_B;HTMLAnchorElement.prototype.click=_click;
       if(_orig===null)localStorage.removeItem('st_trips');else localStorage.setItem('st_trips',_orig);
@@ -6130,7 +6273,8 @@ function runSelfTest(){
     const _csvHasFx=(csvText||'').includes('完整換匯紀錄')&&(csvText||'').includes('"2026/01/01","USD",100,"OMR",38.4,32,3200');
     const _csvHeader=(csvText||'').replace(/^﻿/,'').split('\n').map(pl).find(c=>c.includes('支付方式')&&c.includes('付款人'))||[];
     const _csvHasPayMethod=_csvHeader.indexOf('支付方式')>=0&&_csvHeader.indexOf('支付方式')<_csvHeader.indexOf('付款人')&&(csvText||'').includes('"信用卡"')&&(csvText||'').includes('"現金"');
-    ok(`CSV 逐列驗算(${cChecked} 列)+換匯紀錄+支付方式`,cChecked>5&&cBad===0&&_csvHasFx&&_csvHasPayMethod,cBad?`${cBad} 列不一致`:(!_csvHasFx?'缺少換匯紀錄':(!_csvHasPayMethod?'缺少支付方式':'')));
+    const _csvRateUsage=(rateCsvText||'').includes('"OMR 一般匯率",85.5,"信用卡支出"')&&(rateCsvText||'').includes('"OMR 平均換匯成本",83.33333333333334,"現金支出、公款帳支出"')&&!(rateCsvText||'').includes('IDR 一般匯率')&&!(rateCsvText||'').includes('IDR 平均換匯成本');
+    ok(`CSV 逐列驗算(${cChecked} 列)+換匯紀錄+支付方式`,cChecked>5&&cBad===0&&_csvHasFx&&_csvHasPayMethod&&_csvRateUsage,cBad?`${cBad} 列不一致`:(!_csvHasFx?'缺少換匯紀錄':(!_csvHasPayMethod?'缺少支付方式':(!_csvRateUsage?'匯率用途或篩選錯誤':''))));
   }catch(err){ok('執行過程發生錯誤',false,String(err));}
   const allPass=R.every(r=>r.pass);
   const el=document.createElement('div');
