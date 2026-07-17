@@ -4130,7 +4130,7 @@ const App = {
       const dateEnd=(e.dateEnd||'').replace(/-/g,'/');
       dateEl.dataset.start=dateStart;
       dateEl.dataset.end=dateEnd;
-      dateEl.value=dateStart?(dateEnd?`${dateStart}－${dateEnd}`:this.dateWithDay(dateStart)):'';
+      dateEl.value=this.expenseDateInputText(dateStart,dateEnd);
 
       document.getElementById('in-exp-cat').value=e.category||'其他';
       document.getElementById('in-exp-name').value=e.name;
@@ -4577,6 +4577,12 @@ const App = {
     const end=e?.dateEnd||'';
     return start&&end&&end!==start?`${start}－${end}`:start;
   },
+  expenseDateInputText(start,end){
+    const startText=(start||'').replace(/-/g,'/');
+    const endText=(end||'').replace(/-/g,'/');
+    if(!startText) return '';
+    return endText&&endText!==startText?`${startText}－${endText.slice(5)}`:this.dateWithDay(startText);
+  },
   openDatePicker(targetId){
     const el=document.getElementById(targetId);
     const isExpense=targetId==='in-exp-date';
@@ -4665,7 +4671,7 @@ const App = {
       if(el){
         el.dataset.start=this._dpRangeStart;
         el.dataset.end=this._dpRangeEnd;
-        el.value=`${this._dpRangeStart}－${this._dpRangeEnd}`;
+        el.value=this.expenseDateInputText(this._dpRangeStart,this._dpRangeEnd);
       }
       this._dpSelected=ds;
       this.closeDatePicker();
