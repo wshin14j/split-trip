@@ -1827,7 +1827,7 @@ const AVATAR_COLORS=[
   {id:'lsky',   bg:'#BAE6FD',text:'#0C4A6E'},   // 淺藍
   {id:'llav',   bg:'#DDD6FE',text:'#2E1065'},   // 淺紫
 ];
-const EMOJIS = ['✈️','🗺️','🌍','🏔️','🏖️','🗼','🏯','🌅','🌊','🚂','🎭','🏕️','🎒','🚢','🛺','🌮','🥂','🍣','🥐','🎪','🚵','🎿','🗽','🛸','⛩️','🏜️','🌸','🌺','🦁','🐘','🦒','🐬','🐧','🦩','🐪'];
+const EMOJIS = ['✈️','🗺️','🌍','🏔️','🏖️','🗼','🏯','🌅','🌊','🚂','🎭','🏕️','🎒','🚢','🛺','🌮','🥂','🍣','🥐','🎪','🚵','🎿','🗽','🛸','⛩️','🏜️','🌸','🌺','🦁','🐘','🦒','🐬','🐧','🦩','🐪','🏰','🕌','🛕','🌋','🚠'];
 const ICONS = {
   '餐':'🍜','飯':'🍚','食':'🍽️','午':'🥗','晚':'🍜','早':'🥐','宵':'🌙',
   '車':'🚗','計':'🚖','巴':'🚌','火':'🚂','地':'🚇','飛':'✈️','船':'⛵',
@@ -3708,7 +3708,7 @@ const App = {
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
             <div>
-              <div style="font-size:13px;font-weight:600;color:var(--t1);">💰 設為公款帳戶</div>
+              <div style="font-size:13px;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:5px;"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="display:block;flex-shrink:0;"><path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2l9 5H3l9-5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>設為公款帳戶</span></div>
               <div style="font-size:11px;color:var(--t2);margin-top:2px;">管理旅遊的公用費用</div>
             </div>
             <button type="button" onclick="App.toggleGroupFund('${m.id}')" style="width:46px;height:26px;border-radius:999px;border:none;cursor:pointer;background:${m.isGroupFund?'var(--accent)':'#D1D5DB'};transition:background .2s;position:relative;">
@@ -3748,7 +3748,7 @@ const App = {
         </div>
         ${!_hasFund?`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
           <div>
-            <div style="font-size:13px;font-weight:600;color:var(--t1);">💰 設為公款帳戶</div>
+            <div style="font-size:13px;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:5px;"><svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="display:block;flex-shrink:0;"><path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2l9 5H3l9-5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>設為公款帳戶</span></div>
             <div style="font-size:11px;color:var(--t2);margin-top:2px;">管理旅遊的公用費用</div>
           </div>
           <button type="button" onclick="App._addAsFund=!App._addAsFund;App.renderTab();" style="width:46px;height:26px;border-radius:999px;border:none;cursor:pointer;background:${this._addAsFund?'var(--accent)':'#D1D5DB'};transition:background .2s;position:relative;flex-shrink:0;">
