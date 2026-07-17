@@ -1525,7 +1525,7 @@ select.input{
     </div>
     <div class="flex gap-2 mb3">
       <div style="flex:1;min-width:0;">
-        <label class="form-label">日期</label>
+        <label class="form-label">日期（可選期間）</label>
         <input id="in-exp-date" class="input" type="text" readonly placeholder="選擇日期" onclick="App.openDatePicker('in-exp-date')" required style="text-align:left;cursor:pointer;">
       </div>
       <div style="flex:1;min-width:0;">
@@ -1760,6 +1760,13 @@ select.input{
 <div class="modal-overlay" id="m-date-picker" onclick="if(event.target===this)App.closeDatePicker()">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
+    <div id="dp-mode-wrap" style="display:none;margin-bottom:14px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;padding:4px;background:var(--soft);border-radius:12px;">
+        <button id="dp-mode-single" type="button" onclick="App.setDatePickerMode('single')" style="padding:9px;border:0;border-radius:9px;background:var(--primary);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">單日</button>
+        <button id="dp-mode-range" type="button" onclick="App.setDatePickerMode('range')" style="padding:9px;border:0;border-radius:9px;background:transparent;color:var(--t2);font-size:14px;font-weight:700;cursor:pointer;">期間</button>
+      </div>
+      <div id="dp-range-hint" style="display:none;margin-top:10px;text-align:center;font-size:13px;color:var(--t2);"></div>
+    </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <button onclick="App.dpPrevMonth()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--t1);padding:4px 12px;line-height:1;">‹</button>
       <span id="dp-title" style="font-size:16px;font-weight:700;"></span>
@@ -2939,7 +2946,7 @@ const App = {
         const noteVal=e.note||'—';
         expandedDetail=`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
           <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
-            ${e.date?`<div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">日期</span><span>${e.date}</span></div>`:''}
+            ${e.date?`<div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">${e.dateEnd?'期間':'日期'}</span><span>${this.expenseDateText(e)}</span></div>`:''}
             <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">支付人</span><span style="font-weight:600;">${payerLabel}</span></div>
             ${e.payMethod?`<div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">支付方式</span><span>${e.payMethod}</span></div>`:''}
             <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--t2);">分攤方式</span><span>${splitLabelFull}</span></div>
@@ -2960,6 +2967,7 @@ const App = {
           <div class="flex-1 min-w-0">
             <div class="base bold" style="display:inline-flex;align-items:center;">${e.name}${chevronExp}</div>
             <div class="xs muted mt1 truncate">${payerName} 付款</div>
+            ${e.dateEnd&&!isExpExp?`<div class="xs muted" style="margin-top:2px;">期間 ${this.expenseDateText(e)}</div>`:''}
             ${!isExpExp?`<div class="xs muted" style="margin-top:2px;">${splitLabel} · ${partsLabel}</div>`:''}
           </div>
           <div style="text-align:right;flex-shrink:0;">
@@ -4117,7 +4125,12 @@ const App = {
     const todayStr=(()=>{const d=new Date();return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;})();
     if(eid){
       const e=t.expenses[eid];
-      document.getElementById('in-exp-date').value=e.date?this.dateWithDay(e.date.replace(/-/g,'/')):'';
+      const dateEl=document.getElementById('in-exp-date');
+      const dateStart=(e.date||'').replace(/-/g,'/');
+      const dateEnd=(e.dateEnd||'').replace(/-/g,'/');
+      dateEl.dataset.start=dateStart;
+      dateEl.dataset.end=dateEnd;
+      dateEl.value=dateStart?(dateEnd?`${dateStart}－${dateEnd}`:this.dateWithDay(dateStart)):'';
 
       document.getElementById('in-exp-cat').value=e.category||'其他';
       document.getElementById('in-exp-name').value=e.name;
@@ -4156,7 +4169,10 @@ const App = {
       }
       document.getElementById('in-exp-note').value=e.note||'';
     } else {
-      document.getElementById('in-exp-date').value=this.dateWithDay(todayStr);
+      const dateEl=document.getElementById('in-exp-date');
+      dateEl.dataset.start=todayStr;
+      dateEl.dataset.end='';
+      dateEl.value=this.dateWithDay(todayStr);
       document.getElementById('in-exp-cat').value='餐飲';
       document.getElementById('in-exp-name').value='';
       // 預設帶入最近一筆的幣別(連續記帳免選),沒有紀錄則用 TWD
@@ -4548,7 +4564,7 @@ const App = {
     hint.style.color=ok?'var(--accent)':'#EF4444';
   },
 
-  _dpTarget:null,_dpYear:null,_dpMonth:null,_dpSelected:null,
+  _dpTarget:null,_dpYear:null,_dpMonth:null,_dpSelected:null,_dpMode:'single',_dpRangeStart:null,_dpRangeEnd:null,
   dateWithDay(ds){
     if(!ds||ds.length<10) return ds;
     const [y,mo,d]=ds.slice(0,10).split('/').map(Number);
@@ -4556,10 +4572,17 @@ const App = {
     const dow=new Date(y,mo-1,d).getDay();
     return `${ds.slice(0,10)}（${DAYS[dow]}）`;
   },
+  expenseDateText(e){
+    const start=e?.date||'';
+    const end=e?.dateEnd||'';
+    return start&&end&&end!==start?`${start}－${end}`:start;
+  },
   openDatePicker(targetId){
     const el=document.getElementById(targetId);
+    const isExpense=targetId==='in-exp-date';
     const raw=el?.value;
-    const val=raw?raw.slice(0,10):'';
+    const storedStart=isExpense?(el?.dataset.start||''):'';
+    const val=(storedStart||raw||'').slice(0,10);
     const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
     if(val&&val.length===10){
       const parts=val.replace(/-/g,'/').split('/');
@@ -4572,8 +4595,44 @@ const App = {
       this._dpSelected=null;
     }
     this._dpTarget=targetId;
+    this._dpMode=isExpense&&el?.dataset.end?'range':'single';
+    this._dpRangeStart=isExpense?(el?.dataset.start||this._dpSelected):null;
+    this._dpRangeEnd=isExpense?(el?.dataset.end||null):null;
+    const modeWrap=document.getElementById('dp-mode-wrap');
+    if(modeWrap) modeWrap.style.display=isExpense?'block':'none';
+    this.updateDatePickerModeUI();
     this.renderCalendar();
     this.openModal('m-date-picker');
+  },
+  setDatePickerMode(mode){
+    const previous=this._dpMode;
+    this._dpMode=mode==='range'?'range':'single';
+    if(this._dpMode==='single'){
+      this._dpRangeEnd=null;
+      this._dpSelected=this._dpRangeStart||this._dpSelected;
+    } else if(previous!=='range'){
+      this._dpRangeStart=null;
+      this._dpRangeEnd=null;
+      this._dpSelected=null;
+    }
+    this.updateDatePickerModeUI();
+    this.renderCalendar();
+  },
+  updateDatePickerModeUI(){
+    const single=document.getElementById('dp-mode-single');
+    const range=document.getElementById('dp-mode-range');
+    if(!single||!range) return;
+    const active=(el,on)=>{
+      el.style.background=on?'var(--primary)':'transparent';
+      el.style.color=on?'#fff':'var(--t2)';
+    };
+    active(single,this._dpMode==='single');
+    active(range,this._dpMode==='range');
+    const hint=document.getElementById('dp-range-hint');
+    if(hint){
+      hint.style.display=this._dpMode==='range'?'block':'none';
+      hint.textContent=!this._dpRangeStart?'請選擇開始日期':(!this._dpRangeEnd?`開始：${this._dpRangeStart}　請選擇結束日期`:`${this._dpRangeStart}－${this._dpRangeEnd}`);
+    }
   },
   closeDatePicker(){this.closeModal('m-date-picker');},
   dpPrevMonth(){
@@ -4589,7 +4648,36 @@ const App = {
   dpSelectDate(y,m,d){
     const ds=`${y}/${String(m+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
     const el=document.getElementById(this._dpTarget);
-    if(el) el.value=this.dateWithDay(ds);
+    if(this._dpTarget==='in-exp-date'&&this._dpMode==='range'){
+      if(!this._dpRangeStart||this._dpRangeEnd){
+        this._dpRangeStart=ds;
+        this._dpRangeEnd=null;
+        this._dpSelected=ds;
+        this.updateDatePickerModeUI();
+        this.renderCalendar();
+        return;
+      }
+      if(ds<this._dpRangeStart){
+        this.showToast('結束日期不能早於開始日期');
+        return;
+      }
+      this._dpRangeEnd=ds;
+      if(el){
+        el.dataset.start=this._dpRangeStart;
+        el.dataset.end=this._dpRangeEnd;
+        el.value=`${this._dpRangeStart}－${this._dpRangeEnd}`;
+      }
+      this._dpSelected=ds;
+      this.closeDatePicker();
+      return;
+    }
+    if(el){
+      el.value=this.dateWithDay(ds);
+      if(this._dpTarget==='in-exp-date'){
+        el.dataset.start=ds;
+        el.dataset.end='';
+      }
+    }
     this._dpSelected=ds;
     this.closeDatePicker();
   },
@@ -4611,9 +4699,10 @@ const App = {
       const dow=(firstDay+d-1)%7;
       const isToday=y===ty&&m===tm&&d===td;
       const ds=`${y}/${String(m+1).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
-      const isSel=ds===this._dpSelected;
+      const inRange=this._dpMode==='range'&&this._dpRangeStart&&this._dpRangeEnd&&ds>=this._dpRangeStart&&ds<=this._dpRangeEnd;
+      const isSel=ds===this._dpSelected||ds===this._dpRangeStart||ds===this._dpRangeEnd;
       const col=dow===0?'#EF4444':dow===6?'var(--accent)':'var(--t1)';
-      const bg=isSel?'var(--primary)':'transparent';
+      const bg=isSel?'var(--primary)':inRange?'var(--soft)':'transparent';
       const tc=isSel?'#fff':col;
       const todayDot=isToday&&!isSel?`<div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--primary);"></div>`:'';
       html+=`<div onclick="App.dpSelectDate(${y},${m},${d})" style="display:flex;align-items:center;justify-content:center;padding:3px 0;cursor:pointer;"><div style="position:relative;width:36px;height:36px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;color:${tc};font-size:15px;font-weight:${isToday?'700':'400'};">${d}${todayDot}</div></div>`;
@@ -4712,10 +4801,13 @@ const App = {
     }
     const t=loadTrip(this.tripId);
     if(!t) return;
-    const dateInput=document.getElementById('in-exp-date').value;
+    const dateEl=document.getElementById('in-exp-date');
+    const dateInput=dateEl.value;
     if(!dateInput||dateInput.length<10){this.showToast('請填寫完整日期（YYYY/MM/DD）');return;}
-    const date=dateInput.slice(0,10);
-    const exp={category,payMethod,name,amount:isPending?0:amount,currency,paidBy,parts,splitMode:this.splitMode,customAmounts,proportions,note,date,createdAt:Date.now()};
+    const date=(dateEl.dataset.start||dateInput.slice(0,10)).slice(0,10);
+    const dateEnd=(dateEl.dataset.end||'').slice(0,10);
+    if(dateEnd&&dateEnd<date){this.showToast('結束日期不能早於開始日期');return;}
+    const exp={category,payMethod,name,amount:isPending?0:amount,currency,paidBy,parts,splitMode:this.splitMode,customAmounts,proportions,note,date,dateEnd:dateEnd&&dateEnd!==date?dateEnd:null,createdAt:Date.now()};
     // 編輯時保留原 createdAt:它是「多付一元輪流」的種子與同日排序依據,改掉會讓尾差換人、順序跳動
     if(this.editId){const _old=t.expenses[this.editId];t.expenses[this.editId]={..._old,...exp,createdAt:_old?.createdAt??exp.createdAt};}
     else{t.expenses[uid()]=exp;}
@@ -4723,9 +4815,13 @@ const App = {
     // 連續記帳:儲存後不關視窗,重開空白表單並保留日期(幣別由「最近使用」邏輯自動帶入剛存的那筆)
     if(andNext&&!this.editId){
       const keepDate=document.getElementById('in-exp-date').value;
+      const keepDateStart=document.getElementById('in-exp-date').dataset.start||'';
+      const keepDateEnd=document.getElementById('in-exp-date').dataset.end||'';
       this.renderTrip();
       this.showAddExpense();
       document.getElementById('in-exp-date').value=keepDate;
+      document.getElementById('in-exp-date').dataset.start=keepDateStart;
+      document.getElementById('in-exp-date').dataset.end=keepDateEnd;
       this.showToast('已新增！繼續記下一筆');
       return;
     }
@@ -5533,7 +5629,7 @@ const App = {
       const _isProxyLbl=e.splitMode!=='self'&&e.splitMode!=='extproxy'&&ps.length===1&&ps[0]!==_payerIdLbl;
       const _splitLbl=_isProxyLbl?'代付':e.splitMode==='proportion'&&e.proportions?`比例 ${displayMembers.filter(m=>!m.isGroupFund).map(m=>Math.round(e.proportions[m.id]||0)).join('/')}%`:e.splitMode==='custom'?`<span style="color:#0891B2;font-weight:700;">自訂</span>`:splitLabel(e.splitMode);
       return `<tr>
-        <td style="${tdS}">${e.date||'—'}</td>
+        <td style="${tdS}">${this.expenseDateText(e)||'—'}</td>
         <td style="${tdS}">${e.category||'其他'}</td>
         <td style="${tdS}font-weight:600;">${e.name}</td>
         ${curCells}
@@ -5981,7 +6077,7 @@ const App = {
             fundCells=[parseFloat(_omrAmt.toFixed(3)),fundAmt];
           } else {fundCells=['',''];}
         }
-        const row=[e.date||'',e.category||'其他',e.name,...curCells,e.payMethod||'現金',payer,splitModeLabel,ps.length,isPending?'待補':baseTotalNum,isPending?'':unitPrice,...regularMemberCells,...fundCells];
+        const row=[this.expenseDateText(e),e.category||'其他',e.name,...curCells,e.payMethod||'現金',payer,splitModeLabel,ps.length,isPending?'待補':baseTotalNum,isPending?'':unitPrice,...regularMemberCells,...fundCells];
         csv+=row.map(esc).join(',')+'\n';
       });
     };
@@ -6317,7 +6413,7 @@ function runSelfTest(){
       members:[{id:'A',name:'甲'},{id:'B',name:'乙'},{id:'C',name:'丙'},{id:'F',name:'公款',isGroupFund:true}],
       expenses:{
         e1:{name:'餐',category:'餐飲',amount:100,currency:'TWD',payMethod:'信用卡',paidBy:'A',parts:['A','B','C'],splitMode:'equal',date:'2026/01/01',createdAt:1},
-        e2:{name:'宿',category:'住宿',amount:999,currency:'TWD',paidBy:{A:500,B:499},parts:['A','B'],splitMode:'equal',date:'2026/01/02',createdAt:2},
+        e2:{name:'宿',category:'住宿',amount:999,currency:'TWD',paidBy:{A:500,B:499},parts:['A','B'],splitMode:'equal',date:'2026/01/02',dateEnd:'2026/01/05',createdAt:2},
         e3:{name:'票',category:'玩樂',amount:249,currency:'TWD',paidBy:'F',parts:['A','B','C'],splitMode:'equal',date:'2026/01/03',createdAt:3},
         e4:{name:'禮',category:'購物',amount:70,currency:'TWD',paidBy:'C',parts:['C'],splitMode:'self',date:'2026/01/04',createdAt:4},
         e5:{name:'水',category:'其他',amount:45,currency:'TWD',paidBy:'A',parts:['B'],splitMode:'equal',date:'2026/01/04',createdAt:5},
@@ -6359,6 +6455,7 @@ function runSelfTest(){
     const _pdfHasFx=doc.body.textContent.includes('完整換匯紀錄')&&doc.body.textContent.includes('100 USD')&&doc.body.textContent.includes('38.4 OMR');
     const _pdfHeaders=[...doc.querySelectorAll('th')].map(th=>th.textContent.trim());
     const _pdfHasPayMethod=_pdfHeaders.includes('支付方式')&&_pdfHeaders.indexOf('支付方式')<_pdfHeaders.indexOf('付款人')&&doc.body.textContent.includes('信用卡')&&doc.body.textContent.includes('現金');
+    const _pdfHasDateRange=doc.body.textContent.includes('2026/01/02－2026/01/05');
     const rateHtml=App._buildExportHTML(rateFx);
     const _pdfRateUsage=rateHtml.includes('OMR 一般匯率')&&rateHtml.includes('信用卡支出')&&rateHtml.includes('OMR 平均換匯成本')&&rateHtml.includes('現金支出、公款帳支出')&&!rateHtml.includes('IDR 一般匯率')&&!rateHtml.includes('IDR 平均換匯成本');
     const _pdfFundMixed=html.includes('公費退款（＋）')&&html.includes('公費補繳（−）')
@@ -6370,7 +6467,7 @@ function runSelfTest(){
     const _pdfFundCases=_pdfFundMixed
       &&_refundOnlyHtml.includes('公費退款（＋）')&&!_refundOnlyHtml.includes('公費補繳（−）')
       &&!_topupOnlyHtml.includes('公費退款（＋）')&&_topupOnlyHtml.includes('公費補繳（−）');
-    ok(`PDF 逐列驗算(${checked} 列)+換匯紀錄+支付方式+公費差額`,checked>5&&bad===0&&_pdfHasFx&&_pdfHasPayMethod&&rateUsageOK&&_pdfRateUsage&&_pdfFundCases,bad?`${bad} 列不一致`:(!_pdfHasFx?'缺少換匯紀錄':(!_pdfHasPayMethod?'缺少支付方式':(!_pdfRateUsage?'匯率用途或篩選錯誤':(!_pdfFundCases?'公費退款／補繳條件或順序錯誤':'')))));
+    ok(`PDF 逐列驗算(${checked} 列)+日期區間+換匯紀錄+支付方式+公費差額`,checked>5&&bad===0&&_pdfHasDateRange&&_pdfHasFx&&_pdfHasPayMethod&&rateUsageOK&&_pdfRateUsage&&_pdfFundCases,bad?`${bad} 列不一致`:(!_pdfHasDateRange?'缺少日期區間':(!_pdfHasFx?'缺少換匯紀錄':(!_pdfHasPayMethod?'缺少支付方式':(!_pdfRateUsage?'匯率用途或篩選錯誤':(!_pdfFundCases?'公費退款／補繳條件或順序錯誤':''))))));
     const _orig=localStorage.getItem('st_trips');
     let csvText=null,rateCsvText=null;const fundCsvTexts=[];const _B=window.Blob;const _click=HTMLAnchorElement.prototype.click;
     try{
@@ -6406,6 +6503,7 @@ function runSelfTest(){
     const _csvHasFx=(csvText||'').includes('完整換匯紀錄')&&(csvText||'').includes('"2026/01/01","USD",100,"OMR",38.4,32,3200');
     const _csvHeader=(csvText||'').replace(/^﻿/,'').split('\n').map(pl).find(c=>c.includes('支付方式')&&c.includes('付款人'))||[];
     const _csvHasPayMethod=_csvHeader.indexOf('支付方式')>=0&&_csvHeader.indexOf('支付方式')<_csvHeader.indexOf('付款人')&&(csvText||'').includes('"信用卡"')&&(csvText||'').includes('"現金"');
+    const _csvHasDateRange=(csvText||'').includes('"2026/01/02－2026/01/05"');
     const _csvRateUsage=(rateCsvText||'').includes('"OMR 一般匯率",85.5,"信用卡支出"')&&(rateCsvText||'').includes('"OMR 平均換匯成本",83.33333333333334,"現金支出、公款帳支出"')&&!(rateCsvText||'').includes('IDR 一般匯率')&&!(rateCsvText||'').includes('IDR 平均換匯成本');
     const [_mixedCsv='',_refundOnlyCsv='',_topupOnlyCsv='']=fundCsvTexts;
     const _csvFundMixed=_mixedCsv.includes('公費退款（＋）')&&_mixedCsv.includes('公費補繳（−）')
@@ -6415,7 +6513,7 @@ function runSelfTest(){
     const _csvFundCases=_csvFundMixed
       &&_refundOnlyCsv.includes('公費退款（＋）')&&!_refundOnlyCsv.includes('公費補繳（−）')
       &&!_topupOnlyCsv.includes('公費退款（＋）')&&_topupOnlyCsv.includes('公費補繳（−）');
-    ok(`CSV 逐列驗算(${cChecked} 列)+換匯紀錄+支付方式+公費差額`,cChecked>5&&cBad===0&&_csvHasFx&&_csvHasPayMethod&&_csvRateUsage&&_csvFundCases,cBad?`${cBad} 列不一致`:(!_csvHasFx?'缺少換匯紀錄':(!_csvHasPayMethod?'缺少支付方式':(!_csvRateUsage?'匯率用途或篩選錯誤':(!_csvFundCases?'公費退款／補繳條件或順序錯誤':'')))));
+    ok(`CSV 逐列驗算(${cChecked} 列)+日期區間+換匯紀錄+支付方式+公費差額`,cChecked>5&&cBad===0&&_csvHasDateRange&&_csvHasFx&&_csvHasPayMethod&&_csvRateUsage&&_csvFundCases,cBad?`${cBad} 列不一致`:(!_csvHasDateRange?'缺少日期區間':(!_csvHasFx?'缺少換匯紀錄':(!_csvHasPayMethod?'缺少支付方式':(!_csvRateUsage?'匯率用途或篩選錯誤':(!_csvFundCases?'公費退款／補繳條件或順序錯誤':''))))));
   }catch(err){ok('執行過程發生錯誤',false,String(err));}
   const allPass=R.every(r=>r.pass);
   const el=document.createElement('div');
