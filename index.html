@@ -233,7 +233,9 @@ select.input{
   background:var(--primary);color:#fff;padding:10px 22px;
   border-radius:999px;font-size:13px;font-weight:600;
   z-index:200;opacity:0;transition:opacity .25s,transform .25s;
-  pointer-events:none;white-space:nowrap;max-width:300px;text-align:center;
+  pointer-events:none;width:max-content;max-width:min(360px,calc(100vw - 32px));
+  box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;
+  line-height:1.5;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
@@ -5490,7 +5492,7 @@ const App = {
     saveTrip(t); this.pending=null;
     this.closeModal('m-import');
     this.tripId=t.id; this.tab='expenses';
-    this.go('trip'); this.showToast(`已加入「${t.name}」！點左上角 ← 可查看所有旅程`,3800);
+    this.go('trip'); this.showToast(`已加入「${this._esc(t.name||'')}」！點左上角 ← 可查看所有旅程`,3800);
   },
 
   renameTrip(){
