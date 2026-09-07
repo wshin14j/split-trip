@@ -1704,12 +1704,12 @@ select.input{
     </div>
     <div id="export-detail-content" style="flex:1;overflow-y:auto;padding:0 20px 16px;"></div>
     <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
-      <div style="display:flex;gap:8px;">
-        <button onclick="App.exportPDF()" style="flex:1;min-width:0;padding:11px 6px;border-radius:12px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">列印 PDF</button>
-        <button onclick="App.exportXLSX(false)" style="flex:1;min-width:0;padding:11px 6px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">匯出 Excel</button>
-        <button onclick="App.exportXLSX(true)" style="flex:1;min-width:0;padding:11px 6px;border-radius:12px;border:1.5px solid var(--accent);background:#EEF0FF;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">分享 Excel</button>
+      <div style="display:flex;gap:8px;align-items:stretch;">
+        <button onclick="App.exportPDF()" style="flex:1;min-width:0;padding:9px 6px;border-radius:12px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;line-height:1.25;">列印/儲存<br>PDF</button>
+        <button onclick="App.exportXLSX(false)" style="flex:1;min-width:0;padding:9px 6px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">匯出 Excel</button>
+        <button onclick="App.exportXLSX(true)" style="flex:1;min-width:0;padding:9px 6px;border-radius:12px;border:1.5px solid var(--accent);background:#EEF0FF;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">分享 Excel</button>
       </div>
-      <div style="font-size:11px;color:var(--t2);line-height:1.6;">・Excel 需連網下載；PDF 離線可用<br>・要用 Email 傳 PDF：按「列印 PDF」後，在列印畫面點右上角分享 → 郵件</div>
+      <div style="font-size:11px;color:var(--t2);line-height:1.6;">・匯出／分享 Excel 都需連網（下載製表工具）；PDF 離線可用<br>・要用 Email 傳 PDF：進列印畫面後，Mac 點左下「PDF ⌄」選單 →「郵寄 PDF」；iPhone 點列印預覽的分享鈕 → 郵件</div>
     </div>
   </div>
 </div>
@@ -4214,7 +4214,7 @@ const App = {
     document.getElementById('in-exp-parts').innerHTML=
       t.members.filter(m=>!m.isGroupFund).map(m=>`<button class="chip chip-lg on" id="cp-${m.id}" onclick="App.togglePart('${m.id}')">${m.name}</button>`).join('')+
       `<button class="chip chip-lg" id="cp-none" onclick="App.toggleSelfPurchase()">自購</button>`+
-      `<button class="chip chip-lg" id="cp-extproxy" onclick="App.toggleExtProxy()">代購（外部成員）</button>`;
+      `<button class="chip chip-lg" id="cp-extproxy" onclick="App.toggleExtProxy()">代購</button>`;
     document.getElementById('sp-eq').className='btn btn-toggle on flex-1 btn-sm';
     document.getElementById('sp-pr').className='btn btn-toggle flex-1 btn-sm';
     document.getElementById('sp-cu').className='btn btn-toggle flex-1 btn-sm';
@@ -6347,9 +6347,9 @@ const App = {
     return `
       <div style="margin-bottom:8px;">
         <div style="font-size:13px;font-weight:700;white-space:nowrap;margin-bottom:3px;">支出明細</div>
-        <div style="font-size:11px;color:#EF4444;line-height:1.6;font-weight:600;">＊ 幣別欄為原幣金額；台幣以整數顯示，因逐筆四捨五入，與「幣別欄 × 匯率」會有幾元差異，屬正常。需精確對帳（含小數、公式驗算）請改匯出 Excel。</div>
-        <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 原始計算結果，不含轉帳還款紀錄</div>
-        <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 均分金額以整數顯示，±1 元尾差由系統逐筆輪流分配，結算時自動抵平</div>
+        <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 本表為原始計算結果，不含轉帳還款紀錄。</div>
+        <div style="font-size:11px;color:#EF4444;line-height:1.6;font-weight:600;">＊ 金額均以整數顯示；因逐筆四捨五入，「幣別欄 × 匯率」與總金額會有幾元差異，屬正常。</div>
+        <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 需精確對帳（含小數、公式驗算）請改匯出 Excel。</div>
       </div>
       <div class="tbl-scroll" style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px;">
         <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
@@ -6447,9 +6447,9 @@ const App = {
     }
 
     // 備註(與 PDF 明細表上方的說明同步;CSV 無法上色)
-    csv+=['＊ 幣別欄為原幣金額；台幣以整數顯示，因逐筆四捨五入，與「幣別欄 × 匯率」會有幾元差異，屬正常。需精確對帳（含小數、公式驗算）請改匯出 Excel。'].map(esc).join(',')+'\n';
-    csv+=['＊ 原始計算結果，不含轉帳還款紀錄'].map(esc).join(',')+'\n';
-    csv+=['＊ 均分金額以整數顯示，±1 元尾差由系統逐筆輪流分配，結算時自動抵平'].map(esc).join(',')+'\n';
+    csv+=['＊ 本表為原始計算結果，不含轉帳還款紀錄。'].map(esc).join(',')+'\n';
+    csv+=['＊ 金額均以整數顯示；因逐筆四捨五入，「幣別欄 × 匯率」與總金額會有幾元差異，屬正常。'].map(esc).join(',')+'\n';
+    csv+=['＊ 需精確對帳（含小數、公式驗算）請改匯出 Excel。'].map(esc).join(',')+'\n';
 
     // Header: two rows (群組標題 + 欄位名)
     const header1=['','','','支出金額',...empties(allCurs.length-1),'','','分攤','','','',...empties(regularMembersCsv.length),...(hasFund?['公款帳','']:[])];
@@ -6824,8 +6824,8 @@ const App = {
     merges.push({s:{r:0,c:0},e:{r:0,c:ncols-1}});
     // ── 說明(整列合併,避免長句被隔壁空格截掉) ──
     const noteMerge=rn=>merges.push({s:{r:rn-1,c:0},e:{r:rn-1,c:ncols-1}});
-    noteMerge(push(['・幣別欄為原幣金額；台幣欄顯示整數、實際含小數（在 Excel 按「增加小數位數」即可看到）'],'note'));
-    noteMerge(push(['・各區小計為 SUM 公式；台幣皆用小數真值加總，「幣別欄 × 匯率 = 總金額」、各人相加＝總額，完全對得起來'],'note'));
+    noteMerge(push(['＊ 本表為原始計算結果，不含轉帳還款紀錄'],'note'));
+    noteMerge(push(['＊ 台幣欄顯示整數、實際含小數（按「增加小數位數」即可看到）'],'note'));
     push([],'blank');
     // ── 匯率摘要(用途長字合併到最右) ──
     const rateRows=exportRateUsageRows(t,exps);
@@ -6855,19 +6855,40 @@ const App = {
       if(proxyE.length){push(['— 他人墊付'],'subsec');const s=aoa.length+1;proxyE.forEach(e=>push(expRow(e),'detail'));const en=aoa.length;detailRanges.push([s,en]);pushTtl('墊付小計',s,en,'personal');}
       if(selfE.length){push(['— 自購'],'subsec');const s=aoa.length+1;selfE.forEach(e=>push(expRow(e),'detail'));const en=aoa.length;detailRanges.push([s,en]);pushTtl('自購小計',s,en,'personal');}
     }
-    // ── 整趟旅程完整花費 + 結算(總花費/已支付/待付款) ──
+    // ── 整趟旅程完整花費 + 結算(比照 PDF:總花費/公費/已支付/待付款,值取引擎整數) ──
+    const dueColor=[];// [row,col,值] → 待付款正負上色
     if(detailRanges.length){
       push([],'blank');push(['整趟旅程完整花費（群組＋個人）'],'sec-combined');
-      const rnTot=push(['合計','總花費'],'ttl-combined');sumCols(rnTot,detailRanges);
-      // 已支付/待付款(小數真值,和總花費同口徑 → 待付款加總歸零);待付款=總花費−已支付
-      const paidExact={};regMembers.forEach(m=>paidExact[m.id]=0);
-      exps.forEach(e=>{if(e.note==='金額待補')return;
-        if(typeof e.paidBy==='object'&&e.paidBy){Object.keys(e.paidBy).forEach(id=>{if(paidExact[id]!=null)paidExact[id]+=payerSegments(e,id).reduce((s,sg)=>Number(sg.amt)>0?s+expenseToBase(sg.amt,{...e,payMethod:sg.method||'現金'},t):s,0);});}
-        else if(paidExact[e.paidBy]!=null){paidExact[e.paidBy]+=exact(e).base;}});
-      const rnPaid=push(['已支付','各人實付'],'ttl-combined');regMembers.forEach((m,i)=>formulas.push([rnPaid,memberStart+i,null,paidExact[m.id]]));
-      const rnDue=push(['待付款','正=你要還 負=別人還你'],'ttl-combined');
-      regMembers.forEach((m,i)=>{const ci=memberStart+i;const totV=colVal(ci,detailRanges);formulas.push([rnDue,ci,`${CL(ci)}${rnTot}-${CL(ci)}${rnPaid}`,(totV-paidExact[m.id])]);});
-      if(hasFund)push(['＊ 公費存入／退款的逐筆明細請見 PDF 或 app 結算頁'],'note');
+      // 合計:各人總花費(用 SUM 公式,顯示整數;與 PDF 視覺一致)
+      const rnTot=push(['合計','全部支出'],'ttl-combined');sumCols(rnTot,detailRanges);
+      // 結算列助手:標籤放在「單價」欄、成員值放成員欄
+      const byId=fn=>{const o={};regMembers.forEach(m=>o[m.id]=fn(m));return o;};
+      const pushSettle=(label,vals,due)=>{const row=new Array(ncols).fill('');row[unitCol]=label;const rn=push(row,'settle');regMembers.forEach((m,i)=>{const v=vals[m.id];if(v!==''&&v!=null){formulas.push([rn,memberStart+i,null,v]);if(due)dueColor.push([rn,memberStart+i,v]);}});return rn;};
+      // 結算值(引擎整數)
+      const rnd=v=>Math.round(v||0);
+      const gPaid=id=>rnd(ENG.groupPaid[id]);
+      const owedOf=id=>-rnd(ENG.peerBal[id]);
+      const proxyPaid={},selfOnly={};regMembers.forEach(m=>{proxyPaid[m.id]=0;selfOnly[m.id]=0;});
+      exps.forEach(e=>{const c=ENG.perExp[e._k];if(!c||c.pending)return;const ps=e.parts||regIds;const pid=typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0];const isProxy=e.splitMode!=='self'&&e.splitMode!=='extproxy'&&ps.length===1&&ps[0]!==pid;if(isProxy){if(typeof e.paidBy==='string'&&proxyPaid[e.paidBy]!=null)proxyPaid[e.paidBy]+=c.baseTotal;}else if(e.splitMode==='self'||ps.length===1){Object.entries(c.shares).forEach(([id,v])=>{if(selfOnly[id]!=null)selfOnly[id]+=v;});}});
+      const hasProxy=regMembers.some(m=>proxyPaid[m.id]>0);
+      // 公費
+      const deposit={},fundUsed={};regMembers.forEach(m=>{deposit[m.id]=0;fundUsed[m.id]=0;});
+      (t.fundDeposits||[]).forEach(d=>{if(d.fromMemberId&&deposit[d.fromMemberId]!=null)deposit[d.fromMemberId]+=cashToBase(d.amt,d.cur||base,t,base);});
+      exps.forEach(e=>{const c=ENG.perExp[e._k];if(!c)return;Object.entries(c.fundShares||{}).forEach(([id,v])=>{if(fundUsed[id]!=null)fundUsed[id]+=v;});});
+      const refund={};regMembers.forEach(m=>{refund[m.id]=rnd(deposit[m.id])-rnd(fundUsed[m.id]);});
+      if(hasFund)pushSettle('已存入公費',byId(m=>rnd(deposit[m.id])||''));
+      if(hasFund&&regMembers.some(m=>refund[m.id]>0))pushSettle('公費退款（＋）',byId(m=>refund[m.id]>0?refund[m.id]:''));
+      if(hasFund&&regMembers.some(m=>refund[m.id]<0))pushSettle('公費補繳（−）',byId(m=>refund[m.id]<0?refund[m.id]:''));
+      pushSettle('已支付群組',byId(m=>gPaid(m.id)));
+      if(hasProxy)pushSettle('已支付他人墊付',byId(m=>proxyPaid[m.id]>0?rnd(proxyPaid[m.id]):''));
+      pushSettle('已支出自購',byId(m=>selfOnly[m.id]>0?rnd(selfOnly[m.id]):''));
+      pushSettle('待付款',byId(m=>owedOf(m.id)),true);
+      // 轉帳提示(整列合併)
+      const txs=minimizeTx(Object.fromEntries(regMembers.map(m=>[m.id,rnd(ENG.peerBal[m.id])])));
+      const bSym=(C[base]||C.TWD).sym||'';
+      const txLine=txs.length===0?'🎉 大家都平帳了！':txs.map(x=>`${mName(x.from)} → ${mName(x.to)}：${bSym}${rnd(x.amt).toLocaleString()}`).join('　');
+      const rnTx=push((()=>{const r=new Array(ncols).fill('');r[0]=txLine;return r;})(),'txline');
+      merges.push({s:{r:rnTx-1,c:0},e:{r:rnTx-1,c:ncols-1}});
     }
     // ── 群組支出分析(類別) ──
     const catTot={};exps.forEach(e=>{if(e.note==='金額待補')return;const c=normCat(e.category||'其他');catTot[c]=(catTot[c]||0)+exact(e).base;});
@@ -6887,7 +6908,7 @@ const App = {
     const range=XLSX.utils.decode_range(ws['!ref']);
     for(let R=range.s.r;R<=range.e.r;R++){
       intCols.forEach(Cc=>{const cell=ws[XLSX.utils.encode_cell({r:R,c:Cc})];if(cell&&(cell.t==='n'||cell.f)) cell.z=NF_INT;});
-      curCols.forEach(Cc=>{const cell=ws[XLSX.utils.encode_cell({r:R,c:Cc})];if(cell&&cell.t==='n') cell.z=NF_CUR;});
+      curCols.forEach(Cc=>{const cell=ws[XLSX.utils.encode_cell({r:R,c:Cc})];if(cell&&cell.t==='n') cell.z=Number.isInteger(cell.v)?NF_INT:NF_CUR;});
       const cCat=ws[XLSX.utils.encode_cell({r:R,c:2})];if(cCat&&cCat.t==='n')cCat.z=NF_INT;
     }
     // ── 樣式:配色全比照 PDF(群組藍 / 個人綠 / 整趟黃 / 表頭灰) ──
@@ -6915,13 +6936,17 @@ const App = {
       else if(k==='ttl-group')rowS(r,ttlStyle(TONE.group));
       else if(k==='ttl-personal')rowS(r,ttlStyle(TONE.personal));
       else if(k==='ttl-combined')rowS(r,ttlStyle(TONE.combined));
+      else if(k==='settle'){rowS(r,{fill:{fgColor:{rgb:'FEF9C3'}},font:{sz:11},border:{top:bd('FDE68A'),bottom:bd('FDE68A'),left:bd('FDE68A'),right:bd('FDE68A')}});setS(r,unitCol,{font:{color:{rgb:'6B7280'},sz:11},alignment:{horizontal:'center'}});}
+      else if(k==='txline')rowS(r,{fill:{fgColor:{rgb:'FEF9C3'}},font:{bold:true,color:{rgb:'92400E'}},alignment:{horizontal:'center'},border:{top:bd('FDE68A'),bottom:bd('FDE68A'),left:bd('FDE68A'),right:bd('FDE68A')}});
       else if(k==='analysis')rowS(r,{border:boxD});
     });
     // 匯率格上色:平均換匯成本=綠、一般匯率=黃(同 PDF)
     rateCells.forEach(([rn,src])=>setS(rn-1,1,{fill:{fgColor:{rgb:src==='平均換匯成本'?'DCFCE7':'FDE68A'}},font:{bold:true,color:{rgb:'111827'}},alignment:{horizontal:'center'},border:boxD}));
-    // 類別/支付方式/付款人/分攤方式/單位人數 這幾欄的明細置中
-    const centerCols=[1,methodCol,payerCol,splitCol,cntCol];
-    kinds.forEach((k,r)=>{if(k==='detail')centerCols.forEach(c=>setS(r,c,{alignment:{horizontal:'center',vertical:'center'}}));});
+    // 待付款正負上色(正=紅要還、負=綠別人還你)
+    dueColor.forEach(([rn,col,v])=>setS(rn-1,col,{font:{bold:true,color:{rgb:v>0?'EF4444':v<0?'22C55E':'6B7280'}}}));
+    // 除了日期(0)、項目(2)靠左,其餘欄(類別/方式/付款人/金額…)全部置中
+    const centerCols=[];for(let c=0;c<ncols;c++){if(c!==0&&c!==2)centerCols.push(c);}
+    kinds.forEach((k,r)=>{if(k==='detail'||k==='ttl-group'||k==='ttl-personal'||k==='ttl-combined'||k==='analysis'||k==='settle')centerCols.forEach(c=>setS(r,c,{alignment:{horizontal:'center',vertical:'center'}}));});
     // 欄寬:日期夠放區間、項目夠長、金額/付款人不被截
     const widths=new Array(ncols).fill(9);
     widths[0]=21;widths[1]=7;widths[2]=30;for(let i=0;i<nCur;i++)widths[3+i]=9;
