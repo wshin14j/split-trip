@@ -1708,11 +1708,8 @@ select.input{
         <button onclick="App.exportPDF()" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;">儲存/列印 PDF</button>
         <button onclick="App.exportXLSX(false)" style="flex:1;padding:11px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">匯出 Excel</button>
       </div>
-      <div style="display:flex;gap:10px;">
-        <button onclick="App.exportCSV()" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--t1);font-size:14px;font-weight:600;cursor:pointer;">匯出 CSV</button>
-        <button onclick="App.exportXLSX(true)" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--accent);background:#EEF0FF;color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;">📤 分享 Excel</button>
-      </div>
-      <div style="font-size:11px;color:var(--t2);line-height:1.5;">Excel／CSV 需連網下載；PDF 離線可用。<br>要用 Email 傳 PDF：按「儲存/列印 PDF」後，在列印畫面點右上角分享 → 郵件。</div>
+      <button onclick="App.exportXLSX(true)" style="width:100%;padding:11px;border-radius:12px;border:1.5px solid var(--accent);background:#EEF0FF;color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;">分享 Excel</button>
+      <div style="font-size:11px;color:var(--t2);line-height:1.5;">Excel 需連網下載；PDF 離線可用。<br>要用 Email 傳 PDF：按「儲存/列印 PDF」後，在列印畫面點右上角分享 → 郵件。</div>
     </div>
   </div>
 </div>
@@ -6720,17 +6717,18 @@ const App = {
     this.showToast('CSV 已下載');
   },
 
-  // 需要時才載入 Excel 製表工具(SheetJS,CDN);離線或斷網會失敗並提示
+  // 需要時才載入 Excel 製表工具(xlsx-js-style:免費且支援底色/框線,API 同 SheetJS);離線或斷網會失敗並提示
   _loadXLSX(){
     return new Promise((resolve,reject)=>{
-      if(window.XLSX) return resolve(window.XLSX);
+      if(window.XLSX&&window.XLSX.__styled) return resolve(window.XLSX);
       const s=document.createElement('script');
-      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-      s.onload=()=>window.XLSX?resolve(window.XLSX):reject(new Error('XLSX 未就緒'));
+      s.src='https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js';
+      s.onload=()=>{if(window.XLSX){window.XLSX.__styled=true;resolve(window.XLSX);}else reject(new Error('XLSX 未就緒'));};
       s.onerror=()=>reject(new Error('load-fail'));
       document.head.appendChild(s);
     });
   },
+  _stamp(){const d=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`;},
   _downloadBlob(blob,fileName){
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;a.download=fileName;a.click();
@@ -6789,14 +6787,15 @@ const App = {
       return {base:bt,shares,ps};
     };
     const nCur=allCurs.length;
-    const totalCol=3+nCur+3, unitCol=totalCol+1, memberStart=totalCol+2;
+    // 欄位:日期0 類別1 項目2 | 幣別3.. | 支付方式 付款人 分攤方式 單位人數 總金額 單價 | 成員...
+    const methodCol=3+nCur, payerCol=methodCol+1, splitCol=methodCol+2, cntCol=methodCol+3, totalCol=methodCol+4, unitCol=totalCol+1, memberStart=totalCol+2;
     const ncols=memberStart+regMembers.length;
     const CL=i=>XLSX.utils.encode_col(i);
-    const header=['日期','類別','項目明細',...allCurs,'支付方式','付款人','分攤方式',`總金額(${base})`,'單價',...regMembers.map(m=>m.name)];
+    const header=['日期','類別','項目明細',...allCurs,'支付方式','付款人','分攤方式','單位人數',`總金額(${base})`,`單價(${base})`,...regMembers.map(m=>m.name)];
     const pad=arr=>{const r=arr.slice();while(r.length<ncols)r.push('');return r;};
-    const aoa=[];
-    const push=r=>{aoa.push(pad(r));return aoa.length;};// 回傳該列 Excel 行號(1-based)
-    // 群組/個人判斷(與 calcTrip 一致:非自購/代購 且 分攤人數>=2)
+    const aoa=[];const kinds=[];const merges=[];
+    const push=(r,k)=>{aoa.push(pad(r));kinds.push(k||'');return aoa.length;};// 回傳該列 Excel 行號(1-based)
+    const ENG=calcTrip(t);
     const regIds=regMembers.map(m=>m.id);
     const isGroupE=e=>{if(e.splitMode==='self'||e.splitMode==='extproxy')return false;const ps=e.parts||regIds;return ps.filter(id=>regIds.includes(id)).length>=2;};
     const isProxyE=e=>{if(e.splitMode==='self'||e.splitMode==='extproxy')return false;const ps=e.parts||regIds;if(ps.length!==1)return false;const pid=typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0];return ps[0]!==pid;};
@@ -6808,10 +6807,9 @@ const App = {
         ? Object.entries(e.paidBy).filter(([,v])=>Number(v)>0).map(([pid,v])=>{const nm=mName(pid);const segs=payerSegments(e,pid).filter(s=>Number(s.amt)>0);return (e.payMethods||e.paySplitBy)?(segs.length>1?`${nm}(${segs.map(s=>`${s.amt}·${s.method}`).join(' ')})`:`${nm}(${v}·${segs[0]?.method||payMethodOfPayer(e,pid)})`):`${nm}(${v})`;}).join(' + ')
         : mName(e.paidBy);
       const cnt=ex.ps.length;
-      return [this.expenseDateText(e),e.category||'其他',expDisplayName(e),...curCells,payMethodLabel(e),payer,splitLabel(e.splitMode),isPending?'待補':ex.base,(isPending||!cnt)?'':ex.base/cnt,...regMembers.map(m=>ex.shares[m.id]!=null?ex.shares[m.id]:'')];
+      return [this.expenseDateText(e),e.category||'其他',expDisplayName(e),...curCells,payMethodLabel(e),payer,splitLabel(e.splitMode),cnt||'',isPending?'待補':ex.base,(isPending||!cnt)?'':ex.base/cnt,...regMembers.map(m=>ex.shares[m.id]!=null?ex.shares[m.id]:'')];
     };
-    // 公式列:先放空白列、記錄要填的(行,欄,公式,快取值),建表後直接寫入儲存格
-    // (aoa_to_sheet 不解析 {f} 物件;且公式須附快取值,否則部分軟體不顯示)
+    // 公式列:先放空白列、建表後直接寫入(附快取值,否則部分軟體不顯示)
     const formulas=[];
     const colVal=(ci,ranges)=>{let s=0;ranges.forEach(([a,b])=>{for(let r=a;r<=b;r++){const v=aoa[r-1]&&aoa[r-1][ci];if(typeof v==='number')s+=v;}});return s;};
     const sumCols=(rn,ranges)=>{
@@ -6819,62 +6817,102 @@ const App = {
       const cols=[...Array(nCur).keys()].map(i=>3+i).concat([totalCol]).concat(regMembers.map((m,i)=>memberStart+i));
       cols.forEach(ci=>formulas.push([rn,ci,f(ci),colVal(ci,ranges)]));
     };
-    const pushTtl=(label,s,e)=>{const rn=push([label]);sumCols(rn,[[s,e]]);};
+    const pushTtl=(label,s,e)=>{const rn=push([label],'ttl');sumCols(rn,[[s,e]]);};
+    // ── 標題(跨欄合併) ──
+    push([`${t.name} 支出／結算明細`],'title');
+    merges.push({s:{r:0,c:0},e:{r:0,c:ncols-1}});
+    // ── 說明 ──
+    push(['＊ 幣別欄為原幣金額；總金額為每筆換算台幣後加總，因逐筆四捨五入，與「幣別欄 × 匯率」會有幾元差異，屬正常'],'note-red');
+    push(['＊ 台幣欄顯示整數，實際含小數（Excel 按「增加小數位數」可見）；各區小計用 SUM，加總對得起來'],'note');
+    push([],'blank');
     // ── 匯率摘要 ──
     const rateRows=exportRateUsageRows(t,exps);
-    if(rateRows.length){push(['匯率摘要']);rateRows.forEach(r=>push([`${r.code} ${r.source}`,r.rate,r.usage]));push([]);}
-    // ── 說明 ──
-    push(['＊ 台幣欄顯示整數，實際含小數（Excel 按「增加小數位數」可見）；各區小計用 SUM，加總對得起來']);
-    if(hasFund)push(['＊ 公費存入／退款、還款結算的完整明細，請見 PDF 或 app 結算頁']);
-    push([]);
-    // ── 表頭 ──
-    push(header);
+    if(rateRows.length){rateRows.forEach(r=>push([`${r.code} ${r.source}`,r.rate,r.usage],'rate'));push([],'blank');}
+    // ── 表頭(兩層:支出金額 跨幣別、分攤 跨 方式/單位人數;單欄上下合併,比照 PDF) ──
+    const superH=new Array(ncols).fill('');
+    superH[0]='日期';superH[1]='類別';superH[2]='項目明細';superH[3]='支出金額';superH[methodCol]='支付方式';superH[payerCol]='付款人';superH[splitCol]='分攤';superH[totalCol]=`總金額(${base})`;superH[unitCol]=`單價(${base})`;regMembers.forEach((m,i)=>superH[memberStart+i]=m.name);
+    const subH=new Array(ncols).fill('');
+    for(let i=0;i<nCur;i++)subH[3+i]=allCurs[i];subH[splitCol]='方式';subH[cntCol]='單位人數';
+    const rSuper=push(superH,'head');const rSub=push(subH,'head');
+    const sr=rSuper-1,sb=rSub-1;
+    merges.push({s:{r:sr,c:3},e:{r:sr,c:3+nCur-1}});// 支出金額 跨幣別
+    merges.push({s:{r:sr,c:splitCol},e:{r:sr,c:cntCol}});// 分攤 跨 方式/單位人數
+    [0,1,2,methodCol,payerCol,totalCol,unitCol,...regMembers.map((m,i)=>memberStart+i)].forEach(c=>merges.push({s:{r:sr,c},e:{r:sb,c}}));
     // ── 群組支出明細 ──
     const groupExps=exps.filter(isGroupE);
     const personalExps=exps.filter(e=>!isGroupE(e));
     const detailRanges=[];
-    push(['群組支出明細']);
-    let gS=0,gE=0;
-    if(groupExps.length){gS=aoa.length+1;groupExps.forEach(e=>push(expRow(e)));gE=aoa.length;detailRanges.push([gS,gE]);pushTtl('群組 TTL',gS,gE);}
-    else push(['（無群組支出）']);
+    push(['群組支出明細'],'sec');
+    if(groupExps.length){const s=aoa.length+1;groupExps.forEach(e=>push(expRow(e),'detail'));const en=aoa.length;detailRanges.push([s,en]);pushTtl('群組 TTL',s,en);}
+    else push(['（無群組支出）'],'detail');
     // ── 個人支出明細 ──
     if(personalExps.length){
-      push([]);push(['個人支出明細']);
+      push([],'blank');push(['個人支出明細'],'sec');
       const proxyE=personalExps.filter(isProxyE);
       const selfE=personalExps.filter(e=>!isProxyE(e));
-      if(proxyE.length){push(['— 他人墊付']);const s=aoa.length+1;proxyE.forEach(e=>push(expRow(e)));const en=aoa.length;detailRanges.push([s,en]);pushTtl('墊付小計',s,en);}
-      if(selfE.length){push(['— 自購']);const s=aoa.length+1;selfE.forEach(e=>push(expRow(e)));const en=aoa.length;detailRanges.push([s,en]);pushTtl('自購小計',s,en);}
+      if(proxyE.length){push(['— 他人墊付'],'subsec');const s=aoa.length+1;proxyE.forEach(e=>push(expRow(e),'detail'));const en=aoa.length;detailRanges.push([s,en]);pushTtl('墊付小計',s,en);}
+      if(selfE.length){push(['— 自購'],'subsec');const s=aoa.length+1;selfE.forEach(e=>push(expRow(e),'detail'));const en=aoa.length;detailRanges.push([s,en]);pushTtl('自購小計',s,en);}
     }
-    // ── 整趟旅程完整花費(各人總花費) ──
+    // ── 整趟旅程完整花費 + 結算(總花費/已支付/待付款) ──
     if(detailRanges.length){
-      push([]);push(['整趟旅程完整花費（群組＋個人）']);
-      const rn=push(['合計','總花費']);
-      sumCols(rn,detailRanges);
+      push([],'blank');push(['整趟旅程完整花費（群組＋個人）'],'sec');
+      const rnTot=push(['合計','總花費'],'ttl');sumCols(rnTot,detailRanges);
+      // 已支付/待付款(小數真值,和總花費同口徑 → 待付款加總歸零);待付款=總花費−已支付
+      const paidExact={};regMembers.forEach(m=>paidExact[m.id]=0);
+      exps.forEach(e=>{if(e.note==='金額待補')return;
+        if(typeof e.paidBy==='object'&&e.paidBy){Object.keys(e.paidBy).forEach(id=>{if(paidExact[id]!=null)paidExact[id]+=payerSegments(e,id).reduce((s,sg)=>Number(sg.amt)>0?s+expenseToBase(sg.amt,{...e,payMethod:sg.method||'現金'},t):s,0);});}
+        else if(paidExact[e.paidBy]!=null){paidExact[e.paidBy]+=exact(e).base;}});
+      const rnPaid=push(['已支付','各人實付'],'ttl');regMembers.forEach((m,i)=>formulas.push([rnPaid,memberStart+i,null,paidExact[m.id]]));
+      const rnDue=push(['待付款','正=你要還 負=別人還你'],'ttl');
+      regMembers.forEach((m,i)=>{const ci=memberStart+i;const totV=colVal(ci,detailRanges);formulas.push([rnDue,ci,`${CL(ci)}${rnTot}-${CL(ci)}${rnPaid}`,(totV-paidExact[m.id])]);});
+      if(hasFund)push(['＊ 公費存入／退款的逐筆明細請見 PDF 或 app 結算頁'],'note');
     }
     // ── 群組支出分析(類別) ──
     const catTot={};exps.forEach(e=>{if(e.note==='金額待補')return;const c=normCat(e.category||'其他');catTot[c]=(catTot[c]||0)+exact(e).base;});
     const cats=Object.keys(catTot);
     if(cats.length){
-      push([]);push(['群組支出分析','類別',`金額(${base})`]);
+      push([],'blank');push(['群組支出分析'],'sec');push(['','類別',`金額(${base})`],'head');
       const CAT_ORDER=['餐飲','住宿','交通','玩樂','購物','其他'];
       cats.sort((a,b)=>{const ia=CAT_ORDER.indexOf(a),ib=CAT_ORDER.indexOf(b);return(ia<0?99:ia)-(ib<0?99:ib);});
-      cats.forEach(c=>push(['',c,catTot[c]]));
+      cats.forEach(c=>push(['',c,catTot[c]],'analysis'));
     }
     const ws=XLSX.utils.aoa_to_sheet(aoa);
-    // 寫入各區小計的 SUM 公式＋快取值(顯示整數)
-    formulas.forEach(([rn,col,f,v])=>{ws[XLSX.utils.encode_cell({r:rn-1,c:col})]={t:'n',f,v,z:'0'};});
-    // 台幣類欄位(總金額、單價、各成員)設整數顯示;原幣欄保留小數
+    formulas.forEach(([rn,col,f,v])=>{const cell={t:'n',v,z:'0'};if(f)cell.f=f;ws[XLSX.utils.encode_cell({r:rn-1,c:col})]=cell;});
+    // 台幣欄整數顯示
     const intCols=new Set([totalCol,unitCol]);regMembers.forEach((m,i)=>intCols.add(memberStart+i));
     const range=XLSX.utils.decode_range(ws['!ref']);
     for(let R=range.s.r;R<=range.e.r;R++){
       intCols.forEach(Cc=>{const cell=ws[XLSX.utils.encode_cell({r:R,c:Cc})];if(cell&&(cell.t==='n'||cell.f)) cell.z='0';});
-      const cCat=ws[XLSX.utils.encode_cell({r:R,c:2})];if(cCat&&cCat.t==='n')cCat.z='0';// 分析金額欄
+      const cCat=ws[XLSX.utils.encode_cell({r:R,c:2})];if(cCat&&cCat.t==='n')cCat.z='0';
     }
-    ws['!cols']=header.map((h,i)=>({wch:i===2?26:(i===0?12:9)}));
+    // ── 樣式:底色 / 框線 / 標題(xlsx-js-style) ──
+    const bd=(c='E5E7EB')=>({style:'thin',color:{rgb:c}});
+    const box={top:bd(),bottom:bd(),left:bd(),right:bd()};
+    const setS=(r,c,s)=>{const a=XLSX.utils.encode_cell({r,c});if(!ws[a])ws[a]={t:'s',v:''};ws[a].s=Object.assign({},ws[a].s,s);};
+    const rowS=(r,s,c0=0,c1=ncols-1)=>{for(let c=c0;c<=c1;c++)setS(r,c,s);};
+    kinds.forEach((k,r)=>{
+      if(k==='title')rowS(r,{font:{bold:true,sz:14,color:{rgb:'5B6CFF'}}});
+      else if(k==='note-red')rowS(r,{font:{sz:9,color:{rgb:'EF4444'}}});
+      else if(k==='note')rowS(r,{font:{sz:9,color:{rgb:'9CA3AF'}}});
+      else if(k==='rate'){rowS(r,{font:{sz:10}});setS(r,1,{fill:{fgColor:{rgb:'FDE9A6'}},font:{bold:true},alignment:{horizontal:'center'}});}
+      else if(k==='head')rowS(r,{font:{bold:true},fill:{fgColor:{rgb:'F1F2F6'}},border:box,alignment:{horizontal:'center',vertical:'center',wrapText:true}});
+      else if(k==='sec')rowS(r,{font:{bold:true,color:{rgb:'4338CA'}},fill:{fgColor:{rgb:'EEF0FF'}}});
+      else if(k==='subsec')rowS(r,{font:{bold:true,color:{rgb:'6B7280'}},fill:{fgColor:{rgb:'F6F7FB'}}});
+      else if(k==='detail')rowS(r,{border:box,font:{sz:11}});
+      else if(k==='ttl')rowS(r,{font:{bold:true},fill:{fgColor:{rgb:'F6F7FB'}},border:{top:bd('9CA3AF'),bottom:bd(),left:bd(),right:bd()}});
+      else if(k==='analysis')rowS(r,{border:box});
+    });
+    // 欄寬:日期夠放區間、項目夠長、金額/付款人不被截
+    const widths=new Array(ncols).fill(9);
+    widths[0]=21;widths[1]=7;widths[2]=30;for(let i=0;i<nCur;i++)widths[3+i]=9;
+    widths[methodCol]=11;widths[payerCol]=16;widths[splitCol]=7;widths[cntCol]=8;widths[totalCol]=13;widths[unitCol]=12;
+    regMembers.forEach((m,i)=>widths[memberStart+i]=Math.max(9,(m.name||'').length*2+3));
+    ws['!cols']=widths.map(w=>({wch:w}));
+    ws['!merges']=merges;
     const wb=XLSX.utils.book_new();
     wb.Workbook={CalcPr:{fullCalcOnLoad:true}};// 開檔時強制重算,確保 SUM 顯示數值
     XLSX.utils.book_append_sheet(wb,ws,'支出明細');
-    const fileName=`${t.name}_支出明細.xlsx`;
+    const fileName=`${t.name}_支出明細_${this._stamp()}.xlsx`;
     const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
     const blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     if(share) await this._shareFile(blob,fileName,'支出明細');
