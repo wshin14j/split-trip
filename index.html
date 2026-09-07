@@ -6762,6 +6762,7 @@ const App = {
     const base=t.baseCurrency||'TWD';
     const members=t.members||[];
     const regMembers=members.filter(m=>!m.isGroupFund);
+    const hasFund=members.some(m=>m.isGroupFund);
     const exps=Object.entries(t.expenses||{}).map(([k,e])=>({...e,_k:k})).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
     const otherCurs=[...new Set(exps.map(e=>e.currency||base))].filter(c=>c&&c!==base);
     const allCurs=[base,...otherCurs];
@@ -6787,10 +6788,19 @@ const App = {
       }
       return {base:bt,shares,ps};
     };
+    const nCur=allCurs.length;
+    const totalCol=3+nCur+3, unitCol=totalCol+1, memberStart=totalCol+2;
+    const ncols=memberStart+regMembers.length;
+    const CL=i=>XLSX.utils.encode_col(i);
     const header=['日期','類別','項目明細',...allCurs,'支付方式','付款人','分攤方式',`總金額(${base})`,'單價',...regMembers.map(m=>m.name)];
-    const aoa=[header];
-    const firstRow=2;
-    exps.forEach(e=>{
+    const pad=arr=>{const r=arr.slice();while(r.length<ncols)r.push('');return r;};
+    const aoa=[];
+    const push=r=>{aoa.push(pad(r));return aoa.length;};// 回傳該列 Excel 行號(1-based)
+    // 群組/個人判斷(與 calcTrip 一致:非自購/代購 且 分攤人數>=2)
+    const regIds=regMembers.map(m=>m.id);
+    const isGroupE=e=>{if(e.splitMode==='self'||e.splitMode==='extproxy')return false;const ps=e.parts||regIds;return ps.filter(id=>regIds.includes(id)).length>=2;};
+    const isProxyE=e=>{if(e.splitMode==='self'||e.splitMode==='extproxy')return false;const ps=e.parts||regIds;if(ps.length!==1)return false;const pid=typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0];return ps[0]!==pid;};
+    const expRow=e=>{
       const ex=exact(e);
       const isPending=e.note==='金額待補';
       const curCells=allCurs.map(c=>(e.currency||base)===c?(Number(e.amount)||''):'');
@@ -6798,30 +6808,71 @@ const App = {
         ? Object.entries(e.paidBy).filter(([,v])=>Number(v)>0).map(([pid,v])=>{const nm=mName(pid);const segs=payerSegments(e,pid).filter(s=>Number(s.amt)>0);return (e.payMethods||e.paySplitBy)?(segs.length>1?`${nm}(${segs.map(s=>`${s.amt}·${s.method}`).join(' ')})`:`${nm}(${v}·${segs[0]?.method||payMethodOfPayer(e,pid)})`):`${nm}(${v})`;}).join(' + ')
         : mName(e.paidBy);
       const cnt=ex.ps.length;
-      aoa.push([this.expenseDateText(e),e.category||'其他',expDisplayName(e),...curCells,payMethodLabel(e),payer,splitLabel(e.splitMode),isPending?'待補':ex.base,(isPending||!cnt)?'':ex.base/cnt,...regMembers.map(m=>ex.shares[m.id]!=null?ex.shares[m.id]:'')]);
-    });
-    const lastRow=aoa.length;
-    // TTL 合計列:用 SUM 公式(Excel 內即時加總、可再編輯)
-    const CL=i=>XLSX.utils.encode_col(i);
-    const sumF=ci=>({f:`SUM(${CL(ci)}${firstRow}:${CL(ci)}${lastRow})`});
-    const nCur=allCurs.length;
-    const totalCol=3+nCur+3, unitCol=totalCol+1, memberStart=totalCol+2;
-    const ttl=['TTL','群組支出',''];
-    for(let i=0;i<nCur;i++) ttl.push(sumF(3+i));
-    ttl.push('','','');// 支付方式,付款人,分攤方式
-    ttl.push(sumF(totalCol));// 總金額
-    ttl.push('');// 單價留空
-    regMembers.forEach((m,i)=>ttl.push(sumF(memberStart+i)));
-    aoa.push(ttl);
+      return [this.expenseDateText(e),e.category||'其他',expDisplayName(e),...curCells,payMethodLabel(e),payer,splitLabel(e.splitMode),isPending?'待補':ex.base,(isPending||!cnt)?'':ex.base/cnt,...regMembers.map(m=>ex.shares[m.id]!=null?ex.shares[m.id]:'')];
+    };
+    // 公式列:先放空白列、記錄要填的(行,欄,公式,快取值),建表後直接寫入儲存格
+    // (aoa_to_sheet 不解析 {f} 物件;且公式須附快取值,否則部分軟體不顯示)
+    const formulas=[];
+    const colVal=(ci,ranges)=>{let s=0;ranges.forEach(([a,b])=>{for(let r=a;r<=b;r++){const v=aoa[r-1]&&aoa[r-1][ci];if(typeof v==='number')s+=v;}});return s;};
+    const sumCols=(rn,ranges)=>{
+      const f=ci=>ranges.map(([a,b])=>`SUM(${CL(ci)}${a}:${CL(ci)}${b})`).join('+');
+      const cols=[...Array(nCur).keys()].map(i=>3+i).concat([totalCol]).concat(regMembers.map((m,i)=>memberStart+i));
+      cols.forEach(ci=>formulas.push([rn,ci,f(ci),colVal(ci,ranges)]));
+    };
+    const pushTtl=(label,s,e)=>{const rn=push([label]);sumCols(rn,[[s,e]]);};
+    // ── 匯率摘要 ──
+    const rateRows=exportRateUsageRows(t,exps);
+    if(rateRows.length){push(['匯率摘要']);rateRows.forEach(r=>push([`${r.code} ${r.source}`,r.rate,r.usage]));push([]);}
+    // ── 說明 ──
+    push(['＊ 台幣欄顯示整數，實際含小數（Excel 按「增加小數位數」可見）；各區小計用 SUM，加總對得起來']);
+    if(hasFund)push(['＊ 公費存入／退款、還款結算的完整明細，請見 PDF 或 app 結算頁']);
+    push([]);
+    // ── 表頭 ──
+    push(header);
+    // ── 群組支出明細 ──
+    const groupExps=exps.filter(isGroupE);
+    const personalExps=exps.filter(e=>!isGroupE(e));
+    const detailRanges=[];
+    push(['群組支出明細']);
+    let gS=0,gE=0;
+    if(groupExps.length){gS=aoa.length+1;groupExps.forEach(e=>push(expRow(e)));gE=aoa.length;detailRanges.push([gS,gE]);pushTtl('群組 TTL',gS,gE);}
+    else push(['（無群組支出）']);
+    // ── 個人支出明細 ──
+    if(personalExps.length){
+      push([]);push(['個人支出明細']);
+      const proxyE=personalExps.filter(isProxyE);
+      const selfE=personalExps.filter(e=>!isProxyE(e));
+      if(proxyE.length){push(['— 他人墊付']);const s=aoa.length+1;proxyE.forEach(e=>push(expRow(e)));const en=aoa.length;detailRanges.push([s,en]);pushTtl('墊付小計',s,en);}
+      if(selfE.length){push(['— 自購']);const s=aoa.length+1;selfE.forEach(e=>push(expRow(e)));const en=aoa.length;detailRanges.push([s,en]);pushTtl('自購小計',s,en);}
+    }
+    // ── 整趟旅程完整花費(各人總花費) ──
+    if(detailRanges.length){
+      push([]);push(['整趟旅程完整花費（群組＋個人）']);
+      const rn=push(['合計','總花費']);
+      sumCols(rn,detailRanges);
+    }
+    // ── 群組支出分析(類別) ──
+    const catTot={};exps.forEach(e=>{if(e.note==='金額待補')return;const c=normCat(e.category||'其他');catTot[c]=(catTot[c]||0)+exact(e).base;});
+    const cats=Object.keys(catTot);
+    if(cats.length){
+      push([]);push(['群組支出分析','類別',`金額(${base})`]);
+      const CAT_ORDER=['餐飲','住宿','交通','玩樂','購物','其他'];
+      cats.sort((a,b)=>{const ia=CAT_ORDER.indexOf(a),ib=CAT_ORDER.indexOf(b);return(ia<0?99:ia)-(ib<0?99:ib);});
+      cats.forEach(c=>push(['',c,catTot[c]]));
+    }
     const ws=XLSX.utils.aoa_to_sheet(aoa);
-    // 台幣類欄位(總金額、單價、各成員)格式設為整數顯示;原幣欄保留原本小數
+    // 寫入各區小計的 SUM 公式＋快取值(顯示整數)
+    formulas.forEach(([rn,col,f,v])=>{ws[XLSX.utils.encode_cell({r:rn-1,c:col})]={t:'n',f,v,z:'0'};});
+    // 台幣類欄位(總金額、單價、各成員)設整數顯示;原幣欄保留小數
     const intCols=new Set([totalCol,unitCol]);regMembers.forEach((m,i)=>intCols.add(memberStart+i));
     const range=XLSX.utils.decode_range(ws['!ref']);
     for(let R=range.s.r;R<=range.e.r;R++){
       intCols.forEach(Cc=>{const cell=ws[XLSX.utils.encode_cell({r:R,c:Cc})];if(cell&&(cell.t==='n'||cell.f)) cell.z='0';});
+      const cCat=ws[XLSX.utils.encode_cell({r:R,c:2})];if(cCat&&cCat.t==='n')cCat.z='0';// 分析金額欄
     }
     ws['!cols']=header.map((h,i)=>({wch:i===2?26:(i===0?12:9)}));
     const wb=XLSX.utils.book_new();
+    wb.Workbook={CalcPr:{fullCalcOnLoad:true}};// 開檔時強制重算,確保 SUM 顯示數值
     XLSX.utils.book_append_sheet(wb,ws,'支出明細');
     const fileName=`${t.name}_支出明細.xlsx`;
     const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
