@@ -1660,7 +1660,7 @@ select.input{
     </button>
     <button class="share-row" onclick="App.openExportDetail()" style="color:var(--accent);">
       <div class="share-icon" style="color:var(--accent);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
-      <div class="share-text"><div class="sm semibold" style="color:var(--accent);">匯出支出/結算明細</div><div class="xs muted">完整明細表，可列印 PDF 或匯出 CSV</div></div>
+      <div class="share-text"><div class="sm semibold" style="color:var(--accent);">匯出支出/結算明細</div><div class="xs muted">完整明細表，可列印 PDF 或匯出 Excel</div></div>
     </button>
     <div class="divider" style="margin:4px 0;"></div>
     <button class="share-row" onclick="App.deleteTrip()" style="color:#EF4444;">
@@ -1704,12 +1704,12 @@ select.input{
     </div>
     <div id="export-detail-content" style="flex:1;overflow-y:auto;padding:0 20px 16px;"></div>
     <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
-      <div style="display:flex;gap:10px;">
-        <button onclick="App.exportPDF()" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;">儲存/列印 PDF</button>
-        <button onclick="App.exportXLSX(false)" style="flex:1;padding:11px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:14px;font-weight:700;cursor:pointer;">匯出 Excel</button>
+      <div style="display:flex;gap:8px;">
+        <button onclick="App.exportPDF()" style="flex:1;min-width:0;padding:11px 6px;border-radius:12px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">列印 PDF</button>
+        <button onclick="App.exportXLSX(false)" style="flex:1;min-width:0;padding:11px 6px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">匯出 Excel</button>
+        <button onclick="App.exportXLSX(true)" style="flex:1;min-width:0;padding:11px 6px;border-radius:12px;border:1.5px solid var(--accent);background:#EEF0FF;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">分享 Excel</button>
       </div>
-      <button onclick="App.exportXLSX(true)" style="width:100%;padding:11px;border-radius:12px;border:1.5px solid var(--accent);background:#EEF0FF;color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;">分享 Excel</button>
-      <div style="font-size:11px;color:var(--t2);line-height:1.5;">Excel 需連網下載；PDF 離線可用。<br>要用 Email 傳 PDF：按「儲存/列印 PDF」後，在列印畫面點右上角分享 → 郵件。</div>
+      <div style="font-size:11px;color:var(--t2);line-height:1.6;">・Excel 需連網下載；PDF 離線可用<br>・要用 Email 傳 PDF：按「列印 PDF」後，在列印畫面點右上角分享 → 郵件</div>
     </div>
   </div>
 </div>
@@ -6347,7 +6347,7 @@ const App = {
     return `
       <div style="margin-bottom:8px;">
         <div style="font-size:13px;font-weight:700;white-space:nowrap;margin-bottom:3px;">支出明細</div>
-        <div style="font-size:11px;color:#EF4444;line-height:1.6;font-weight:600;">＊ 幣別欄為各幣別原始金額；總金額為每筆換算台幣後加總，因逐筆四捨五入，與「幣別欄 × 匯率」會有幾元差異，屬正常。</div>
+        <div style="font-size:11px;color:#EF4444;line-height:1.6;font-weight:600;">＊ 幣別欄為原幣金額；台幣以整數顯示，因逐筆四捨五入，與「幣別欄 × 匯率」會有幾元差異，屬正常。需精確對帳（含小數、公式驗算）請改匯出 Excel。</div>
         <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 原始計算結果，不含轉帳還款紀錄</div>
         <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 均分金額以整數顯示，±1 元尾差由系統逐筆輪流分配，結算時自動抵平</div>
       </div>
@@ -6447,7 +6447,7 @@ const App = {
     }
 
     // 備註(與 PDF 明細表上方的說明同步;CSV 無法上色)
-    csv+=['＊ 幣別欄為各幣別原始金額；總金額為每筆換算台幣後加總，因逐筆四捨五入，與「幣別欄 × 匯率」會有幾元差異，屬正常。'].map(esc).join(',')+'\n';
+    csv+=['＊ 幣別欄為原幣金額；台幣以整數顯示，因逐筆四捨五入，與「幣別欄 × 匯率」會有幾元差異，屬正常。需精確對帳（含小數、公式驗算）請改匯出 Excel。'].map(esc).join(',')+'\n';
     csv+=['＊ 原始計算結果，不含轉帳還款紀錄'].map(esc).join(',')+'\n';
     csv+=['＊ 均分金額以整數顯示，±1 元尾差由系統逐筆輪流分配，結算時自動抵平'].map(esc).join(',')+'\n';
 
@@ -6821,13 +6821,14 @@ const App = {
     // ── 標題(跨欄合併) ──
     push([`${t.name} 支出／結算明細`],'title');
     merges.push({s:{r:0,c:0},e:{r:0,c:ncols-1}});
-    // ── 說明 ──
-    push(['＊ 幣別欄為原幣金額；總金額為每筆換算台幣後加總，因逐筆四捨五入，與「幣別欄 × 匯率」會有幾元差異，屬正常'],'note-red');
-    push(['＊ 台幣欄顯示整數，實際含小數（Excel 按「增加小數位數」可見）；各區小計用 SUM，加總對得起來'],'note');
+    // ── 說明(整列合併,避免長句被隔壁空格截掉) ──
+    const noteMerge=rn=>merges.push({s:{r:rn-1,c:0},e:{r:rn-1,c:ncols-1}});
+    noteMerge(push(['・幣別欄為原幣金額；台幣欄顯示整數、實際含小數（在 Excel 按「增加小數位數」即可看到）'],'note'));
+    noteMerge(push(['・各區小計為 SUM 公式；台幣皆用小數真值加總，「幣別欄 × 匯率 = 總金額」、各人相加＝總額，完全對得起來'],'note'));
     push([],'blank');
-    // ── 匯率摘要 ──
+    // ── 匯率摘要(用途長字合併到最右) ──
     const rateRows=exportRateUsageRows(t,exps);
-    if(rateRows.length){rateRows.forEach(r=>push([`${r.code} ${r.source}`,r.rate,r.usage],'rate'));push([],'blank');}
+    if(rateRows.length){rateRows.forEach(r=>{const rn=push([`${r.code} ${r.source}`,r.rate,r.usage],'rate');merges.push({s:{r:rn-1,c:2},e:{r:rn-1,c:ncols-1}});});push([],'blank');}
     // ── 表頭(兩層:支出金額 跨幣別、分攤 跨 方式/單位人數;單欄上下合併,比照 PDF) ──
     const superH=new Array(ncols).fill('');
     superH[0]='日期';superH[1]='類別';superH[2]='項目明細';superH[3]='支出金額';superH[methodCol]='支付方式';superH[payerCol]='付款人';superH[splitCol]='分攤';superH[totalCol]=`總金額(${base})`;superH[unitCol]=`單價(${base})`;regMembers.forEach((m,i)=>superH[memberStart+i]=m.name);
@@ -6877,13 +6878,16 @@ const App = {
       cats.forEach(c=>push(['',c,catTot[c]],'analysis'));
     }
     const ws=XLSX.utils.aoa_to_sheet(aoa);
-    formulas.forEach(([rn,col,f,v])=>{const cell={t:'n',v,z:'0'};if(f)cell.f=f;ws[XLSX.utils.encode_cell({r:rn-1,c:col})]=cell;});
-    // 台幣欄整數顯示
+    const NF_INT='#,##0',NF_CUR='#,##0.###';// 千分位逗號;台幣整數,原幣保留小數
+    formulas.forEach(([rn,col,f,v])=>{const cell={t:'n',v,z:NF_INT};if(f)cell.f=f;ws[XLSX.utils.encode_cell({r:rn-1,c:col})]=cell;});
+    // 台幣欄整數顯示、原幣欄小數,皆加千分位逗號
     const intCols=new Set([totalCol,unitCol]);regMembers.forEach((m,i)=>intCols.add(memberStart+i));
+    const curCols=new Set([...Array(nCur).keys()].map(i=>3+i));
     const range=XLSX.utils.decode_range(ws['!ref']);
     for(let R=range.s.r;R<=range.e.r;R++){
-      intCols.forEach(Cc=>{const cell=ws[XLSX.utils.encode_cell({r:R,c:Cc})];if(cell&&(cell.t==='n'||cell.f)) cell.z='0';});
-      const cCat=ws[XLSX.utils.encode_cell({r:R,c:2})];if(cCat&&cCat.t==='n')cCat.z='0';
+      intCols.forEach(Cc=>{const cell=ws[XLSX.utils.encode_cell({r:R,c:Cc})];if(cell&&(cell.t==='n'||cell.f)) cell.z=NF_INT;});
+      curCols.forEach(Cc=>{const cell=ws[XLSX.utils.encode_cell({r:R,c:Cc})];if(cell&&cell.t==='n') cell.z=NF_CUR;});
+      const cCat=ws[XLSX.utils.encode_cell({r:R,c:2})];if(cCat&&cCat.t==='n')cCat.z=NF_INT;
     }
     // ── 樣式:底色 / 框線 / 標題(xlsx-js-style) ──
     const bd=(c='E5E7EB')=>({style:'thin',color:{rgb:c}});
@@ -6902,6 +6906,9 @@ const App = {
       else if(k==='ttl')rowS(r,{font:{bold:true},fill:{fgColor:{rgb:'F6F7FB'}},border:{top:bd('9CA3AF'),bottom:bd(),left:bd(),right:bd()}});
       else if(k==='analysis')rowS(r,{border:box});
     });
+    // 類別/支付方式/付款人/分攤方式/單位人數 這幾欄的明細置中
+    const centerCols=[1,methodCol,payerCol,splitCol,cntCol];
+    kinds.forEach((k,r)=>{if(k==='detail')centerCols.forEach(c=>setS(r,c,{alignment:{horizontal:'center',vertical:'center'}}));});
     // 欄寬:日期夠放區間、項目夠長、金額/付款人不被截
     const widths=new Array(ncols).fill(9);
     widths[0]=21;widths[1]=7;widths[2]=30;for(let i=0;i<nCur;i++)widths[3+i]=9;
