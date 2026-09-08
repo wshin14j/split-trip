@@ -6381,7 +6381,7 @@ const App = {
         <div style="font-size:13px;font-weight:700;white-space:nowrap;margin-bottom:3px;">支出明細</div>
         <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 本表為原始計算結果，不含轉帳還款紀錄。</div>
         <div style="font-size:11px;color:#EF4444;line-height:1.6;font-weight:600;">＊ 實際運算保留完整小數，本表僅將各格四捨五入顯示為整數，因此明細、分攤與合計相加可能相差幾元。</div>
-        <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 需查看完整小數與公式驗算，請匯出 Excel 後按「增加小數位數」。</div>
+        <div style="font-size:11px;color:#9CA3AF;line-height:1.6;">＊ 需查看完整小數與公式驗算，請匯出 Excel 檔案。</div>
       </div>
       <div class="tbl-scroll" style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:18px;">
         <table style="border-collapse:collapse;min-width:max-content;">${rateRows}${mainHeader}<tbody>${sectionRow('群組支出明細')}${groupRows}${groupTtlRows}${personalSection}${combinedSection}</tbody></table>
@@ -6481,7 +6481,7 @@ const App = {
     // 備註(與 PDF 明細表上方的說明同步;CSV 無法上色)
     csv+=['＊ 本表為原始計算結果，不含轉帳還款紀錄。'].map(esc).join(',')+'\n';
     csv+=['＊ 實際運算保留完整小數，本表僅將各格四捨五入顯示為整數，因此明細、分攤與合計相加可能相差幾元。'].map(esc).join(',')+'\n';
-    csv+=['＊ 需查看完整小數與公式驗算，請匯出 Excel 後按「增加小數位數」。'].map(esc).join(',')+'\n';
+    csv+=['＊ 需查看完整小數與公式驗算，請匯出 Excel 檔案。'].map(esc).join(',')+'\n';
 
     // Header: two rows (群組標題 + 欄位名)
     const header1=['','','','支出金額',...empties(allCurs.length-1),'','','分攤','','','',...empties(regularMembersCsv.length),...(hasFund?['公款帳','']:[])];
@@ -7279,7 +7279,7 @@ function runSelfTest(){
     const _pdfFundCases=_pdfFundMixed
       &&_refundOnlyHtml.includes('公費退款（＋）')&&!_refundOnlyHtml.includes('公費補繳（−）')
       &&!_topupOnlyHtml.includes('公費退款（＋）')&&_topupOnlyHtml.includes('公費補繳（−）');
-    const _pdfHasPrecisionNote=html.includes('實際運算保留完整小數')&&html.includes('增加小數位數');
+    const _pdfHasPrecisionNote=html.includes('實際運算保留完整小數')&&html.includes('請匯出 Excel 檔案');
     ok(`PDF 整數顯示(${checked} 列)+精度提醒+日期區間+換匯紀錄+支付方式+公費差額`,checked>5&&bad===0&&_pdfHasPrecisionNote&&_pdfHasDateRange&&_pdfHasFx&&_pdfHasPayMethod&&rateUsageOK&&_pdfRateUsage&&_pdfFundCases,bad?`${bad} 列不是整數顯示`:(!_pdfHasPrecisionNote?'缺少精度提醒':(!_pdfHasDateRange?'缺少日期區間':(!_pdfHasFx?'缺少換匯紀錄':(!_pdfHasPayMethod?'缺少支付方式':(!_pdfRateUsage?'匯率用途或篩選錯誤':(!_pdfFundCases?'公費退款／補繳條件或順序錯誤':'')))))));
     const _orig=localStorage.getItem('st_trips');
     let csvText=null,rateCsvText=null;const fundCsvTexts=[];const _B=window.Blob;const _click=HTMLAnchorElement.prototype.click;
@@ -7336,7 +7336,7 @@ function runSelfTest(){
     const _csvTtlAligned=_iTotC>=0
       &&_ttlAligned(c=>c[0]==='TTL'&&c[1]==='群組支出')
       &&_ttlAligned(c=>c[0]==='合計'&&c[1]==='全部支出');
-    const _csvHasPrecisionNote=(csvText||'').includes('實際運算保留完整小數')&&(csvText||'').includes('增加小數位數');
+    const _csvHasPrecisionNote=(csvText||'').includes('實際運算保留完整小數')&&(csvText||'').includes('請匯出 Excel 檔案');
     ok(`CSV 整數顯示(${cChecked} 列)+TTL欄位對齊+精度提醒+日期區間+換匯紀錄+支付方式+公費差額`,cChecked>5&&cBad===0&&_csvTtlAligned&&_csvHasPrecisionNote&&_csvHasDateRange&&_csvHasFx&&_csvHasPayMethod&&_csvRateUsage&&_csvFundCases,cBad?`${cBad} 列不是整數顯示`:(!_csvTtlAligned?'TTL 合計欄位未對齊':(!_csvHasPrecisionNote?'缺少精度提醒':(!_csvHasDateRange?'缺少日期區間':(!_csvHasFx?'缺少換匯紀錄':(!_csvHasPayMethod?'缺少支付方式':(!_csvRateUsage?'匯率用途或篩選錯誤':(!_csvFundCases?'公費退款／補繳條件或順序錯誤':''))))))));
   }catch(err){ok('執行過程發生錯誤',false,String(err));}
   const allPass=R.every(r=>r.pass);
