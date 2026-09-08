@@ -7056,6 +7056,7 @@ const App = {
         const imageSheet=imageBook.getWorksheet('支出明細');
         const imageId=imageBook.addImage({base64:analysisImage.dataUrl,extension:'png'});
         const imageRows=Math.ceil(analysisImage.height/20);
+        imageSheet.properties.defaultRowHeight=15;// 有自訂列高時必須一併寫入預設列高，否則 Excel 會修復 sheet1.xml。
         for(let i=0;i<imageRows;i++)imageSheet.getRow(analysisStartRow+i).height=15;
         // 改用雙定位點產生 twoCellAnchor；editAs 在此結構才是合法屬性，避免 Excel 跳出修復警告。
         const colPx=widths.map(w=>Math.floor(w*7+5));let remainPx=analysisImage.width,endCol=0;
