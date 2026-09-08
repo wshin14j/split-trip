@@ -7055,9 +7055,13 @@ const App = {
         await imageBook.xlsx.load(out);
         const imageSheet=imageBook.getWorksheet('支出明細');
         const imageId=imageBook.addImage({base64:analysisImage.dataUrl,extension:'png'});
-        imageSheet.addImage(imageId,{tl:{col:0,row:analysisStartRow-1},ext:{width:analysisImage.width,height:analysisImage.height},editAs:'oneCell'});
         const imageRows=Math.ceil(analysisImage.height/20);
         for(let i=0;i<imageRows;i++)imageSheet.getRow(analysisStartRow+i).height=15;
+        // 改用雙定位點產生 twoCellAnchor；editAs 在此結構才是合法屬性，避免 Excel 跳出修復警告。
+        const colPx=widths.map(w=>Math.floor(w*7+5));let remainPx=analysisImage.width,endCol=0;
+        while(endCol<colPx.length-1&&remainPx>colPx[endCol]){remainPx-=colPx[endCol];endCol++;}
+        const endColPos=endCol+Math.min(1,remainPx/(colPx[endCol]||64));
+        imageSheet.addImage(imageId,{tl:{col:0,row:analysisStartRow-1},br:{col:endColPos,row:analysisStartRow-1+analysisImage.height/20},editAs:'oneCell'});
         imageBook.calcProperties.fullCalcOnLoad=true;
         out=await imageBook.xlsx.writeBuffer();
       }catch(err){console.error('Excel chart embed failed',err);this.showToast('Excel 圖表建立失敗，請稍後再試');return;}
