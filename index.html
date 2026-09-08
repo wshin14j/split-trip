@@ -6760,6 +6760,80 @@ const App = {
       document.head.appendChild(s);
     });
   },
+  // ExcelJS 只用來把「匯出當下」的分析圖嵌進已排好版的活頁簿；表格與公式仍由 xlsx-js-style 產生。
+  _loadExcelJS(){
+    return new Promise((resolve,reject)=>{
+      if(window.ExcelJS) return resolve(window.ExcelJS);
+      const s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+      s.onload=()=>window.ExcelJS?resolve(window.ExcelJS):reject(new Error('ExcelJS 未就緒'));
+      s.onerror=()=>reject(new Error('load-fail'));
+      document.head.appendChild(s);
+    });
+  },
+  // 依 PDF 的分析版型畫成單張 PNG，嵌入 Excel；所有數字只讀共用計算引擎，不另行重算分攤。
+  _makeExcelAnalysisImage(t,ENG,groupExps,members,base){
+    if(!groupExps.length)return null;
+    const sym=(C[base]||C.TWD).sym||base;
+    const catCol={'餐飲':'#F97316','住宿':'#8B5CF6','交通':'#3B82F6','玩樂':'#EC4899','購物':'#10B981','其他':'#6B7280'};
+    const mCol=m=>AVATAR_COLORS.find(c=>c.id===m.color)?.bg||'#6366F1';
+    const catTotals={},payerCat={};
+    groupExps.forEach(e=>{
+      const c=ENG.perExp[e._k];if(!c||c.pending)return;
+      const cat=normCat(e.category||'其他');
+      catTotals[cat]=(catTotals[cat]||0)+c.baseTotal;
+      Object.entries(c.paid||{}).forEach(([pid,v])=>{if(v>0)(payerCat[pid]=payerCat[pid]||{})[cat]=(payerCat[pid][cat]||0)+v;});
+    });
+    const catEntries=Object.entries(catTotals).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a);
+    if(!catEntries.length)return null;
+    const total=catEntries.reduce((s,[,v])=>s+v,0);
+    const paidEntries=members.map(m=>({m,paid:Number(ENG.groupPaid[m.id]||0),col:mCol(m)})).filter(x=>x.paid>0).sort((a,b)=>b.paid-a.paid);
+    const totalPaid=paidEntries.reduce((s,x)=>s+x.paid,0);
+    const payerBlocks=paidEntries.map(x=>{
+      const entries=Object.entries(payerCat[x.m.id]||{}).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a);
+      return {...x,entries,total:entries.reduce((s,[,v])=>s+v,0)};
+    }).filter(x=>x.entries.length);
+    const W=760,groupH=Math.max(156,catEntries.length*34),paidH=70+paidEntries.length*31;
+    const payerH=payerBlocks.reduce((s,x)=>s+54+Math.max(132,x.entries.length*34),0);
+    const H=70+groupH+26+paidH+payerH+28,DPR=2;
+    const canvas=document.createElement('canvas');canvas.width=W*DPR;canvas.height=H*DPR;
+    const ctx=canvas.getContext('2d');ctx.scale(DPR,DPR);ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,W,H);
+    ctx.textBaseline='middle';
+    const font=(size,weight=400,color='#111827',align='left')=>{ctx.font=`${weight} ${size}px -apple-system,BlinkMacSystemFont,"Noto Sans TC",sans-serif`;ctx.fillStyle=color;ctx.textAlign=align;};
+    const money=v=>`${sym} ${displayIntText(v)}`;
+    const divider=y=>{ctx.strokeStyle='#E5E7EB';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(22,y+.5);ctx.lineTo(W-22,y+.5);ctx.stroke();};
+    const dot=(x,y,r,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();};
+    const rounded=(x,y,w,h,r)=>{ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();};
+    const donut=(entries,cx,cy,r,thick)=>{
+      const tot=entries.reduce((s,[,v])=>s+v,0);let a=-Math.PI/2;
+      ctx.lineWidth=thick;ctx.lineCap='butt';ctx.strokeStyle='#F3F4F6';ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.stroke();
+      entries.forEach(([cat,v])=>{const n=a+(tot>0?v/tot*Math.PI*2:0);ctx.strokeStyle=catCol[cat]||catCol['其他'];ctx.beginPath();ctx.arc(cx,cy,r,a,n);ctx.stroke();a=n;});
+    };
+    const catRows=(entries,tot,x,y,w)=>{
+      entries.forEach(([cat,amt],i)=>{
+        const cy=y+i*34+17;dot(x+6,cy,6,catCol[cat]||catCol['其他']);
+        font(15,600);ctx.fillText(cat,x+24,cy);
+        font(14,400,'#6B7280','right');ctx.fillText(`${tot>0?Math.round(amt/tot*100):0}%`,x+w-132,cy);
+        font(15,700,'#111827','right');ctx.fillText(money(amt),x+w,cy);
+        ctx.strokeStyle='#F3F4F6';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+22,cy+16.5);ctx.lineTo(x+w,cy+16.5);ctx.stroke();
+      });
+    };
+    font(19,800);ctx.fillText('群組支出分析',22,31);
+    font(20,800,'#6366F1','right');ctx.fillText(money(total),W-22,31);
+    let y=58;donut(catEntries,105,y+groupH/2,58,27);catRows(catEntries,total,210,y+Math.max(0,(groupH-catEntries.length*34)/2),W-232);
+    y+=groupH+13;divider(y);y+=25;
+    font(17,800);ctx.fillText('成員已支出%',22,y);y+=27;
+    rounded(22,y,W-44,14,7);ctx.fillStyle='#F3F4F6';ctx.fill();
+    if(totalPaid>0){ctx.save();rounded(22,y,W-44,14,7);ctx.clip();let bx=22;paidEntries.forEach(x=>{const bw=(W-44)*x.paid/totalPaid;ctx.fillStyle=x.col;ctx.fillRect(bx,y,bw,14);bx+=bw;});ctx.restore();}
+    y+=30;
+    paidEntries.forEach(x=>{ctx.fillStyle=x.col;rounded(22,y-6,13,13,3);ctx.fill();font(15,700);ctx.fillText(x.m.name,48,y);font(15,400,'#6B7280','right');ctx.fillText(money(x.paid),W-82,y);font(15,800,x.col,'right');ctx.fillText(`${totalPaid>0?Math.round(x.paid/totalPaid*100):0}%`,W-22,y);y+=31;});
+    y+=12;
+    payerBlocks.forEach(x=>{
+      divider(y);y+=31;font(18,800);ctx.fillText(x.m.name,22,y);font(18,800,'#6366F1','right');ctx.fillText(money(x.total),W-22,y);
+      const bodyH=Math.max(132,x.entries.length*34);y+=23;donut(x.entries,105,y+bodyH/2,49,23);catRows(x.entries,x.total,195,y+Math.max(0,(bodyH-x.entries.length*34)/2),W-217);y+=bodyH;
+    });
+    return {dataUrl:canvas.toDataURL('image/png'),width:W,height:H};
+  },
   _stamp(){const d=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`;},
   _downloadBlob(blob,fileName){
     const url=URL.createObjectURL(blob);
@@ -6840,6 +6914,7 @@ const App = {
     const noteMerge=rn=>merges.push({s:{r:rn-1,c:0},e:{r:rn-1,c:ncols-1}});
     noteMerge(push(['＊ 本表為原始計算結果，不含轉帳還款紀錄'],'note'));
     noteMerge(push(['＊ 台幣欄顯示整數、實際含小數（按「增加小數位數」即可看到）'],'note'));
+    noteMerge(push(['＊ 下方圖表反映「匯出當下」資料；若直接在 Excel 內修改數字，圖表圖片不會自動更新，重新由 RoamSplit 匯出即可更新。'],'note'));
     push([],'blank');
     // ── 匯率摘要(用途長字合併到最右) ──
     const rateRows=exportRateUsageRows(t,exps);
@@ -6875,6 +6950,7 @@ const App = {
       push([],'blank');push(['整趟旅程完整花費（群組＋個人）'],'sec-combined');
       // 合計:各人總花費(用 SUM 公式,顯示整數;與 PDF 視覺一致)
       const rnTot=push(['合計','全部支出'],'ttl-combined');sumCols(rnTot,detailRanges);
+      aoa[rnTot-1][unitCol]='總花費';
       // 結算列助手:標籤放在「單價」欄、成員值放成員欄
       const byId=fn=>{const o={};regMembers.forEach(m=>o[m.id]=fn(m));return o;};
       const pushSettle=(label,vals,due)=>{const row=new Array(ncols).fill('');row[unitCol]=label;const rn=push(row,'settle');regMembers.forEach((m,i)=>{const v=vals[m.id];if(v!==''&&v!=null){formulas.push([rn,memberStart+i,null,v]);if(due)dueColor.push([rn,memberStart+i,v]);}});return rn;};
@@ -6896,23 +6972,19 @@ const App = {
       pushSettle('已支付群組',byId(m=>gPaid(m.id)));
       if(hasProxy)pushSettle('已支付他人墊付',byId(m=>proxyPaid[m.id]>0?proxyPaid[m.id]:''));
       pushSettle('已支出自購',byId(m=>selfOnly[m.id]>0?selfOnly[m.id]:''));
-      pushSettle('待付款',byId(m=>owedOf(m.id)),true);
-      // 轉帳提示(整列合併)
+      const rnDue=pushSettle('待付款',byId(m=>owedOf(m.id)),true);
+      kinds[rnDue-1]='settle-due';
+      // 轉帳提示放在成員欄正下方；「待付款」標籤跨兩列，版型與 PDF 相同。
       const txs=minimizeTx(roundSettlementBalances(ENG.peerBal));
       const bSym=(C[base]||C.TWD).sym||'';
-      const txLine=txs.length===0?'🎉 大家都平帳了！':txs.map(x=>`${mName(x.from)} → ${mName(x.to)}：${bSym}${rnd(x.amt).toLocaleString()}`).join('　');
-      const rnTx=push((()=>{const r=new Array(ncols).fill('');r[0]=txLine;return r;})(),'txline');
-      merges.push({s:{r:rnTx-1,c:0},e:{r:rnTx-1,c:ncols-1}});
+      const txLine=txs.length===0?'🎉 大家都平帳了！':txs.map(x=>`${mName(x.from)} → ${mName(x.to)}：${bSym}${rnd(x.amt).toLocaleString()}`).join('\n');
+      const rnTx=push((()=>{const r=new Array(ncols).fill('');r[memberStart]=txLine;return r;})(),'txline');
+      merges.push({s:{r:rnDue-1,c:unitCol},e:{r:rnTx-1,c:unitCol}});
+      if(regMembers.length>1)merges.push({s:{r:rnTx-1,c:memberStart},e:{r:rnTx-1,c:ncols-1}});
     }
-    // ── 群組支出分析(類別) ──
-    const catTot={};exps.forEach(e=>{if(e.note==='金額待補')return;const c=normCat(e.category||'其他');catTot[c]=(catTot[c]||0)+exact(e).base;});
-    const cats=Object.keys(catTot);
-    if(cats.length){
-      push([],'blank');push(['群組支出分析'],'sec-analysis');push(['','類別',`金額(${base})`],'head');
-      const CAT_ORDER=['餐飲','住宿','交通','玩樂','購物','其他'];
-      cats.sort((a,b)=>{const ia=CAT_ORDER.indexOf(a),ib=CAT_ORDER.indexOf(b);return(ia<0?99:ia)-(ib<0?99:ib);});
-      cats.forEach(c=>push(['',c,catTot[c]],'analysis'));
-    }
+    // ── 群組支出分析：先保留圖片起點，活頁簿產生後再嵌入 PDF 同款靜態圖表 ──
+    const analysisImage=this._makeExcelAnalysisImage(t,ENG,groupExps,members,base);
+    const analysisStartRow=aoa.length+2;
     const ws=XLSX.utils.aoa_to_sheet(aoa);
     const NF_INT='#,##0',NF_CUR='#,##0.###';// 千分位逗號;台幣整數,原幣保留小數
     formulas.forEach(([rn,col,f,v])=>{const cell={t:'n',v,z:NF_INT};if(f)cell.f=f;ws[XLSX.utils.encode_cell({r:rn-1,c:col})]=cell;});
@@ -6949,9 +7021,10 @@ const App = {
       else if(k==='detail')rowS(r,{border:box,font:{sz:11}});
       else if(k==='ttl-group')rowS(r,ttlStyle(TONE.group));
       else if(k==='ttl-personal')rowS(r,ttlStyle(TONE.personal));
-      else if(k==='ttl-combined')rowS(r,ttlStyle(TONE.combined));
+      else if(k==='ttl-combined')rowS(r,{font:{bold:true,color:{rgb:'111827'}},fill:{fgColor:{rgb:TONE.combined.bg}},border:{top:bd(TONE.combined.tb),bottom:bd(TONE.combined.bc),left:bd(TONE.combined.bc),right:bd(TONE.combined.bc)}});
       else if(k==='settle'){rowS(r,{fill:{fgColor:{rgb:'FEF9C3'}},font:{sz:11},border:{top:bd('FDE68A'),bottom:bd('FDE68A'),left:bd('FDE68A'),right:bd('FDE68A')}});setS(r,unitCol,{font:{color:{rgb:'6B7280'},sz:11},alignment:{horizontal:'center'}});}
-      else if(k==='txline')rowS(r,{fill:{fgColor:{rgb:'FEF9C3'}},font:{bold:true,color:{rgb:'92400E'}},alignment:{horizontal:'center'},border:{top:bd('FDE68A'),bottom:bd('FDE68A'),left:bd('FDE68A'),right:bd('FDE68A')}});
+      else if(k==='settle-due'){rowS(r,{fill:{fgColor:{rgb:'FEF9C3'}},font:{sz:11},border:{top:bd('FDE68A'),bottom:bd('FDE68A'),left:bd('FDE68A'),right:bd('FDE68A')}});setS(r,unitCol,{font:{bold:true,color:{rgb:'92400E'},sz:11},alignment:{horizontal:'center',vertical:'center'}});regMembers.forEach((m,i)=>setS(r,memberStart+i,{border:{top:{style:'medium',color:{rgb:'F59E0B'}},bottom:{style:'none'},left:i===0?{style:'medium',color:{rgb:'9CA3AF'}}:bd('FDE68A'),right:bd('FDE68A')}}));}
+      else if(k==='txline'){rowS(r,{fill:{fgColor:{rgb:'FEF9C3'}},font:{bold:true,color:{rgb:'92400E'}},alignment:{horizontal:'center',vertical:'center',wrapText:true},border:{top:bd('FDE68A'),bottom:bd('FDE68A'),left:bd('FDE68A'),right:bd('FDE68A')}});setS(r,memberStart,{border:{top:{style:'none'},bottom:bd('FDE68A'),left:{style:'medium',color:{rgb:'9CA3AF'}},right:bd('FDE68A')}});}
       else if(k==='analysis')rowS(r,{border:boxD});
     });
     // 匯率格上色:平均換匯成本=綠、一般匯率=黃(同 PDF)
@@ -6960,7 +7033,7 @@ const App = {
     dueColor.forEach(([rn,col,v])=>setS(rn-1,col,{font:{bold:true,color:{rgb:v>0?'EF4444':v<0?'22C55E':'6B7280'}}}));
     // 除了日期(0)、項目(2)靠左,其餘欄(類別/方式/付款人/金額…)全部置中
     const centerCols=[];for(let c=0;c<ncols;c++){if(c!==0&&c!==2)centerCols.push(c);}
-    kinds.forEach((k,r)=>{if(k==='detail'||k==='ttl-group'||k==='ttl-personal'||k==='ttl-combined'||k==='analysis'||k==='settle')centerCols.forEach(c=>setS(r,c,{alignment:{horizontal:'center',vertical:'center'}}));});
+    kinds.forEach((k,r)=>{if(k==='detail'||k==='ttl-group'||k==='ttl-personal'||k==='ttl-combined'||k==='analysis'||k==='settle'||k==='settle-due')centerCols.forEach(c=>setS(r,c,{alignment:{horizontal:'center',vertical:'center'}}));});
     // 欄寬:日期夠放區間、項目夠長、金額/付款人不被截
     const widths=new Array(ncols).fill(9);
     widths[0]=21;widths[1]=7;widths[2]=30;for(let i=0;i<nCur;i++)widths[3+i]=9;
@@ -6972,7 +7045,23 @@ const App = {
     wb.Workbook={CalcPr:{fullCalcOnLoad:true}};// 開檔時強制重算,確保 SUM 顯示數值
     XLSX.utils.book_append_sheet(wb,ws,'支出明細');
     const fileName=`${t.name}_支出明細_${this._stamp()}.xlsx`;
-    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    let out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    if(analysisImage){
+      let ExcelJS;
+      try{ExcelJS=await this._loadExcelJS();}
+      catch(err){this.showToast('無法載入 Excel 圖表工具，請確認網路後再試');return;}
+      try{
+        const imageBook=new ExcelJS.Workbook();
+        await imageBook.xlsx.load(out);
+        const imageSheet=imageBook.getWorksheet('支出明細');
+        const imageId=imageBook.addImage({base64:analysisImage.dataUrl,extension:'png'});
+        imageSheet.addImage(imageId,{tl:{col:0,row:analysisStartRow-1},ext:{width:analysisImage.width,height:analysisImage.height},editAs:'oneCell'});
+        const imageRows=Math.ceil(analysisImage.height/20);
+        for(let i=0;i<imageRows;i++)imageSheet.getRow(analysisStartRow+i).height=15;
+        imageBook.calcProperties.fullCalcOnLoad=true;
+        out=await imageBook.xlsx.writeBuffer();
+      }catch(err){console.error('Excel chart embed failed',err);this.showToast('Excel 圖表建立失敗，請稍後再試');return;}
+    }
     const blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     if(share) await this._shareFile(blob,fileName,'支出明細');
     else{ this._downloadBlob(blob,fileName); this.showToast('Excel 已下載'); }
