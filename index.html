@@ -1705,11 +1705,11 @@ select.input{
     <div id="export-detail-content" style="flex:1;overflow-y:auto;padding:0 20px 16px;"></div>
     <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
       <div style="display:flex;gap:8px;align-items:stretch;">
-        <button onclick="App.exportPDF()" style="flex:1;min-width:0;padding:9px 6px;border-radius:12px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;line-height:1.25;">列印/儲存<br>PDF</button>
+        <button onclick="App.exportPDF()" style="flex:1;min-width:0;padding:9px 6px;border-radius:12px;border:1.5px solid var(--accent);background:#fff;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;line-height:1.25;">儲存/分享<br>PDF</button>
         <button onclick="App.exportXLSX(false)" style="flex:1;min-width:0;padding:9px 6px;border-radius:12px;border:none;background:var(--accent);color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">匯出 Excel</button>
         <button onclick="App.exportXLSX(true)" style="flex:1;min-width:0;padding:9px 6px;border-radius:12px;border:1.5px solid var(--accent);background:#EEF0FF;color:var(--accent);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">分享 Excel</button>
       </div>
-      <div style="font-size:11px;color:var(--t2);line-height:1.6;">・匯出／分享 Excel 都需連網（下載製表工具）；PDF 離線可用<br>・要用 Email 傳 PDF：進列印畫面後，Mac 點左下「PDF ⌄」選單 →「郵寄 PDF」；iPhone 點列印預覽的分享鈕 → 郵件</div>
+      <div style="font-size:11px;color:var(--t2);line-height:1.6;">・匯出／分享 Excel 都需連網（下載製表工具）；PDF 離線可用</div>
     </div>
   </div>
 </div>
@@ -6414,7 +6414,7 @@ const App = {
         <h2>${t.name} 支出／結算明細</h2>
         ${html}
       </div>
-      <br><button class="no-print" onclick="window.__fitAndPrint()" style="padding:10px 24px;background:#6366F1;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">列印／存成 PDF</button>
+      <br><button class="no-print" onclick="window.__fitAndPrint()" style="padding:10px 24px;background:#6366F1;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;">儲存／分享 PDF</button>
       <script>
         // 列印前量測最寬的內容(通常是明細表格),用 zoom 縮到符合 A4 橫向可列印寬度(約 281mm),避免右側欄位被切掉。
         // 用 zoom(非 transform):zoom 會真正改變佈局尺寸,列印引擎才會依縮後尺寸排版,不會右緣溢出。
