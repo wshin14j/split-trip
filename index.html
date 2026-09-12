@@ -6914,7 +6914,6 @@ const App = {
     const noteMerge=rn=>merges.push({s:{r:rn-1,c:0},e:{r:rn-1,c:ncols-1}});
     noteMerge(push(['＊ 本表為原始計算結果，不含轉帳還款紀錄'],'note'));
     noteMerge(push(['＊ 台幣欄顯示整數、實際含小數（按「增加小數位數」即可看到）'],'note'));
-    noteMerge(push(['＊ 下方圖表反映「匯出當下」資料；若直接在 Excel 內修改數字，圖表圖片不會自動更新，重新由 RoamSplit 匯出即可更新。'],'note'));
     push([],'blank');
     // ── 匯率摘要(用途長字合併到最右) ──
     const rateRows=exportRateUsageRows(t,exps);
@@ -6946,6 +6945,7 @@ const App = {
     }
     // ── 整趟旅程完整花費 + 結算(比照 PDF:總花費/公費/已支付/待付款；一般值精確，實際轉帳整數) ──
     const dueColor=[];// [row,col,值] → 待付款正負上色
+    let txLineWidth=0;// 合併儲存格不會自動調欄寬，預先記住最長轉帳文字所需寬度。
     if(detailRanges.length){
       push([],'blank');push(['整趟旅程完整花費（群組＋個人）'],'sec-combined');
       // 合計:各人總花費(用 SUM 公式,顯示整數;與 PDF 視覺一致)
@@ -6954,10 +6954,11 @@ const App = {
       // 結算列助手:標籤放在「單價」欄、成員值放成員欄
       const byId=fn=>{const o={};regMembers.forEach(m=>o[m.id]=fn(m));return o;};
       const pushSettle=(label,vals,due)=>{const row=new Array(ncols).fill('');row[unitCol]=label;const rn=push(row,'settle');regMembers.forEach((m,i)=>{const v=vals[m.id];if(v!==''&&v!=null){formulas.push([rn,memberStart+i,null,v]);if(due)dueColor.push([rn,memberStart+i,v]);}});return rn;};
-      // 結算值保留引擎完整小數；儲存格格式只負責顯示整數。
+      // 一般結算值保留引擎完整小數；只有實際待付款依共用規則軋成整數。
       const rnd=v=>Math.round(v||0);
       const gPaid=id=>Number(ENG.groupPaid[id]||0);
-      const owedOf=id=>-Number(ENG.peerBal[id]||0);
+      const settlementBalances=roundSettlementBalances(ENG.peerBal);
+      const balanceOf=id=>Number(settlementBalances[id]||0);// 與 PDF 相同：負數＝應付，正數＝應收。
       const proxyPaid={},selfOnly={};regMembers.forEach(m=>{proxyPaid[m.id]=0;selfOnly[m.id]=0;});
       exps.forEach(e=>{const c=ENG.perExp[e._k];if(!c||c.pending)return;const ps=e.parts||regIds;const pid=typeof e.paidBy==='string'?e.paidBy:Object.keys(e.paidBy||{})[0];const isProxy=e.splitMode!=='self'&&e.splitMode!=='extproxy'&&ps.length===1&&ps[0]!==pid;if(isProxy){if(typeof e.paidBy==='string'&&proxyPaid[e.paidBy]!=null)proxyPaid[e.paidBy]+=c.baseTotal;}else if(e.splitMode==='self'||ps.length===1){Object.entries(c.shares).forEach(([id,v])=>{if(selfOnly[id]!=null)selfOnly[id]+=v;});}});
       const hasProxy=regMembers.some(m=>proxyPaid[m.id]>0);
@@ -6972,19 +6973,52 @@ const App = {
       pushSettle('已支付群組',byId(m=>gPaid(m.id)));
       if(hasProxy)pushSettle('已支付他人墊付',byId(m=>proxyPaid[m.id]>0?proxyPaid[m.id]:''));
       pushSettle('已支出自購',byId(m=>selfOnly[m.id]>0?selfOnly[m.id]:''));
-      const rnDue=pushSettle('待付款',byId(m=>owedOf(m.id)),true);
+      const rnDue=pushSettle('待付款',byId(m=>balanceOf(m.id)),true);
       kinds[rnDue-1]='settle-due';
       // 轉帳提示放在成員欄正下方；「待付款」標籤跨兩列，版型與 PDF 相同。
-      const txs=minimizeTx(roundSettlementBalances(ENG.peerBal));
+      const txs=minimizeTx(settlementBalances);
       const bSym=(C[base]||C.TWD).sym||'';
       const txLine=txs.length===0?'🎉 大家都平帳了！':txs.map(x=>`${mName(x.from)} → ${mName(x.to)}：${bSym}${rnd(x.amt).toLocaleString()}`).join('\n');
+      const excelTextWidth=s=>[...String(s)].reduce((sum,ch)=>sum+(/[^\x00-\xff]/.test(ch)?2:1),0);
+      txLineWidth=Math.max(...txLine.split('\n').map(excelTextWidth))+2;
       const rnTx=push((()=>{const r=new Array(ncols).fill('');r[memberStart]=txLine;return r;})(),'txline');
       merges.push({s:{r:rnDue-1,c:unitCol},e:{r:rnTx-1,c:unitCol}});
       if(regMembers.length>1)merges.push({s:{r:rnTx-1,c:memberStart},e:{r:rnTx-1,c:ncols-1}});
     }
-    // ── 群組支出分析：先保留圖片起點，活頁簿產生後再嵌入 PDF 同款靜態圖表 ──
-    const analysisImage=this._makeExcelAnalysisImage(t,ENG,groupExps,members,base);
-    const analysisStartRow=aoa.length+2;
+    // ── 群組支出分析：用真正儲存格顯示類別、佔比與金額，不嵌入圖片 ──
+    const analysisMoneyCells=[],analysisPctCells=[];
+    const pushAnalysisTable=(title,label,entries,total)=>{
+      push([],'blank');
+      const rnSec=push([title],'sec-analysis');
+      merges.push({s:{r:rnSec-1,c:0},e:{r:rnSec-1,c:ncols-1}});
+      push([label,'佔比',`金額(${base})`],'analysis-head');
+      entries.forEach(([name,amount])=>{
+        const rn=push([name,total>0?Number(amount)/total:0,Number(amount)||0],'analysis');
+        analysisPctCells.push([rn,1]);analysisMoneyCells.push([rn,2]);
+      });
+      const rnTotal=push(['合計',total>0?1:0,total],'analysis-total');
+      analysisPctCells.push([rnTotal,1]);analysisMoneyCells.push([rnTotal,2]);
+    };
+    if(groupExps.length){
+      const catTotals={},payerCat={};
+      groupExps.forEach(e=>{
+        const c=ENG.perExp[e._k];if(!c||c.pending)return;
+        const cat=normCat(e.category||'其他');
+        catTotals[cat]=(catTotals[cat]||0)+c.baseTotal;
+        Object.entries(c.paid||{}).forEach(([pid,v])=>{if(v>0)(payerCat[pid]=payerCat[pid]||{})[cat]=(payerCat[pid][cat]||0)+v;});
+      });
+      const catEntries=Object.entries(catTotals).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a);
+      const groupTotal=catEntries.reduce((s,[,v])=>s+v,0);
+      if(catEntries.length)pushAnalysisTable('群組支出分析','類別',catEntries,groupTotal);
+      const paidEntries=members.map(m=>[m,Number(ENG.groupPaid[m.id]||0)]).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a);
+      const paidTotal=paidEntries.reduce((s,[,v])=>s+v,0);
+      if(paidEntries.length)pushAnalysisTable('成員已支出佔比','成員',paidEntries.map(([m,v])=>[m.name,v]),paidTotal);
+      paidEntries.forEach(([m])=>{
+        const entries=Object.entries(payerCat[m.id]||{}).filter(([,v])=>v>0).sort(([,a],[,b])=>b-a);
+        const total=entries.reduce((s,[,v])=>s+v,0);
+        if(entries.length)pushAnalysisTable(`${m.name} 支出分析`,'類別',entries,total);
+      });
+    }
     const ws=XLSX.utils.aoa_to_sheet(aoa);
     const NF_INT='#,##0',NF_CUR='#,##0.###';// 千分位逗號;台幣整數,原幣保留小數
     formulas.forEach(([rn,col,f,v])=>{const cell={t:'n',v,z:NF_INT};if(f)cell.f=f;ws[XLSX.utils.encode_cell({r:rn-1,c:col})]=cell;});
@@ -6997,6 +7031,8 @@ const App = {
       curCols.forEach(Cc=>{const cell=ws[XLSX.utils.encode_cell({r:R,c:Cc})];if(cell&&cell.t==='n') cell.z=Number.isInteger(cell.v)?NF_INT:NF_CUR;});
       const cCat=ws[XLSX.utils.encode_cell({r:R,c:2})];if(cCat&&cCat.t==='n')cCat.z=NF_INT;
     }
+    analysisMoneyCells.forEach(([rn,col])=>{const cell=ws[XLSX.utils.encode_cell({r:rn-1,c:col})];if(cell)cell.z=NF_INT;});
+    analysisPctCells.forEach(([rn,col])=>{const cell=ws[XLSX.utils.encode_cell({r:rn-1,c:col})];if(cell)cell.z='0%';});
     // ── 樣式:配色全比照 PDF(群組藍 / 個人綠 / 整趟黃 / 表頭灰) ──
     const bd=(c='E5E7EB')=>({style:'thin',color:{rgb:c}});
     const box={top:bd(),bottom:bd(),left:bd(),right:bd()};
@@ -7025,48 +7061,33 @@ const App = {
       else if(k==='settle'){rowS(r,{fill:{fgColor:{rgb:'FEF9C3'}},font:{sz:11},border:{top:bd('FDE68A'),bottom:bd('FDE68A'),left:bd('FDE68A'),right:bd('FDE68A')}});setS(r,unitCol,{font:{color:{rgb:'6B7280'},sz:11},alignment:{horizontal:'center'}});}
       else if(k==='settle-due'){rowS(r,{fill:{fgColor:{rgb:'FEF9C3'}},font:{sz:11},border:{top:bd('FDE68A'),bottom:bd('FDE68A'),left:bd('FDE68A'),right:bd('FDE68A')}});setS(r,unitCol,{font:{bold:true,color:{rgb:'92400E'},sz:11},alignment:{horizontal:'center',vertical:'center'}});regMembers.forEach((m,i)=>setS(r,memberStart+i,{border:{top:{style:'medium',color:{rgb:'F59E0B'}},bottom:{style:'none'},left:i===0?{style:'medium',color:{rgb:'9CA3AF'}}:bd('FDE68A'),right:bd('FDE68A')}}));}
       else if(k==='txline'){rowS(r,{fill:{fgColor:{rgb:'FEF9C3'}},font:{bold:true,color:{rgb:'92400E'}},alignment:{horizontal:'center',vertical:'center',wrapText:true},border:{top:bd('FDE68A'),bottom:bd('FDE68A'),left:bd('FDE68A'),right:bd('FDE68A')}});setS(r,memberStart,{border:{top:{style:'none'},bottom:bd('FDE68A'),left:{style:'medium',color:{rgb:'9CA3AF'}},right:bd('FDE68A')}});}
-      else if(k==='analysis')rowS(r,{border:boxD});
+      else if(k==='analysis-head')rowS(r,{font:{bold:true,color:{rgb:'111827'}},fill:{fgColor:{rgb:'F3F4F6'}},border:boxD,alignment:{horizontal:'center',vertical:'center'}},0,2);
+      else if(k==='analysis'){rowS(r,{border:boxD},0,2);setS(r,0,{alignment:{horizontal:'left',vertical:'center'}});setS(r,1,{alignment:{horizontal:'right',vertical:'center'}});setS(r,2,{alignment:{horizontal:'right',vertical:'center'}});}
+      else if(k==='analysis-total'){rowS(r,{font:{bold:true,color:{rgb:'111827'}},fill:{fgColor:{rgb:'F9FAFB'}},border:boxD},0,2);setS(r,0,{alignment:{horizontal:'left',vertical:'center'}});setS(r,1,{alignment:{horizontal:'right',vertical:'center'}});setS(r,2,{alignment:{horizontal:'right',vertical:'center'}});}
     });
     // 匯率格上色:平均換匯成本=綠、一般匯率=黃(同 PDF)
     rateCells.forEach(([rn,src])=>setS(rn-1,1,{fill:{fgColor:{rgb:src==='平均換匯成本'?'DCFCE7':'FDE68A'}},font:{bold:true,color:{rgb:'111827'}},alignment:{horizontal:'center'},border:boxD}));
-    // 待付款正負上色(正=紅要還、負=綠別人還你)
-    dueColor.forEach(([rn,col,v])=>setS(rn-1,col,{font:{bold:true,color:{rgb:v>0?'EF4444':v<0?'22C55E':'6B7280'}}}));
+    // 待付款與 PDF 一致：負=紅色應付，正=綠色應收。
+    dueColor.forEach(([rn,col,v])=>setS(rn-1,col,{font:{bold:true,color:{rgb:v<0?'EF4444':v>0?'22C55E':'6B7280'}}}));
     // 除了日期(0)、項目(2)靠左,其餘欄(類別/方式/付款人/金額…)全部置中
     const centerCols=[];for(let c=0;c<ncols;c++){if(c!==0&&c!==2)centerCols.push(c);}
-    kinds.forEach((k,r)=>{if(k==='detail'||k==='ttl-group'||k==='ttl-personal'||k==='ttl-combined'||k==='analysis'||k==='settle'||k==='settle-due')centerCols.forEach(c=>setS(r,c,{alignment:{horizontal:'center',vertical:'center'}}));});
+    kinds.forEach((k,r)=>{if(k==='detail'||k==='ttl-group'||k==='ttl-personal'||k==='ttl-combined'||k==='settle'||k==='settle-due')centerCols.forEach(c=>setS(r,c,{alignment:{horizontal:'center',vertical:'center'}}));});
     // 欄寬:日期夠放區間、項目夠長、金額/付款人不被截
     const widths=new Array(ncols).fill(9);
     widths[0]=21;widths[1]=7;widths[2]=30;for(let i=0;i<nCur;i++)widths[3+i]=9;
     widths[methodCol]=11;widths[payerCol]=16;widths[splitCol]=7;widths[cntCol]=8;widths[totalCol]=13;widths[unitCol]=12;
     regMembers.forEach((m,i)=>widths[memberStart+i]=Math.max(9,(m.name||'').length*2+3));
+    if(regMembers.length&&txLineWidth>0){
+      const current=regMembers.reduce((sum,m,i)=>sum+widths[memberStart+i],0);
+      if(current<txLineWidth){const extra=(txLineWidth-current)/regMembers.length;regMembers.forEach((m,i)=>{widths[memberStart+i]+=extra;});}
+    }
     ws['!cols']=widths.map(w=>({wch:w}));
     ws['!merges']=merges;
     const wb=XLSX.utils.book_new();
     wb.Workbook={CalcPr:{fullCalcOnLoad:true}};// 開檔時強制重算,確保 SUM 顯示數值
     XLSX.utils.book_append_sheet(wb,ws,'支出明細');
     const fileName=`${t.name}_支出明細_${this._stamp()}.xlsx`;
-    let out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
-    if(analysisImage){
-      let ExcelJS;
-      try{ExcelJS=await this._loadExcelJS();}
-      catch(err){this.showToast('無法載入 Excel 圖表工具，請確認網路後再試');return;}
-      try{
-        const imageBook=new ExcelJS.Workbook();
-        await imageBook.xlsx.load(out);
-        const imageSheet=imageBook.getWorksheet('支出明細');
-        const imageId=imageBook.addImage({base64:analysisImage.dataUrl,extension:'png'});
-        const imageRows=Math.ceil(analysisImage.height/20);
-        imageSheet.properties.defaultRowHeight=15;// 有自訂列高時必須一併寫入預設列高，否則 Excel 會修復 sheet1.xml。
-        for(let i=0;i<imageRows;i++)imageSheet.getRow(analysisStartRow+i).height=15;
-        // 改用雙定位點產生 twoCellAnchor；editAs 在此結構才是合法屬性，避免 Excel 跳出修復警告。
-        const colPx=widths.map(w=>Math.floor(w*7+5));let remainPx=analysisImage.width,endCol=0;
-        while(endCol<colPx.length-1&&remainPx>colPx[endCol]){remainPx-=colPx[endCol];endCol++;}
-        const endColPos=endCol+Math.min(1,remainPx/(colPx[endCol]||64));
-        imageSheet.addImage(imageId,{tl:{col:0,row:analysisStartRow-1},br:{col:endColPos,row:analysisStartRow-1+analysisImage.height/20},editAs:'oneCell'});
-        imageBook.calcProperties.fullCalcOnLoad=true;
-        out=await imageBook.xlsx.writeBuffer();
-      }catch(err){console.error('Excel chart embed failed',err);this.showToast('Excel 圖表建立失敗，請稍後再試');return;}
-    }
+    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
     const blob=new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     if(share) await this._shareFile(blob,fileName,'支出明細');
     else{ this._downloadBlob(blob,fileName); this.showToast('Excel 已下載'); }
